@@ -20,6 +20,19 @@ const std::vector<const char*> validationLayers = {
     const bool enableValidationLayers = true;
 #endif
 
+static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
+    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+    VkDebugUtilsMessageTypeFlagsEXT messageType,
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData) {
+
+    if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+      std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+    }
+
+    return VK_FALSE;
+}
+
 bool VkTstApp::checkValidationLayerSupport() {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -46,11 +59,9 @@ bool VkTstApp::checkValidationLayerSupport() {
 
 VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr) {
-        return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-    } else {
-        return VK_ERROR_EXTENSION_NOT_PRESENT;
-    }
+    return func != nullptr ?
+      func(instance, pCreateInfo, pAllocator, pDebugMessenger) :
+      VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
 void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
@@ -98,11 +109,42 @@ void VkTstApp::createInstance(){
         .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
         .ppEnabledExtensionNames = extensions.data(),
     };
-    std::cout << "CreateInfo layer count : "<<createInfo.enabledLayerCount<<std::endl;
-    std::cout << "CreatInfo extensions count : "<<createInfo.enabledExtensionCount <<std::endl;
-    if(vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS)
-       throw std::runtime_error("failed to create instance");
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
+    if(enableValidationLayers){
+      populateDebugMessenger(debugCreateInfo);
+      createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo;
+    }
 
+    std::cout << "CreateInfo struct filled."<<std::endl;
+    VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
+    std::cout <<"Create info struct result value : "<<result << std::endl;
+    if(result != VK_SUCCESS)
+       throw std::runtime_error("failed to create instance");
+}
+void VkTstApp::populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo){
+  createInfo = {
+    .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT ,
+    .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | 
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | 
+                       VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
+    .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | 
+                   VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | 
+                   VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
+    .pfnUserCallback = debugCallback
+  };
+}
+
+void VkTstApp::setupDebugMessenger(){
+  if(!enableValidationLayers) return ;
+
+  std::cout <<"Here 2" << std::endl;
+  VkDebugUtilsMessengerCreateInfoEXT createInfo;
+  populateDebugMessenger(createInfo);
+  VkResult result = CreateDebugUtilsMessengerEXT(instance,&createInfo,nullptr, &debugMessenger);
+  if(result != VK_SUCCESS){
+    std::cout << "Result value : "<< result << std::endl; 
+    throw std::runtime_error("failed to set up debug messenger!");
+  }
 }
 void VkTstApp::run(){
     initWindow();
@@ -120,7 +162,11 @@ void VkTstApp::initWindow(){
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Test", nullptr, nullptr);
 }
 void VkTstApp::initVulkan(){
-    createInstance();
+  
+  std::cout <<"createInstance"<<std::endl;
+  createInstance();
+  std::cout <<"setupDebugMessenger"<<std::endl;
+  setupDebugMessenger();
 }
 void VkTstApp::mainLoop(){
     while (!glfwWindowShouldClose(window)){
@@ -129,6 +175,8 @@ void VkTstApp::mainLoop(){
     }
 }
 void VkTstApp::cleanup(){
+    //if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
+
     vkDestroyInstance(instance , nullptr);
     glfwDestroyWindow(window);
     glfwTerminate();

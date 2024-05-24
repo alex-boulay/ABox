@@ -16,20 +16,21 @@ class VkTstApp{
 	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
 
-	void createInstance();
-	void initWindow();
-	void initVulkan();
+  void createInstance();
+  void initWindow();
+  void initVulkan();
+  void createLogicalDevice();
   void setupDebugMessenger();
   void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
   void pickPhysicalDevice();
-	bool isDeviceSuitable(VkPhysicalDevice device);
+  bool isDeviceSuitable(VkPhysicalDevice device);
   void mainLoop();
-	void cleanup();
-	QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+  void cleanup();
+  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
 
   bool checkValidationLayerSupport();
 
-	public:
-	void run();
+  public:
+    void run();
 };
 

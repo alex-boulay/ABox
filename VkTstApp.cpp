@@ -1,6 +1,7 @@
 #include "VkTstApp.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdint> 
+#include <ostream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 #include <cstring>
@@ -121,6 +122,7 @@ void VkTstApp::createInstance(){
     if(result != VK_SUCCESS)
        throw std::runtime_error("failed to create instance");
 }
+
 void VkTstApp::populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo){
   createInfo = {
     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT ,
@@ -144,6 +146,9 @@ void VkTstApp::setupDebugMessenger(){
     std::cout << "Result value : "<< result << std::endl; 
     throw std::runtime_error("failed to set up debug messenger!");
   }
+  else{
+        std::cout << "Validation Layers Enabled !"<< std::endl;
+  }  
 }
 void VkTstApp::run(){
     initWindow();
@@ -160,11 +165,59 @@ void VkTstApp::initWindow(){
 
     window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Test", nullptr, nullptr);
 }
+
 void VkTstApp::initVulkan(){
   createInstance();
   setupDebugMessenger();
   pickPhysicalDevice();
+  createLogicalDevice();
 }
+
+void VkTstApp::createLogicalDevice(){
+  QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
+
+  float queuePriority = 1.0f;
+  VkDeviceQueueCreateInfo queueCreateInfo{
+    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+    .queueFamilyIndex = indices.graphicsFamily.value(),
+    .queueCount = 1,
+    .pQueuePriorities = &queuePriority
+  };
+
+  VkPhysicalDeviceFeatures deviceFeatures{};
+
+  VkDeviceCreateInfo createInfo{
+    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .pQueueCreateInfos = &queueCreateInfo,
+    .queueCreateInfoCount = 1,
+    .pEnabledFeatures = &deviceFeatures,
+    .enabledExtensionCount = 0,
+  };
+  if (enableValidationLayers) {
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+  } else 
+    createInfo.enabledLayerCount = 0;
+
+  if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
+    throw std::runtime_error("failed to create logical device!");
+  
+  vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+  
+  if (enableValidationLayers) {
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    createInfo.ppEnabledLayerNames = validationLayers.data();
+  } else {
+    createInfo.enabledLayerCount = 0;
+  }
+
+  if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
+    throw std::runtime_error("failed to create logical device!");
+  }
+
+  vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
+}
+
 void VkTstApp::pickPhysicalDevice(){
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -182,11 +235,13 @@ void VkTstApp::pickPhysicalDevice(){
     throw std::runtime_error("failed to find a suitable GPU!");
   }
 }
+
 bool VkTstApp::isDeviceSuitable(VkPhysicalDevice device){
   QueueFamilyIndices indices = findQueueFamilies(device);
 
   return indices.isComplete();
 }
+
 QueueFamilyIndices VkTstApp::findQueueFamilies(VkPhysicalDevice device){
   QueueFamilyIndices indices;
   uint32_t queueFamilyCount = 0;
@@ -203,12 +258,14 @@ QueueFamilyIndices VkTstApp::findQueueFamilies(VkPhysicalDevice device){
   }
   return indices;
 }
+
 void VkTstApp::mainLoop(){
     while (!glfwWindowShouldClose(window)){
       glfwPollEvents();
       //std::cout <<"Vulkan app running" <<std::endl;
     }
 }
+
 void VkTstApp::cleanup(){
     if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 

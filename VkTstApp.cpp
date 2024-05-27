@@ -188,32 +188,16 @@ void VkTstApp::createLogicalDevice(){
 
   VkDeviceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-    .pQueueCreateInfos = &queueCreateInfo,
     .queueCreateInfoCount = 1,
-    .pEnabledFeatures = &deviceFeatures,
+    .pQueueCreateInfos = &queueCreateInfo,
+    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames =enableValidationLayers ? validationLayers.data() : nullptr,
     .enabledExtensionCount = 0,
+    .pEnabledFeatures = &deviceFeatures,
   };
-  if (enableValidationLayers) {
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-  } else 
-    createInfo.enabledLayerCount = 0;
 
   if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
     throw std::runtime_error("failed to create logical device!");
-  
-  vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
-  
-  if (enableValidationLayers) {
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    createInfo.ppEnabledLayerNames = validationLayers.data();
-  } else {
-    createInfo.enabledLayerCount = 0;
-  }
-
-  if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS) {
-    throw std::runtime_error("failed to create logical device!");
-  }
 
   vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 }
@@ -267,6 +251,7 @@ void VkTstApp::mainLoop(){
 }
 
 void VkTstApp::cleanup(){
+    vkDestroyDevice(device, nullptr);
     if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
     vkDestroyInstance(instance , nullptr);

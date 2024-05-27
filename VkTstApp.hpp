@@ -10,11 +10,13 @@ struct QueueFamilyIndices {
 };
 class VkTstApp{
 	
-	GLFWwindow* window;
-	VkInstance instance;
+  GLFWwindow* window;
+  VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
-	VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+  VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
+  VkQueue graphicsQueue;
+  VkSurfaceKHR surface;
 
   void createInstance();
   void initWindow();

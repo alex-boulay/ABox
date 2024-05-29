@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 cmake_policy(VERSION 3.15)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 FILE(GLOB SOURCE_FILES "*.cpp")
 FILE(GLOB HEADER_FILES "*.hpp")
 

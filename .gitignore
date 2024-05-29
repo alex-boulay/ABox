@@ -1,3 +1,5 @@
 *.o
 VulkanTest
 /build/
+/.cache/
+compile_commands.json

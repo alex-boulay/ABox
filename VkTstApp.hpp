@@ -18,19 +18,20 @@ class VkTstApp{
   VkQueue graphicsQueue;
   VkSurfaceKHR surface;
 
+  bool checkValidationLayerSupport();
+
+  void cleanup();
   void createInstance();
-  void initWindow();
-  void initVulkan();
   void createLogicalDevice();
-  void setupDebugMessenger();
-  void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-  void pickPhysicalDevice();
+  void createSurface();
+  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
+  void initVulkan();
+  void initWindow();
   bool isDeviceSuitable(VkPhysicalDevice device);
   void mainLoop();
-  void cleanup();
-  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
-
-  bool checkValidationLayerSupport();
+  void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+  void pickPhysicalDevice();
+  void setupDebugMessenger();
 
   public:
     void run();

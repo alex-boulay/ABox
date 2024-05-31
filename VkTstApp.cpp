@@ -86,6 +86,12 @@ std::vector<const char*> getRequiredExtensions() {
     return extensions;
 }
 
+void VkTstApp::createSurface(){
+    if(glfwCreateWindowSurface(instance, window, nullptr, surface)!= VK_SUCCESS){
+        throw std::runtime_error("Failed to create window Surface");
+    }
+}
+
 void VkTstApp::createInstance(){
     if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
@@ -153,6 +159,7 @@ void VkTstApp::setupDebugMessenger(){
 void VkTstApp::run(){
     initWindow();
     initVulkan();
+    createSurface();
     mainLoop();
     cleanup();
 }
@@ -254,6 +261,7 @@ void VkTstApp::cleanup(){
     vkDestroyDevice(device, nullptr);
     if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
 
+    vkDestroySurfaceKHR(instance,surface,nullptr);
     vkDestroyInstance(instance , nullptr);
     glfwDestroyWindow(window);
     glfwTerminate();

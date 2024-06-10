@@ -1,9 +1,7 @@
 #include "VkTstApp.hpp"
-#include <GLFW/glfw3.h>
 #include <cstdint> 
 #include <ostream>
 #include <stdexcept>
-#include <vulkan/vulkan_core.h>
 #include <cstring>
 #include <vector>
 #include <iostream>
@@ -87,7 +85,7 @@ std::vector<const char*> getRequiredExtensions() {
 }
 
 void VkTstApp::createSurface(){
-    if(glfwCreateWindowSurface(instance, window, nullptr, surface)!= VK_SUCCESS){
+    if(glfwCreateWindowSurface(instance, window, nullptr, &surface)!= VK_SUCCESS){
         throw std::runtime_error("Failed to create window Surface");
     }
 }
@@ -237,14 +235,19 @@ QueueFamilyIndices VkTstApp::findQueueFamilies(VkPhysicalDevice device){
   QueueFamilyIndices indices;
   uint32_t queueFamilyCount = 0;
   vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
+    
   std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
   vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+  
+  VkBool32 presentSupport;
   int i = 0;
   for (const auto& queueFamily : queueFamilies) {
     if (queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         indices.graphicsFamily = i;
     if (indices.isComplete()) break;
+    presentSupport = false;
+    vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+    if (presentSupport) indices.presentFamily = i;
     i++;
   }
   return indices;

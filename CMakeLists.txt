@@ -13,4 +13,4 @@ project(VkTstApp)
 add_executable(VkTstApp ${SOURCE_FILES} ${HEADER_FILES})
 
 # Linker flags (adjust based on your target platform)
-target_link_libraries(VkTstApp "-lglfw -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi")
+target_link_libraries(VkTstApp "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi")

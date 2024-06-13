@@ -1,3 +1,4 @@
+#include "VkTstApp.hpp"
 #include <exception>
 //#define GLFW_VERSION_MAJOR 3
 //#define GLFW_VERSION_MINOR 3
@@ -10,7 +11,6 @@
 #include <iostream>
 #include <cstdlib>
 
-#include "VkTstApp.hpp"
 
 int main() {
     VkTstApp app;
@@ -19,7 +19,7 @@ int main() {
     try {
         app.run();
     }catch (const std::exception& e){
-        std::cerr <<e.what() << std::endl;
+        std::cerr << e.what() << std::endl;
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;

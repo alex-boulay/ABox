@@ -13,6 +13,12 @@ struct QueueFamilyIndices {
                presentFamily.has_value();
     }
 };
+
+/**
+ * @class VkTstApp
+ * @brief Vulkan Loader application
+ *
+ */
 class VkTstApp{
 	
   GLFWwindow* window;
@@ -21,6 +27,7 @@ class VkTstApp{
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
   VkDevice device;
   VkQueue graphicsQueue;
+  VkQueue presentQueue;
   VkSurfaceKHR surface;
 
   bool checkValidationLayerSupport();

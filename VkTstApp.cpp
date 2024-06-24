@@ -5,6 +5,8 @@
 #include <cstring>
 #include <vector>
 #include <iostream>
+#include <set> 
+#include <vulkan/vulkan_core.h>
 
 static const uint_fast16_t WIDTH  = 800;
 static const uint_fast16_t HEIGHT = 600;
@@ -181,14 +183,18 @@ void VkTstApp::initVulkan(){
 void VkTstApp::createLogicalDevice(){
   QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
+  std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+  std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily.value(), indices.presentFamily.value()};
   float queuePriority = 1.0f;
-  VkDeviceQueueCreateInfo queueCreateInfo{
-    .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-    .queueFamilyIndex = indices.graphicsFamily.value(),
-    .queueCount = 1,
-    .pQueuePriorities = &queuePriority
-  };
-
+  for( uint32_t queueFamily : uniqueQueueFamilies){
+    VkDeviceQueueCreateInfo queueCreateInfo{
+      .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .queueFamilyIndex = queueFamily,
+      .queueCount = 1,
+      .pQueuePriorities = &queuePriority
+    };
+    queueCreateInfos.push_back(queueCreateInfo);
+  }
   VkPhysicalDeviceFeatures deviceFeatures{};
 
   VkDeviceCreateInfo createInfo{

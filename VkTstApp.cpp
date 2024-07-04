@@ -3,17 +3,9 @@
 #include <ostream>
 #include <stdexcept>
 #include <cstring>
-#include <vector>
 #include <iostream>
 #include <set> 
 #include <vulkan/vulkan_core.h>
-
-static const uint_fast16_t WIDTH  = 800;
-static const uint_fast16_t HEIGHT = 600;
-
-const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-};
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -87,8 +79,10 @@ std::vector<const char*> getRequiredExtensions() {
 }
 
 void VkTstApp::createSurface(){
-    if(glfwCreateWindowSurface(instance, window, nullptr, &surface)!= VK_SUCCESS){
+    if(glfwCreateWindowSurface(instance, window, nullptr, &surface)!= VK_SUCCESS)
         throw std::runtime_error("Failed to create window Surface");
+    else {
+        std::cout << "Surface Pointer : " << &surface <<std::endl;
     }
 }
 
@@ -159,7 +153,6 @@ void VkTstApp::setupDebugMessenger(){
 void VkTstApp::run(){
     initWindow();
     initVulkan();
-    createSurface();
     mainLoop();
     cleanup();
 }
@@ -176,6 +169,7 @@ void VkTstApp::initWindow(){
 void VkTstApp::initVulkan(){
   createInstance();
   setupDebugMessenger();
+  createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
 }
@@ -191,20 +185,22 @@ void VkTstApp::createLogicalDevice(){
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
       .queueFamilyIndex = queueFamily,
       .queueCount = 1,
-      .pQueuePriorities = &queuePriority
+      .pQueuePriorities = &queuePriority,
     };
     queueCreateInfos.push_back(queueCreateInfo);
   }
+
   VkPhysicalDeviceFeatures deviceFeatures{};
 
   VkDeviceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-    .queueCreateInfoCount = 1,
-    .pQueueCreateInfos = &queueCreateInfo,
-    .enabledLayerCount = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
-    .ppEnabledLayerNames =enableValidationLayers ? validationLayers.data() : nullptr,
-    .enabledExtensionCount = 0,
-    .pEnabledFeatures = &deviceFeatures,
+    .queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size()),
+    .pQueueCreateInfos       = queueCreateInfos.data(),
+    .enabledLayerCount       = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
+    .ppEnabledLayerNames     = enableValidationLayers ? validationLayers.data() : nullptr,
+    .enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size()),
+    .ppEnabledExtensionNames = deviceExtensions.data(),
+    .pEnabledFeatures        = &deviceFeatures,
   };
 
   if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
@@ -234,7 +230,23 @@ void VkTstApp::pickPhysicalDevice(){
 bool VkTstApp::isDeviceSuitable(VkPhysicalDevice device){
   QueueFamilyIndices indices = findQueueFamilies(device);
 
-  return indices.isComplete();
+  bool extensionsSupported = checkDeviceExtensionSupport(device);
+
+  return indices.isComplete()&& extensionsSupported;
+}
+
+bool VkTstApp::checkDeviceExtensionSupport(VkPhysicalDevice device){
+  uint32_t extensionCount;
+  vkEnumerateDeviceExtensionProperties(device,nullptr,&extensionCount,nullptr);
+  
+  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+  vkEnumerateDeviceExtensionProperties(device,nullptr, &extensionCount, availableExtensions.data());
+
+  std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
+  for(const auto& extension : availableExtensions){
+    requiredExtensions.erase(extension.extensionName);
+  }
+  return requiredExtensions.empty();
 }
 
 QueueFamilyIndices VkTstApp::findQueueFamilies(VkPhysicalDevice device){
@@ -269,9 +281,11 @@ void VkTstApp::mainLoop(){
 void VkTstApp::cleanup(){
     vkDestroyDevice(device, nullptr);
     if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-
+    std::cout << "Destroy Debug Util" << std::endl;
     vkDestroySurfaceKHR(instance,surface,nullptr);
+    std::cout << "SurfaceKHR Destroyed " << std::endl;
     vkDestroyInstance(instance , nullptr);
+    std::cout << "Instance Destroyed" << std::endl;
     glfwDestroyWindow(window);
     glfwTerminate();
 }

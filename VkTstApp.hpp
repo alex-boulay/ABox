@@ -62,6 +62,8 @@ class VkTstApp{
   void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
   void pickPhysicalDevice();
   void setupDebugMessenger();
+  SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+  VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
 
   public:
     void run();

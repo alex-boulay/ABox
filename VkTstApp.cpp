@@ -1,9 +1,12 @@
 #include "VkTstApp.hpp"
+#include <GLFW/glfw3.h>
 #include <cstdint> 
 #include <ostream>
 #include <stdexcept>
 #include <cstring>
 #include <iostream>
+#include <limits>
+#include <algorithm>
 #include <set> 
 #include <vulkan/vulkan_core.h>
 
@@ -171,6 +174,7 @@ void VkTstApp::initVulkan(){
   createSurface();
   pickPhysicalDevice();
   createLogicalDevice();
+  createSwapChain();
 }
 
 void VkTstApp::createLogicalDevice(){
@@ -305,6 +309,41 @@ VkSurfaceFormatKHR VkTstApp::chooseSwapSurfaceFormat(const std::vector<VkSurface
     }
   }
   return availableFormats[0];
+}
+
+VkPresentModeKHR VkTstApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes){
+  for (const auto& availablePresentMode : availablePresentModes) {
+    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      return availablePresentMode;
+      }
+  }
+  return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D VkTstApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities){
+  if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
+    return capabilities.currentExtent;
+  else{
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+
+    VkExtent2D actualExtent = {
+      static_cast<uint32_t>(width),
+      static_cast<uint32_t>(height)
+    };
+
+    actualExtent.width = std::clamp(actualExtent.width, capabilities.minImageExtent.width,capabilities.maxImageExtent.width);
+    actualExtent.height = std::clamp(actualExtent.height,capabilities.minImageExtent.height,capabilities.maxImageExtent.height);
+    
+    return actualExtent;
+  }
+}
+
+void VkTstApp::createSwapChain(){
+  SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
+  VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
+  VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
+  VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
 }
 
 void VkTstApp::mainLoop(){

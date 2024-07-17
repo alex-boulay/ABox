@@ -354,7 +354,7 @@ void VkTstApp::createSwapChain(){
   };
 
   #define SCSC_Mi swapChainSupport.capabilities.minImageCount + 1
-  #define SCSC_Ma swapChainSupport.capabilities.maxImageCount 
+  #define SCSC_Ma swapChainSupport.capabilities.maxImageCount
   #define SCSC_MinC std::min(SCSC_Ma,SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi)
   #define SCSC_CONCURENT (indices.graphicsFamily != indices.presentFamily)
 
@@ -384,7 +384,7 @@ void VkTstApp::createSwapChain(){
 
   if(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
     throw std::runtime_error("failed to create swap chain !");
-  else 
+  else
     std::cout << "Swapchain created !!" << std::endl;
 
   vkGetSwapchainImagesKHR(device, swapChain, &createInfo.minImageCount,nullptr);

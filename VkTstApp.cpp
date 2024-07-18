@@ -397,14 +397,16 @@ void VkTstApp::createSwapChain(){
 
 void VkTstApp::createImageViews(){
   swapChainImageViews.resize(swapChainImages.size());
-  #define LOC_SID VK_COMPONENT_SWIZZLE_IDENTITY
+
+  constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY ;
+  
   for (size_t i = 0; i < swapChainImages.size(); i++){
     VkImageViewCreateInfo createInfo = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
       .image = swapChainImages[i],
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
       .format = swapChainImageFormat,
-      .components= { LOC_SID,LOC_SID,LOC_SID,LOC_SID },
+      .components= { sid, sid, sid, sid},
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
         .levelCount = 1,
@@ -414,7 +416,6 @@ void VkTstApp::createImageViews(){
     if(vkCreateImageView(device, &createInfo,nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
       throw std::runtime_error("failed to create image views!");
   }
-  #undef LOC_SID
 
 }
 

@@ -11,7 +11,6 @@
 #include <iostream>
 #include <cstdlib>
 
-
 int main() {
   VkTstApp app;
   glfwInit();

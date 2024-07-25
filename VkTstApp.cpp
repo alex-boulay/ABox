@@ -416,7 +416,10 @@ void VkTstApp::createImageViews(){
     if(vkCreateImageView(device, &createInfo,nullptr, &swapChainImageViews[i]) != VK_SUCCESS)
       throw std::runtime_error("failed to create image views!");
   }
+}
 
+void VkTstApp::createGraphicsPipeline(){
+  
 }
 
 void VkTstApp::mainLoop(){

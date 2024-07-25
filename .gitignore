@@ -3,3 +3,4 @@ VulkanTest
 /build/
 /.cache/
 compile_commands.json
+*.spv

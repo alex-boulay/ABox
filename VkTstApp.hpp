@@ -73,6 +73,7 @@ class VkTstApp{
   VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
   void createSwapChain();
   void createImageViews();
+  void createGraphicsPipeline();
 
   public:
     void run();

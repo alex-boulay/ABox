@@ -14,6 +14,7 @@ struct QueueFamilyIndices {
            presentFamily.has_value();
   }
 };
+
 struct SwapChainSupportDetails {
   VkSurfaceCapabilitiesKHR capabilities;
   std::vector<VkSurfaceFormatKHR> formats;

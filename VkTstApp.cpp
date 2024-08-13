@@ -1,4 +1,5 @@
 #include "VkTstApp.hpp"
+#include "VkShaderHandler.h"
 #include <GLFW/glfw3.h>
 #include <cstdint> 
 #include <ostream>
@@ -9,7 +10,6 @@
 #include <algorithm>
 #include <set> 
 #include <vulkan/vulkan_core.h>
-
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
 #else
@@ -155,6 +155,9 @@ void VkTstApp::setupDebugMessenger(){
 void VkTstApp::run(){
   initWindow();
   initVulkan();
+//TEST
+  VkShaderHandler shaderHandler; 
+//ENDTEST
   mainLoop();
   cleanup();
 }
@@ -434,11 +437,12 @@ void VkTstApp::cleanup(){
     vkDestroyImageView(device,imageView, nullptr);
 
   vkDestroySwapchainKHR(device, swapChain, nullptr);
-  vkDestroyDevice(device, nullptr);
   if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
   std::cout << "Destroy Debug Util" << std::endl;
   vkDestroySurfaceKHR(instance,surface,nullptr);
   std::cout << "SurfaceKHR Destroyed " << std::endl;
+  vkDestroyDevice(device, nullptr);
+  std::cout << "Device Destroyed" << std::endl;
   vkDestroyInstance(instance , nullptr);
   std::cout << "Instance Destroyed" << std::endl;
   glfwDestroyWindow(window);

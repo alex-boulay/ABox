@@ -1,5 +1,5 @@
 #include "VkTstApp.hpp"
-#include "VkShaderHandler.h"
+#include "VkShaderHandler.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdint> 
 #include <ostream>
@@ -52,14 +52,23 @@ bool VkTstApp::checkValidationLayerSupport() {
   return true;
 }
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
+VkResult CreateDebugUtilsMessengerEXT(
+  VkInstance instance,
+  const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+  const VkAllocationCallbacks* pAllocator, 
+  VkDebugUtilsMessengerEXT* pDebugMessenger
+){
   auto func = (PFN_vkCreateDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
   return func != nullptr ?
     func(instance, pCreateInfo, pAllocator, pDebugMessenger) :
     VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator) {
+void DestroyDebugUtilsMessengerEXT(
+  VkInstance instance, 
+  VkDebugUtilsMessengerEXT debugMessenger, 
+  const VkAllocationCallbacks* pAllocator
+){
   auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
   if (func != nullptr) {
     func(instance, debugMessenger, pAllocator);

@@ -19,9 +19,13 @@ FILE(GLOB HEADER_FILES "*.hpp")
 # Target executable
 add_executable(VkTstApp ${SOURCE_FILES} ${HEADER_FILES})
 
-# Find and link fmt library
-find_package(fmt REQUIRED)
-target_link_libraries(VkTstApp fmt::fmt)
-
 # Linker flags (adjust based on your target platform)
-target_link_libraries(VkTstApp "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi")
+target_link_libraries(VkTstApp PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi" glslang::glslang glslang::SPIRV)
+
+# Specify the install directory for the executable
+install(TARGETS VkTstApp
+        RUNTIME DESTINATION bin)
+
+# Optionally install shaders or other resources
+install(DIRECTORY shaders/ DESTINATION share/VkTstApp/shaders)
+install(DIRECTORY resources/ DESTINATION share/VkTstApp/resources)

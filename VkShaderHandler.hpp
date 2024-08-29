@@ -1,16 +1,24 @@
+#include <asm-generic/errno.h>
 #include <cstdio>
 #include <glslang/MachineIndependent/Versions.h>
 #include <stdexcept>
 #include <string>
 #include <vector>
+#include <map>
 #include <tuple>
+#include <array>
 #include <vulkan/vulkan_core.h>
 #include <filesystem>
 #include <iostream>
 #include <fstream>
 #include <cassert> 
 #include <algorithm>
+#include <optional>
 #include <glslang/Public/ShaderLang.h>
+#include <glslang/SPIRV/GlslangToSpv.h>
+#include <glslang/SPIRV/Logger.h>
+#include <glslang/Public/ResourceLimits.h>
+
 
 #define FILE_DEBUG
 // Define DEBUG_PRINT only if DEBUG is enabled
@@ -22,15 +30,21 @@
         // Nothing, as DEBUG_PRINT is empty in release mode
 #endif
 
-class ShaderExtentionHandler{
+#define OPENGL_CHOSEN_VERSION 450
+#define VULKAN_CHOSEN_VERSION glslang::EShTargetVulkan_1_3 // need to bind it to current API number
+#define SPIRV_CHOSEN_VERSION  glslang::EShTargetSpv_1_5
+
+typedef std::tuple<std::string,EShLanguage,VkShaderStageFlagBits> stageExtention;
+
+class StageExtentionHandler{
   
-  ShaderExtentionHandler() = default;
+  StageExtentionHandler() = default;
   /** @brief map matching an extension to a shader bit
    * same shader can be used in different stages the infomation
    * provided is mostly to categorise them then endvalue of the
    * shader flag mask
    */
-  inline static const std::vector<std::tuple<std::string,EShLanguage,VkShaderStageFlagBits>> map={
+  inline static const std::vector<stageExtention> map={
     {".vert" , EShLangVertex        , VK_SHADER_STAGE_VERTEX_BIT},
     {".frag" , EShLangFragment      , VK_SHADER_STAGE_FRAGMENT_BIT},
     {".comp" , EShLangCompute       , VK_SHADER_STAGE_COMPUTE_BIT},
@@ -50,12 +64,51 @@ class ShaderExtentionHandler{
 public:
 
   template<typename T>
-  static constexpr auto at(T key){ return std::find_if(map.begin(),map.end(),[key](const auto& v){return key == std::get<T>(v);});}
+  inline static constexpr auto at(T key){ return std::find_if(map.begin(),map.end(),[key](const auto& v){return key == std::get<T>(v);});}
   
   template<typename T>
-  static constexpr bool contains(T key) { return map.end()!= at(key);}
+  inline static constexpr bool contains(T key) { return map.end()!= at(key);}
 
+  [[nodiscard]] inline static constexpr std::optional<EShLanguage> getStageExt(std::string stageExt){
+    return StageExtentionHandler::contains(stageExt) ? 
+      std::optional<EShLanguage>{std::get<EShLanguage>(*(StageExtentionHandler::at(stageExt)))} :
+      std::nullopt;
+  }
 };
+
+enum class SourcePlatform {
+    GLSL,   // GLSL (OpenGL Shading Language)
+    HLSL,   // HLSL (High-Level Shading Language, DirectX)
+    OpenCL, // OpenCL C
+    CUDA,   // CUDA (NVIDIA)
+    WGSL,   // WGSL (WebGPU Shading Language)
+    Rust,   // Rust (using Vulkan bindings)
+    Python, // Python (using PyOpenCL or PyVulkan)
+    Unknown // platform not specified or unknown
+};
+
+static const std::map<std::string, SourcePlatform> extensionToPlatform = {
+    {".glsl", SourcePlatform::GLSL},
+    {".hlsl", SourcePlatform::HLSL},
+    {".fx",   SourcePlatform::HLSL},
+    {".cl",   SourcePlatform::OpenCL},
+    {".cu",   SourcePlatform::CUDA},
+    {".wgsl", SourcePlatform::WGSL},
+    {".rs",   SourcePlatform::Rust},
+    {".py",   SourcePlatform::Python}
+};
+
+[[nodiscard]] inline static const SourcePlatform getPlatformExt(std::string platExt){
+  return extensionToPlatform.contains(platExt) ? extensionToPlatform.at(platExt) : SourcePlatform::Unknown;
+}
+
+static const glslang::EShSource getEShSource(SourcePlatform sourcePlatform){
+  switch (sourcePlatform){
+    case(SourcePlatform::GLSL) : return glslang::EShSourceGlsl;
+    case(SourcePlatform::HLSL) : return glslang::EShSourceHlsl;
+    default : return glslang::EShSourceNone;
+  }
+} //target language for SPIRV compilation
 
 /** @brief enum to represent a result status type for files */
 typedef enum VkFileResult{
@@ -74,19 +127,25 @@ typedef enum VkFileResult{
  * @member mask
  */
 class ShaderDataFile{
-  const std::string name;
-  const std::vector<char> code;
-  const int64_t mask;
-  VkShaderModule module;
-  const VkDevice * const device; //dangerzone !
+  const std::string           name;     //name without extensions
+  const std::vector<uint32_t> code;     //Spirv output
+  const stageExtention* const stage;    //Pipeline stage for the shader
+  const SourcePlatform        platform; // in case of recompilation ?
+  VkShaderModule              module;   //Loaded no const
+  const VkDevice * const device;        //dangerzone ! must exist !
 
   public:
-    ShaderDataFile(std::string name_, std::vector<char> code_, int64_t mask_,
-                   const VkDevice * const device_): name(name_),code(code_),mask(mask_),device(device_){
+    ShaderDataFile(const std::string&            name_,
+                   const std::vector<uint32_t>&  code_,
+                   const stageExtention * const& stage_,
+                   const SourcePlatform&         platform_,
+                   const VkDevice * const&       device_):
+      name(name_),code(code_),stage(stage_),platform(platform_),device(device_)
+    {
       VkShaderModuleCreateInfo createInfo {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
         .codeSize = code.size(),
-        .pCode = reinterpret_cast<const uint32_t*>(code.data())
+        .pCode = code.data()
       };
 
       if (vkCreateShaderModule(*device, &createInfo,nullptr,&module) != VK_SUCCESS)
@@ -97,20 +156,33 @@ class ShaderDataFile{
     }
 };
 
-//TODO Shader Compilations ? 
+//TODO Shader Compilations ?  Done, to Test 
+//TODO extension heavier check with platform and preload of the future shader elements
+//TODO VkShader Loading and binding 
+
+//TODO free structures ? Shader bindings ? 
 //TODO inlude ImGui loading interface ? 
-//Make a config file ?
+//Make a config file ? - Handle external compilation ? 
 
 /** 
 * @brief Shader Handler is a class that will load all shaders from a given path
 * @member sDatas vector of Shaders datas
 */
 class VkShaderHandler{
+  bool isGlsInit = false;
   std::vector<ShaderDataFile> sDatas; 
-  
-  bool validateExtention(std::string ext){
-    FILE_DEBUG_PRINT("Extension : %s",ext.c_str());
-    return static_cast<uint64_t>(ShaderExtentionHandler::contains(ext));
+
+  /**
+   * @brief function to initialize gls
+   * @return true if GlsInit is already init or init succeded else false
+   */
+  inline bool initGlsLang(){
+    return isGlsInit ? true : isGlsInit = glslang::InitializeProcess();
+  }
+
+  /**@brief uninitialise glsl*/
+  inline void finalizeGlsLang(){
+    if (isGlsInit && !(isGlsInit ^= isGlsInit)) glslang::FinalizeProcess();
   }
 
   public :
@@ -124,19 +196,28 @@ class VkShaderHandler{
     }
 
     VkShaderHandler(std::initializer_list<std::filesystem::path> folderNames){
+      initGlsLang();
       for (const std::filesystem::path folder : folderNames){
         loadShaderDataFromFiles(folder);
       }
     }
 
+    ~VkShaderHandler(){
+      finalizeGlsLang();
+    }
+
+
     [[nodiscard]] VkFileResult loadShaderDataFile(const std::filesystem::path& filePath){
       if(std::filesystem::exists(filePath)){
         FILE_DEBUG_PRINT("Given path found : %s", filePath.string().c_str());
         std::string extension = filePath.extension().string();
-        bool validExt = validateExtention(extension);
-        if(validExt){
+        // TODO extract Platform file extension && stage file extension
+        //bool validExt = validateExtention(extension);
+        if(true){//validExt){
+          
           FILE_DEBUG_PRINT("Extension Loaded : %s",extension.c_str());
-        std::cout << LoadShaderFromFile(filePath);
+          std::string shaderF= LoadShaderFromFile(filePath);
+          
           
 
           return VK_FILE_SUCCESS;
@@ -164,11 +245,61 @@ class VkShaderHandler{
 
       for (auto f : std::filesystem::directory_iterator(dirPath))
         count += std::filesystem::is_regular_file(f) && loadShaderDataFile(f) == VK_FILE_SUCCESS;
+
       return count;
     }
+    /**
+    * @brief load a shader from a file to a std::string 
+    * @param shaderFile the std::filesystem::path to the file 
+    * @return std::string the stringified version of the file
+    */
     std::string LoadShaderFromFile(const std::filesystem::path shaderFile){
       std::ifstream file(shaderFile);
       if(!file.is_open()) throw std::runtime_error(std::string("Couldn't load Shader File")+ shaderFile.string());
       return std::string((std::istreambuf_iterator<char>(file)),(std::istreambuf_iterator<char>()));
+    }
+
+  
+    /**
+    * @brief Compile a GLSL Shader to Spriv
+    * @return a vector of compiled binary data representing the Spriv executable
+    */
+    std::vector<uint32_t> CompileGLSLToSPIRV( const std::string& shaderCode, EShLanguage shaderStage){
+      glslang::TShader shader(shaderStage);
+      const std::array<const char *,1> shaderStrings = {shaderCode.c_str()};
+
+      shader.setStrings(shaderStrings.data(),shaderStrings.size());
+      shader.setEnvInput( glslang::EShSourceGlsl,  shaderStage, glslang::EShClientVulkan, OPENGL_CHOSEN_VERSION);
+      shader.setEnvClient(glslang::EShClientVulkan,VULKAN_CHOSEN_VERSION);
+      shader.setEnvTarget(glslang::EShTargetSpv,   SPIRV_CHOSEN_VERSION );
+
+      if(!shader.parse(GetDefaultResources(),100,false, EShMsgDefault)){
+        FILE_DEBUG_PRINT("GLSL Parsing Failed for shader stage: %d ",shaderStage);
+        FILE_DEBUG_PRINT("%s\n%s",shader.getInfoLog(),shader.getInfoDebugLog());
+        return {};
+      }
+
+      glslang::TProgram program;
+      program.addShader(&shader);
+
+      if(!program.link(EShMsgDefault)){
+        FILE_DEBUG_PRINT("GLSL Linking Failed : %s",program.getInfoLog());
+        FILE_DEBUG_PRINT("%s",program.getInfoDebugLog());
+        return {};
+      }
+
+      std::vector<uint32_t> spirv;
+      glslang::TIntermediate* intermediate = program.getIntermediate(shaderStage);
+      if(!intermediate){
+        FILE_DEBUG_PRINT("Failed to get intermediate representation");    
+      }  
+      
+      glslang::SpvOptions spvOptions;
+      spv::SpvBuildLogger logger;
+      glslang::GlslangToSpv(*intermediate, spirv, &logger, &spvOptions);
+      
+      FILE_DEBUG_PRINT("\nSpirv Logger\n\n%s\n\nEnd Spirv Logs\n\n",logger.getAllMessages().c_str());
+
+      return spirv;
     }
 };

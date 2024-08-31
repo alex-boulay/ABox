@@ -20,7 +20,7 @@ FILE(GLOB HEADER_FILES "*.hpp")
 add_executable(VkTstApp ${SOURCE_FILES} ${HEADER_FILES})
 
 # Linker flags (adjust based on your target platform)
-target_link_libraries(VkTstApp PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi" glslang::glslang glslang::SPIRV)
+target_link_libraries(VkTstApp PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi -lglslang-default-resource-limits" glslang::glslang glslang::SPIRV)
 
 # Specify the install directory for the executable
 install(TARGETS VkTstApp

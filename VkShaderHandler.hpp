@@ -14,6 +14,7 @@
 #include <cassert> 
 #include <algorithm>
 #include <optional>
+#include <iterator>
 #include <glslang/Public/ShaderLang.h>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/SPIRV/Logger.h>
@@ -44,7 +45,7 @@ class StageExtentionHandler{
    * provided is mostly to categorise them then endvalue of the
    * shader flag mask
    */
-  inline static const std::vector<stageExtention> map={
+  inline static const std::array<stageExtention,14> map{{
     {".vert" , EShLangVertex        , VK_SHADER_STAGE_VERTEX_BIT},
     {".frag" , EShLangFragment      , VK_SHADER_STAGE_FRAGMENT_BIT},
     {".comp" , EShLangCompute       , VK_SHADER_STAGE_COMPUTE_BIT},
@@ -59,7 +60,7 @@ class StageExtentionHandler{
     {".rcall", EShLangCallable      , VK_SHADER_STAGE_CALLABLE_BIT_KHR},
     {".task" , EShLangTask          , VK_SHADER_STAGE_TASK_BIT_EXT},
     {".mesh" , EShLangMesh          , VK_SHADER_STAGE_MESH_BIT_EXT}
-  };
+  }};
 
 public:
 
@@ -131,31 +132,55 @@ class ShaderDataFile{
   const std::vector<uint32_t> code;     //Spirv output
   const stageExtention* const stage;    //Pipeline stage for the shader
   const SourcePlatform        platform; // in case of recompilation ?
+  
   VkShaderModule              module;   //Loaded no const
-  const VkDevice * const device;        //dangerzone ! must exist !
+  VkDevice *                  device;   //dangerzone ! must exist !
 
   public:
+
     ShaderDataFile(const std::string&            name_,
                    const std::vector<uint32_t>&  code_,
                    const stageExtention * const& stage_,
-                   const SourcePlatform&         platform_,
-                   const VkDevice * const&       device_):
-      name(name_),code(code_),stage(stage_),platform(platform_),device(device_)
-    {
+                   const SourcePlatform&         platform_):
+      name(name_),code(code_),stage(stage_),platform(platform_){}
+
+    /**
+     * @brief load a ShaderModule into the target device 
+     * @param the targetted device
+     * @return true if it allocated one
+     */
+    bool loadInstance(VkDevice device_){
+      if(device)
+        removeInstance();
+
       VkShaderModuleCreateInfo createInfo {
         .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .flags = std::get<VkShaderStageFlagBits>(*stage), // maybe more than one in the future ? to overload with Shader creation.
         .codeSize = code.size(),
         .pCode = code.data()
       };
 
-      if (vkCreateShaderModule(*device, &createInfo,nullptr,&module) != VK_SUCCESS)
-          throw std::runtime_error("failed to create shader module");
+      FILE_DEBUG_PRINT("Creating shader module from file %s to device %p", name.c_str(),device);
+      return (vkCreateShaderModule(*device, &createInfo,nullptr,&module) == VK_SUCCESS);
     }
+
+    /** @brief destroy Shader Module if one already exist
+     * @return true if it destroyed false otherwise
+     * */
+    bool removeInstance(){
+      if(device){
+        vkDestroyShaderModule(*device,module, nullptr);
+        device = nullptr;
+        return true;
+      }
+      return static_cast<bool>(device);
+    }
+
     ~ShaderDataFile(){
-      vkDestroyShaderModule(*device,module, nullptr);
+      removeInstance();
     }
 };
-
+//Device mandatory to create Shaders
 //TODO Shader Compilations ?  Done, to Test 
 //TODO extension heavier check with platform and preload of the future shader elements
 //TODO VkShader Loading and binding 
@@ -163,6 +188,32 @@ class ShaderDataFile{
 //TODO free structures ? Shader bindings ? 
 //TODO inlude ImGui loading interface ? 
 //Make a config file ? - Handle external compilation ? 
+
+
+[[nodiscard]] static const VkFileResult readExtentions(
+  std::filesystem::path filename,
+  SourcePlatform* platform,
+  const stageExtention** targetStage ){
+  
+  std::vector<std::string> extensions;
+
+  std::cout << "Test debug " << filename.string() <<std::endl;
+  while (filename.has_extension() && extensions.size()<2){
+    FILE_DEBUG_PRINT("Extension : %s",filename.extension().c_str());
+    extensions.push_back(filename.extension().string());
+    filename = filename.stem();
+  }
+  if (!extensions.size() || !StageExtentionHandler::contains(extensions.back())){
+    FILE_DEBUG_PRINT("FAILED DUE TO %d or %d %s",!extensions.size(), !StageExtentionHandler::contains(extensions.back()),extensions.back().c_str());
+    return VK_FILE_EXTENTION_ERROR;
+  }
+  *targetStage = &(*StageExtentionHandler::at(extensions.back()));
+  extensions.pop_back();
+  if(extensions.size() && extensionToPlatform.contains(extensions.back()))
+    *platform = extensionToPlatform.at(extensions.back());
+  FILE_DEBUG_PRINT("readExtensions Success");
+  return VK_FILE_SUCCESS;
+}
 
 /** 
 * @brief Shader Handler is a class that will load all shaders from a given path
@@ -210,20 +261,21 @@ class VkShaderHandler{
     [[nodiscard]] VkFileResult loadShaderDataFile(const std::filesystem::path& filePath){
       if(std::filesystem::exists(filePath)){
         FILE_DEBUG_PRINT("Given path found : %s", filePath.string().c_str());
-        std::string extension = filePath.extension().string();
-        // TODO extract Platform file extension && stage file extension
-        //bool validExt = validateExtention(extension);
-        if(true){//validExt){
-          
-          FILE_DEBUG_PRINT("Extension Loaded : %s",extension.c_str());
+        SourcePlatform * platform;
+        const stageExtention **  targetStage;
+        VkFileResult validExt = readExtentions(filePath, platform, targetStage);
+        if(validExt == VK_FILE_SUCCESS){
+          FILE_DEBUG_PRINT("Extension Loaded");
           std::string shaderF= LoadShaderFromFile(filePath);
-          
-          
-
+          FILE_DEBUG_PRINT("temp debug Shader Loaded");
+          std::vector<uint32_t> code = CompileGLSLToSPIRV( shaderF, get<EShLanguage>(**targetStage));
+          FILE_DEBUG_PRINT("temp debug Compiled total number of doubleW: %lu",code.size());
+          sDatas.push_back( ShaderDataFile(filePath.filename().string(),code,*targetStage,*platform) );
+          FILE_DEBUG_PRINT("AFTER !! ");
           return VK_FILE_SUCCESS;
         }
         else {
-          FILE_DEBUG_PRINT("Extension couldn't be loaded : %s ",extension.c_str());
+          FILE_DEBUG_PRINT("Extension couldn't be loaded : %s ",filePath.c_str());
           return VK_FILE_NOT_A_SHADER;
         }
       }

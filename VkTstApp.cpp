@@ -22,7 +22,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
   const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,void* pUserData) {
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-      std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
+      std::cerr << "validation layer: " << pCallbackData->pMessage << '\n';
     }
 
     return VK_FALSE;
@@ -93,7 +93,7 @@ void VkTstApp::createSurface(){
   if(glfwCreateWindowSurface(instance, window, nullptr, &surface)!= VK_SUCCESS)
     throw std::runtime_error("Failed to create window Surface");
   else {
-    std::cout << "Surface Pointer : " << &surface <<std::endl;
+    std::cout << "Surface Pointer : " << &surface <<'\n';
   }
 }
 
@@ -127,9 +127,9 @@ void VkTstApp::createInstance(){
   };
   
 
-  std::cout << "CreateInfo struct filled."<<std::endl;
+  std::cout << "CreateInfo struct filled."<<'\n';
   VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-  std::cout <<"Create info struct result value : "<<result << std::endl;
+  std::cout <<"Create info struct result value : "<<result << '\n';
   if(result != VK_SUCCESS)
     throw std::runtime_error("failed to create instance");
 }
@@ -154,11 +154,11 @@ void VkTstApp::setupDebugMessenger(){
   populateDebugMessenger(createInfo);
   VkResult result = CreateDebugUtilsMessengerEXT(instance,&createInfo,nullptr, &debugMessenger);
   if(result != VK_SUCCESS){
-    std::cout << "Result value : "<< result << std::endl; 
+    std::cout << "Result value : "<< result << '\n'; 
     throw std::runtime_error("failed to set up debug messenger!");
   }
   else{
-        std::cout << "Validation Layers Enabled !"<< std::endl;
+        std::cout << "Validation Layers Enabled !"<< '\n';
   }  
 }
 void VkTstApp::run(){
@@ -222,7 +222,7 @@ void VkTstApp::createLogicalDevice(){
   if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &device) != VK_SUCCESS)
     throw std::runtime_error("failed to create logical device!");
   else 
-    std::cout << "Logical Device Created" << std::endl;
+    std::cout << "Logical Device Created \n";
   vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 }
 
@@ -397,7 +397,7 @@ void VkTstApp::createSwapChain(){
   if(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
     throw std::runtime_error("failed to create swap chain !");
   else
-    std::cout << "Swapchain created !!" << std::endl;
+    std::cout << "Swapchain created !!\n";
 
   vkGetSwapchainImagesKHR(device, swapChain, &createInfo.minImageCount,nullptr);
   swapChainImages.resize(createInfo.minImageCount);
@@ -437,7 +437,6 @@ void VkTstApp::createGraphicsPipeline(){
 void VkTstApp::mainLoop(){
   while (!glfwWindowShouldClose(window)){
     glfwPollEvents();
-    //std::cout <<"Vulkan app running" <<std::endl;
   }
 }
 
@@ -447,13 +446,13 @@ void VkTstApp::cleanup(){
 
   vkDestroySwapchainKHR(device, swapChain, nullptr);
   if (enableValidationLayers) DestroyDebugUtilsMessengerEXT(instance, debugMessenger, nullptr);
-  std::cout << "Destroy Debug Util" << std::endl;
+  std::cout << "Destroy Debug Util" << '\n';
   vkDestroySurfaceKHR(instance,surface,nullptr);
-  std::cout << "SurfaceKHR Destroyed " << std::endl;
+  std::cout << "SurfaceKHR Destroyed " << '\n';
   vkDestroyDevice(device, nullptr);
-  std::cout << "Device Destroyed" << std::endl;
+  std::cout << "Device Destroyed" << '\n';
   vkDestroyInstance(instance , nullptr);
-  std::cout << "Instance Destroyed" << std::endl;
+  std::cout << "Instance Destroyed" << '\n';
   glfwDestroyWindow(window);
   glfwTerminate();
 }

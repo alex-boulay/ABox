@@ -7,57 +7,69 @@
 #include <glslang/SPIRV/Logger.h>
 #include <glslang/Public/ResourceLimits.h>
 
-// ---------------Static Types---------------------
+// @brief anonymous namespace to declare static elements
+namespace {
 
-static const std::map<std::string, SourcePlatform> extensionToPlatform = {
-    {".glsl", SourcePlatform::GLSL},
-    {".hlsl", SourcePlatform::HLSL},
-    {".fx",   SourcePlatform::HLSL},
-    {".cl",   SourcePlatform::OpenCL},
-    {".cu",   SourcePlatform::CUDA},
-    {".wgsl", SourcePlatform::WGSL},
-    {".rs",   SourcePlatform::Rust},
-    {".py",   SourcePlatform::Python}
+  // ---------------Static Types---------------------
+  const std::map<std::string, SourcePlatform> extensionToPlatform = {
+      {".glsl", SourcePlatform::GLSL},
+      {".hlsl", SourcePlatform::HLSL},
+      {".fx",   SourcePlatform::HLSL},
+      {".cl",   SourcePlatform::OpenCL},
+      {".cu",   SourcePlatform::CUDA},
+      {".wgsl", SourcePlatform::WGSL},
+      {".rs",   SourcePlatform::Rust},
+      {".py",   SourcePlatform::Python}
+  };
+
+  struct ExtensionFileResult{
+          VkFileResult    status;
+          SourcePlatform  platform;
+  const stageExtention* stage;
+  };
+
+  //----------------Static Functions-----------------
+  [[nodiscard]] inline const SourcePlatform getPlatformExt(std::string platExt){
+    return extensionToPlatform.contains(platExt) ? extensionToPlatform.at(platExt) : SourcePlatform::Unknown;
+  }
+
+  [[nodiscard]] inline const glslang::EShSource getEShSource(SourcePlatform sourcePlatform){
+    switch (sourcePlatform){
+      case(SourcePlatform::GLSL) : return glslang::EShSourceGlsl;
+      case(SourcePlatform::HLSL) : return glslang::EShSourceHlsl;
+      default : return glslang::EShSourceNone;
+    }
+  }
+
+  [[nodiscard]] ExtensionFileResult readExtentions(std::filesystem::path filename){
+    std::vector<std::string> extensions;
+    ExtensionFileResult result{
+      .status   = VK_FILE_EXTENTION_ERROR,
+      .platform = SourcePlatform::Unknown,
+      .stage    = nullptr
+    };
+
+    FILE_DEBUG_PRINT(" readExtensions - Filename : %s", filename.c_str());
+    while (filename.has_extension() && extensions.size()<2){
+      FILE_DEBUG_PRINT("Extension : %s",filename.extension().c_str());
+      extensions.push_back(filename.extension().string());
+      filename = filename.stem();
+    }
+    if (!extensions.size() || !StageExtentionHandler::contains(extensions.back())){
+      FILE_DEBUG_PRINT("FAILED DUE TO %d or %d %s",!extensions.size(), !StageExtentionHandler::contains(extensions.back()),extensions.back().c_str());
+      return result; //.status = VK_FILE_EXTENSION ERROR
+    }
+    else{
+    result.stage = &(*StageExtentionHandler::at(extensions.back()));
+    extensions.pop_back();
+    if(extensions.size() && extensionToPlatform.contains(extensions.back()))
+      result.platform = extensionToPlatform.at(extensions.back());
+    FILE_DEBUG_PRINT("readExtensions Success");
+    result.status = VK_FILE_SUCCESS;
+    }
+    return result;
+  }
 };
-
-//----------------Static Functions-----------------
-[[nodiscard]] inline static const SourcePlatform getPlatformExt(std::string platExt){
-  return extensionToPlatform.contains(platExt) ? extensionToPlatform.at(platExt) : SourcePlatform::Unknown;
-}
-
-[[nodiscard]] static const glslang::EShSource getEShSource(SourcePlatform sourcePlatform){
-  switch (sourcePlatform){
-    case(SourcePlatform::GLSL) : return glslang::EShSourceGlsl;
-    case(SourcePlatform::HLSL) : return glslang::EShSourceHlsl;
-    default : return glslang::EShSourceNone;
-  }
-}
-
-[[nodiscard]] static const VkFileResult readExtentions(
-  std::filesystem::path filename,        //IN
-  SourcePlatform& platform,              // OUT
-  const stageExtention ** targetStage ){ //OUT
-  
-  std::vector<std::string> extensions;
-
-  std::cout << "Test debug " << filename.string() <<std::endl;
-  while (filename.has_extension() && extensions.size()<2){
-    FILE_DEBUG_PRINT("Extension : %s",filename.extension().c_str());
-    extensions.push_back(filename.extension().string());
-    filename = filename.stem();
-  }
-  if (!extensions.size() || !StageExtentionHandler::contains(extensions.back())){
-    FILE_DEBUG_PRINT("FAILED DUE TO %d or %d %s",!extensions.size(), !StageExtentionHandler::contains(extensions.back()),extensions.back().c_str());
-    return VK_FILE_EXTENTION_ERROR;
-  }
-  *targetStage = &(*StageExtentionHandler::at(extensions.back()));
-  extensions.pop_back();
-  if(extensions.size() && extensionToPlatform.contains(extensions.back()))
-    platform = extensionToPlatform.at(extensions.back());
-  FILE_DEBUG_PRINT("readExtensions Success");
-  return VK_FILE_SUCCESS;
-}
-
 //----------------ShaderDataFile::Functions---------------
 
 bool ShaderDataFile::loadInstance(VkDevice device_){
@@ -89,16 +101,14 @@ bool ShaderDataFile::removeInstance(){
 [[nodiscard]] VkFileResult VkShaderHandler::loadShaderDataFile(const std::filesystem::path& filePath){
   if(std::filesystem::exists(filePath)){
     FILE_DEBUG_PRINT("Given path found : %s", filePath.string().c_str());
-    SourcePlatform platform = SourcePlatform::Unknown;
-    const stageExtention* targetStage;
-    VkFileResult validExt = readExtentions(filePath, platform, &targetStage);
-    if(validExt == VK_FILE_SUCCESS){
+    ExtensionFileResult extFileResult = readExtentions(filePath);
+    if(extFileResult.status == VK_FILE_SUCCESS){
       FILE_DEBUG_PRINT("Extension(s) Loaded");
       std::string shaderF= loadShaderFromFile(filePath);
       FILE_DEBUG_PRINT("Shader Loaded");
-      std::vector<uint32_t> code = compileGLSLToSPIRV( shaderF, get<EShLanguage>(*targetStage));
+      std::vector<uint32_t> code = compileGLSLToSPIRV( shaderF, get<EShLanguage>(*extFileResult.stage));
       FILE_DEBUG_PRINT("Compiled total number of doubleW: %lu",code.size());
-      sDatas.push_back( ShaderDataFile(filePath.filename().string(),code,targetStage,platform));
+      sDatas.push_back( ShaderDataFile(filePath.filename().string(),code,extFileResult.stage,extFileResult.platform));
       FILE_DEBUG_PRINT("ShaderData added");
       return VK_FILE_SUCCESS;
     }
@@ -117,7 +127,7 @@ uint32_t VkShaderHandler::loadShaderDataFromFolder(const std::filesystem::path& 
   uint32_t count = 0;
   
   if (!std::filesystem::is_directory(dirPath))
-    std::cerr << "The path is not a directory or does not exist." << std::endl;
+    FILE_DEBUG_PRINT("The path is not a directory or does not exist.");
 
   for (auto f : std::filesystem::directory_iterator(dirPath))
     count += std::filesystem::is_regular_file(f) && loadShaderDataFile(f) == VK_FILE_SUCCESS;
@@ -167,7 +177,7 @@ std::vector<uint32_t> VkShaderHandler::compileGLSLToSPIRV( const std::string& sh
   glslang::GlslangToSpv(*intermediate, spirv, &logger, &spvOptions);
   
   if(logger.getAllMessages().size())
-    std::cout << "Spirv Logger : %s" << logger.getAllMessages()<<std::endl;
+    FILE_DEBUG_PRINT("Spirv Logger : %s",logger.getAllMessages().c_str());
 
   return spirv;
 }

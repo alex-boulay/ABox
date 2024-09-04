@@ -109,7 +109,7 @@ class ShaderDataFile{
   const SourcePlatform        platform; // in case of recompilation ?
   
   VkShaderModule              module;   //Loaded no const
-  VkDevice *                  device;   //dangerzone ! must exist !
+  const VkDevice *            device;   //dangerzone ! must exist !
 
   public:
 
@@ -124,7 +124,7 @@ class ShaderDataFile{
      * @param the targetted device
      * @return true if it allocated one
      */
-    bool loadInstance(VkDevice device_);
+    bool loadInstance(const VkDevice& device_);
 
     /** @brief destroy Shader Module if one already exist
      * @return true if it destroyed false otherwise
@@ -150,7 +150,7 @@ class VkShaderHandler{
    * @return true if GlsInit is already init or init succeded else false
    */
   inline bool initGlsLang(){
-    return isGlsInit ? true : isGlsInit = glslang::InitializeProcess();
+    return isGlsInit ? true : (isGlsInit = glslang::InitializeProcess());
   }
 
   /**@brief uninitialise glsl*/
@@ -170,7 +170,7 @@ class VkShaderHandler{
 
     VkShaderHandler(std::initializer_list<std::filesystem::path> folderNames){
       initGlsLang();
-      for (const std::filesystem::path folder : folderNames){
+      for (const std::filesystem::path& folder : folderNames){
         loadShaderDataFromFolder(folder);
       }
     }
@@ -182,7 +182,7 @@ class VkShaderHandler{
     /**
     * @brief load data from given shader folder with expected extensions
     * @param filesystem::path the directory to load from
-    * @return uint16_t the number of loaded file into the vector
+    * @return uint16_t the number of loaded files into the vector
     */
     uint32_t loadShaderDataFromFolder(const std::filesystem::path& dirPath);
     
@@ -190,18 +190,18 @@ class VkShaderHandler{
      * @brief 
      * @return std::string
      */
-    std::string loadShaderFromFile(const std::filesystem::path shaderFile);
+    const std::string loadShaderFromFile(const std::filesystem::path& shaderFile);
 
     /**
     * @brief load a shader from a file to a std::string 
     * @param shaderFile the std::filesystem::path to the file 
     * @return std::string the stringified version of the file
     */
-    [[nodiscard]] VkFileResult loadShaderDataFile(const std::filesystem::path& filePath);
+   [[nodiscard]] VkFileResult loadShaderDataFile(const std::filesystem::path& filePath);
     
     /**
     * @brief Compile a GLSL Shader to Spriv
     * @return a vector of compiled binary data representing the Spriv executable
     */
-    std::vector<uint32_t> compileGLSLToSPIRV( const std::string& shaderCode, EShLanguage shaderStage);
+    const std::vector<uint32_t> compileGLSLToSPIRV( const std::string& shaderCode,const EShLanguage& shaderStage);
 };

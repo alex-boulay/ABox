@@ -29,11 +29,11 @@ namespace {
   };
 
   //----------------Static Functions-----------------
-  [[nodiscard]] inline const SourcePlatform getPlatformExt(std::string platExt){
+  [[nodiscard]] inline SourcePlatform getPlatformExt(std::string platExt){
     return extensionToPlatform.contains(platExt) ? extensionToPlatform.at(platExt) : SourcePlatform::Unknown;
   }
 
-  [[nodiscard]] inline const glslang::EShSource getEShSource(SourcePlatform sourcePlatform){
+  [[nodiscard]] inline glslang::EShSource getEShSource(SourcePlatform sourcePlatform){
     switch (sourcePlatform){
       case(SourcePlatform::GLSL) : return glslang::EShSourceGlsl;
       case(SourcePlatform::HLSL) : return glslang::EShSourceHlsl;
@@ -56,7 +56,7 @@ namespace {
       filename = filename.stem();
     }
     if (!extensions.size() || !StageExtentionHandler::contains(extensions.back())){
-      FILE_DEBUG_PRINT("FAILED DUE TO %d or %d %s",!extensions.size(), !StageExtentionHandler::contains(extensions.back()),extensions.back().c_str());
+      FILE_DEBUG_PRINT("File ignored due to unsuported extension : %s", extensions.back().c_str());
       return result; //.status = VK_FILE_EXTENSION ERROR
     }
     else{
@@ -72,12 +72,14 @@ namespace {
 };
 //----------------ShaderDataFile::Functions---------------
 
-bool ShaderDataFile::loadInstance(VkDevice device_){
+bool ShaderDataFile::loadInstance(const VkDevice& device_){
   if(device)
     removeInstance();
+  device = &device_ ;
 
   VkShaderModuleCreateInfo createInfo {
     .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+    .pNext = nullptr,
     .flags = std::get<VkShaderStageFlagBits>(*stage), // maybe more than one in the future ? to overload with Shader creation.
     .codeSize = code.size(),
     .pCode = code.data()
@@ -132,17 +134,17 @@ uint32_t VkShaderHandler::loadShaderDataFromFolder(const std::filesystem::path& 
   for (auto f : std::filesystem::directory_iterator(dirPath))
     count += std::filesystem::is_regular_file(f) && loadShaderDataFile(f) == VK_FILE_SUCCESS;
 
-  return count;
+  return const_cast<uint32_t&>(count);
 }
 
-std::string VkShaderHandler::loadShaderFromFile(const std::filesystem::path shaderFile){
+const std::string VkShaderHandler::loadShaderFromFile(const std::filesystem::path& shaderFile){
   std::ifstream file(shaderFile);
   if(!file.is_open()) throw std::runtime_error(std::string("Couldn't load Shader File")+ shaderFile.string());
   return std::string((std::istreambuf_iterator<char>(file)),(std::istreambuf_iterator<char>()));
 }
 
 
-std::vector<uint32_t> VkShaderHandler::compileGLSLToSPIRV( const std::string& shaderCode, EShLanguage shaderStage){
+const std::vector<uint32_t> VkShaderHandler::compileGLSLToSPIRV( const std::string& shaderCode,const EShLanguage& shaderStage){
   glslang::TShader shader(shaderStage);
   const std::array<const char *,1> shaderStrings = {shaderCode.c_str()};
 

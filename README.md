@@ -2,6 +2,9 @@
 
 ### Vulkan setup for calculation and processing data
 
+#### Include libs
+glslang-dev glslang-tools spirv-tools
+
 #### TODO : 
 - enhance device picking ?? :
     - prompt to choose physical device.

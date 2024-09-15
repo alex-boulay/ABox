@@ -41,8 +41,9 @@ namespace {
     }
   }
 
-  [[nodiscard]] ExtensionFileResult readExtentions(std::filesystem::path filename){
+  [[nodiscard]] ExtensionFileResult readExtentions(std::filesystem::path path){
     std::vector<std::string> extensions;
+    auto filename = path.filename();
     ExtensionFileResult result{
       .status   = VK_FILE_EXTENTION_ERROR,
       .platform = SourcePlatform::Unknown,
@@ -86,12 +87,13 @@ bool ShaderDataFile::loadInstance(const VkDevice& device_){
   };
 
   FILE_DEBUG_PRINT("Creating shader module from file %s to device %p", name.c_str(),device);
-  return (vkCreateShaderModule(*device, &createInfo,nullptr,&module) == VK_SUCCESS);
+  return (vkCreateShaderModule(*device, &createInfo,nullptr,&module.value()) == VK_SUCCESS);
 }
 
 bool ShaderDataFile::removeInstance(){
-  if(device){
-    vkDestroyShaderModule(*device,module, nullptr);
+  if(device && module.has_value()){
+    vkDestroyShaderModule(*device,module.value(), nullptr);
+    module.reset();
     device = nullptr;
     return true;
   }
@@ -109,8 +111,9 @@ bool ShaderDataFile::removeInstance(){
       std::string shaderF= loadShaderFromFile(filePath);
       FILE_DEBUG_PRINT("Shader Loaded");
       std::vector<uint32_t> code = compileGLSLToSPIRV( shaderF, get<EShLanguage>(*extFileResult.stage));
-      FILE_DEBUG_PRINT("Compiled total number of doubleW: %lu",code.size());
-      sDatas.push_back( ShaderDataFile(filePath.filename().string(),code,extFileResult.stage,extFileResult.platform));
+      FILE_DEBUG_PRINT("Compiled total number of uint32_t : %lu",code.size());
+      ShaderDataFile sdf =ShaderDataFile(filePath.filename(),code,extFileResult.stage,extFileResult.platform);
+      sDatas.push_back(sdf);
       FILE_DEBUG_PRINT("ShaderData added");
       return VK_FILE_SUCCESS;
     }
@@ -131,9 +134,10 @@ uint32_t VkShaderHandler::loadShaderDataFromFolder(const std::filesystem::path& 
   if (!std::filesystem::is_directory(dirPath))
     FILE_DEBUG_PRINT("The path is not a directory or does not exist.");
 
-  for (auto f : std::filesystem::directory_iterator(dirPath))
+  for (auto f : std::filesystem::directory_iterator(dirPath)){
+    std::cout << " count : "<<count <<" filename:  "<< f.path().filename().string() << '\n';
     count += std::filesystem::is_regular_file(f) && loadShaderDataFile(f) == VK_FILE_SUCCESS;
-
+  }
   return const_cast<uint32_t&>(count);
 }
 

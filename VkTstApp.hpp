@@ -4,6 +4,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <vector>
+#include "VkShaderHandler.hpp"
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
@@ -52,6 +53,7 @@ class VkTstApp{
   VkFormat swapChainImageFormat;
   VkExtent2D swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
+  VkShaderHandler shaderHandler;
 
   bool checkValidationLayerSupport();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);

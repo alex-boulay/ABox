@@ -9,6 +9,7 @@
 #include <cassert> 
 #include <algorithm>
 #include <optional>
+#include <iostream>
 #include <glslang/Public/ShaderLang.h>
 
 #pragma once
@@ -108,16 +109,20 @@ class ShaderDataFile{
   const stageExtention *const stage;    //Pipeline stage for the shader
   const SourcePlatform        platform; // in case of recompilation ?
   
-  VkShaderModule              module;   //Loaded no const
-  const VkDevice *            device;   //dangerzone ! must exist !
+  //Maybe not the best implementation ? modules and devices shall be set elsewhere ? 
+  std::optional<VkShaderModule> module;   //Loaded no const
+  const VkDevice *              device = nullptr;   //dangerzone ! must exist !
 
   public:
 
     ShaderDataFile(const std::string&            name_,
                    const std::vector<uint32_t>&  code_,
-                   const stageExtention * const  stage_,
+                   const stageExtention *const   stage_,
                    const SourcePlatform&         platform_):
-      name(name_),code(code_),stage(stage_),platform(platform_){}
+      name(name_),code(code_),stage(stage_),platform(platform_){
+    std::cout << "here 78554 \n";
+
+  }
 
     /**
      * @brief load a ShaderModule into the target device 

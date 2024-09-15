@@ -1,5 +1,4 @@
 #include "VkTstApp.hpp"
-#include "VkShaderHandler.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdint> 
 #include <ostream>
@@ -74,9 +73,10 @@ void DestroyDebugUtilsMessengerEXT(
   const VkAllocationCallbacks* pAllocator
 ){
   auto func = (PFN_vkDestroyDebugUtilsMessengerEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-  if (func != nullptr) {
+  if (func != nullptr)
     func(instance, debugMessenger, pAllocator);
-  }
+  else
+    std::cout << "vkDestroyDebugUtilsMessengerExt wasn't destroyed : vkGetInstanceProcAddr == nullptr" << std::endl;
 }
 
 std::vector<const char*> getRequiredExtensions() {
@@ -133,9 +133,9 @@ void VkTstApp::createInstance(){
   };
   
 
-  std::cout << "CreateInfo struct filled."<<'\n';
+  std::cout << "Instance info struct filled."<<'\n';
   VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-  std::cout <<"Create info struct result value : "<<result << '\n';
+  std::cout <<"Instance info struct result value : "<<result << '\n';
   if(result != VK_SUCCESS)
     throw std::runtime_error("failed to create instance");
 }
@@ -173,9 +173,6 @@ void VkTstApp::setupDebugMessenger(){
 void VkTstApp::run(){
   initWindow();
   initVulkan();
-//TEST
-  VkShaderHandler shaderHandler; 
-//ENDTEST
   mainLoop();
   cleanup();
 }
@@ -412,7 +409,7 @@ void VkTstApp::createSwapChain(){
   if(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) != VK_SUCCESS)
     throw std::runtime_error("failed to create swap chain !");
   else
-    std::cout << "Swapchain created !!\n";
+    std::cout << "Swapchain created : "<<(void *) &swapChain <<"\n";
 
   vkGetSwapchainImagesKHR(device, swapChain, &createInfo.minImageCount,nullptr);
   swapChainImages.resize(createInfo.minImageCount);
@@ -472,6 +469,7 @@ void VkTstApp::cleanup(){
   std::cout << "Device Destroyed" << '\n';
   vkDestroyInstance(instance , nullptr);
   std::cout << "Instance Destroyed" << '\n';
+  std::cout << "GLFW Window "<<(void *) window;
   glfwDestroyWindow(window);
   glfwTerminate();
 }

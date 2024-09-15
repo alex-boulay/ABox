@@ -13,8 +13,8 @@
 
 int main() {
   VkTstApp app;
+  std::cout << "App "<< (void *) &app<< '\n';
   glfwInit();
-
   try {
     app.run();
   }catch (const std::exception& e){

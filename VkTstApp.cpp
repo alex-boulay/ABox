@@ -9,6 +9,7 @@
 #include <limits>
 #include <algorithm>
 #include <set> 
+#include <bitset>
 #include <vulkan/vulkan_core.h>
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -18,11 +19,14 @@
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
   VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-  VkDebugUtilsMessageTypeFlagsEXT messageType,
-  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,void* pUserData) {
+  [[maybe_unused]] VkDebugUtilsMessageTypeFlagsEXT messageType,
+  const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+  [[maybe_unused]] void* pUserData) {
+  
+    std::bitset<sizeof(messageType)> bMessageType(messageType);
 
     if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-      std::cerr << "validation layer: " << pCallbackData->pMessage << '\n';
+      std::cerr <<"Type :" <<bMessageType <<"| validation layer: " << pCallbackData->pMessage << '\n';
     }
 
     return VK_FALSE;
@@ -104,6 +108,7 @@ void VkTstApp::createInstance(){
 
   VkApplicationInfo appInfo{
     .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    .pNext = nullptr,
     .pApplicationName = "Tests on Vulkan",
     .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
     .pEngineName = "No Engine",
@@ -119,11 +124,12 @@ void VkTstApp::createInstance(){
   VkInstanceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pNext = enableValidationLayers ? (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo : nullptr,
+    .flags = 0,
     .pApplicationInfo = &appInfo,
     .enabledLayerCount = enableValidationLayers * static_cast<uint32_t>(validationLayers.size()),
     .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
     .enabledExtensionCount = static_cast<uint32_t>(extensions.size()),
-    .ppEnabledExtensionNames = extensions.data(),
+    .ppEnabledExtensionNames = extensions.data()
   };
   
 
@@ -137,13 +143,16 @@ void VkTstApp::createInstance(){
 void VkTstApp::populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo){
   createInfo = {
     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT ,
+    .pNext = nullptr,
+    .flags = 0,
     .messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | 
                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | 
                        VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT,
     .messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | 
                    VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | 
                    VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT,
-    .pfnUserCallback = debugCallback
+    .pfnUserCallback = debugCallback,
+    .pUserData = nullptr
   };
 }
 
@@ -199,6 +208,8 @@ void VkTstApp::createLogicalDevice(){
   for( uint32_t queueFamily : uniqueQueueFamilies){
     VkDeviceQueueCreateInfo queueCreateInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
       .queueFamilyIndex = queueFamily,
       .queueCount = 1,
       .pQueuePriorities = &queuePriority,
@@ -210,6 +221,8 @@ void VkTstApp::createLogicalDevice(){
 
   VkDeviceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0,
     .queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size()),
     .pQueueCreateInfos       = queueCreateInfos.data(),
     .enabledLayerCount       = enableValidationLayers ? static_cast<uint32_t>(validationLayers.size()) : 0,
@@ -372,6 +385,8 @@ void VkTstApp::createSwapChain(){
 
   VkSwapchainCreateInfoKHR createInfo{
     .sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+    .pNext = nullptr,
+    .flags= 0,
     .surface = surface,
     .minImageCount = SCSC_MinC,
     .imageFormat = surfaceFormat.format,
@@ -415,13 +430,17 @@ void VkTstApp::createImageViews(){
   for (size_t i = 0; i < swapChainImages.size(); i++){
     VkImageViewCreateInfo createInfo = {
       .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+      .pNext = nullptr,
+      .flags = 0,
       .image = swapChainImages[i],
       .viewType = VK_IMAGE_VIEW_TYPE_2D,
       .format = swapChainImageFormat,
       .components= { sid, sid, sid, sid},
       .subresourceRange = {
         .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel = 0,
         .levelCount = 1,
+        .baseArrayLayer = 0,
         .layerCount = 1
       }
     };

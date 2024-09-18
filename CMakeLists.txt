@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Enable AddressSanitizer in debug mode
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   #no C here    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror -gdwarf-4 -fsanitize=address -fno-omit-frame-pointer -static-libasan")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -gdwarf-4 -fsanitize=address -fno-omit-frame-pointer -static-libasan")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -gdwarf-5 -fsanitize=address -fno-omit-frame-pointer -static-libasan")
     set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} -fsanitize=address -static-libasan")
 endif()
 

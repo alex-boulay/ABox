@@ -110,8 +110,11 @@ class ShaderDataFile{
   const SourcePlatform        platform; // in case of recompilation ?
   
   //Maybe not the best implementation ? modules and devices shall be set elsewhere ? 
-  std::optional<VkShaderModule> module;   //Loaded no const
-  const VkDevice *              device = nullptr;   //dangerzone ! must exist !
+  struct shaderBind{
+    const VkDevice * device;
+    VkShaderModule   module;
+  };
+  std::vector<shaderBind> sBinds; //map a Shader to a Device
 
   public:
 
@@ -120,8 +123,6 @@ class ShaderDataFile{
                    const stageExtention *const   stage_,
                    const SourcePlatform&         platform_):
       name(name_),code(code_),stage(stage_),platform(platform_){
-    std::cout << "here 78554 \n";
-
   }
 
     /**
@@ -129,15 +130,16 @@ class ShaderDataFile{
      * @param the targetted device
      * @return true if it allocated one
      */
-    bool loadInstance(const VkDevice& device_);
+    [[nodiscard]] VkResult load(const VkDevice * &device_);
 
-    /** @brief destroy Shader Module if one already exist
+    /** @brief unload Shader Module it has an instance 
+     * loaded on the given device and free module memory
      * @return true if it destroyed false otherwise
      * */
-    bool removeInstance();
+    [[nodiscard]] VkResult unload(const VkDevice * &device);
 
     ~ShaderDataFile(){
-      removeInstance();
+      for (auto bind : sBinds) (void)unload(bind.device);
     }
 };
 
@@ -149,6 +151,8 @@ class ShaderDataFile{
 class VkShaderHandler{
   bool isGlsInit = false;
   std::vector<ShaderDataFile> sDatas; 
+  // Devices are used to bind shader to a device when loading so unloading can be done automaticly;
+  std::vector<VkDevice *>     devices; //Usualy one, only exist if shaders are loaded
 
   /**
    * @brief function to initialize gls

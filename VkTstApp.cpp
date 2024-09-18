@@ -10,6 +10,7 @@
 #include <set> 
 #include <bitset>
 #include <vulkan/vulkan_core.h>
+
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
 #else

@@ -1,4 +1,5 @@
 #include "VkShaderHandler.hpp"
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
@@ -6,6 +7,7 @@
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/SPIRV/Logger.h>
 #include <glslang/Public/ResourceLimits.h>
+#include <vulkan/vulkan_core.h>
 
 // @brief anonymous namespace to declare static elements
 namespace {
@@ -73,10 +75,10 @@ namespace {
 };
 //----------------ShaderDataFile::Functions---------------
 
-bool ShaderDataFile::loadInstance(const VkDevice& device_){
-  if(device)
-    removeInstance();
-  device = &device_ ;
+VkResult ShaderDataFile::load(const VkDevice * &device){
+  if(sBinds.end() != std::find_if(sBinds.begin(),sBinds.end(),[device](shaderBind a){ return a.device == device;})){
+    return VK_INCOMPLETE;
+  }
 
   VkShaderModuleCreateInfo createInfo {
     .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
@@ -86,18 +88,30 @@ bool ShaderDataFile::loadInstance(const VkDevice& device_){
     .pCode = code.data()
   };
 
+  shaderBind payload = {
+    .device = device,
+    .module = {},
+  };
+
   FILE_DEBUG_PRINT("Creating shader module from file %s to device %p", name.c_str(),device);
-  return (vkCreateShaderModule(*device, &createInfo,nullptr,&module.value()) == VK_SUCCESS);
+  VkResult result = vkCreateShaderModule(*device, &createInfo,nullptr, &payload.module);
+  FILE_DEBUG_PRINT("Loading Success if 0 == %d !", result);
+
+  if (result == VK_SUCCESS){ 
+    sBinds.push_back(payload);
+  }
+  return result;
 }
 
-bool ShaderDataFile::removeInstance(){
-  if(device && module.has_value()){
-    vkDestroyShaderModule(*device,module.value(), nullptr);
-    module.reset();
-    device = nullptr;
-    return true;
+VkResult ShaderDataFile::unload(const VkDevice * &device){
+  std::vector<shaderBind>::iterator target = std::find_if(sBinds.begin(),sBinds.end(),[device](shaderBind a){ return a.device == device;});
+  if(target != sBinds.end()){
+    shaderBind sb = *target;
+    vkDestroyShaderModule(*(sb.device),sb.module,nullptr);
+    sBinds.erase(target);
+    return VK_SUCCESS;
   }
-  return static_cast<bool>(device);
+  return VK_INCOMPLETE;
 }
 
 //--------------- VkShaderHandler -----------------

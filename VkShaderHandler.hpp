@@ -141,6 +141,13 @@ class ShaderDataFile{
     ~ShaderDataFile(){
       for (auto bind : sBinds) (void)unload(bind.device);
     }
+
+  /**  ShaderDataFile(const ShaderDataFile& other);
+    ShaderDataFile& operator=(const ShaderDataFile& other) noexcept;
+    ShaderDataFile(ShaderDataFile&& other);
+    ShaderDataFile& operator=(ShaderDataFile && other) noexcept;
+*/
+    std::string getName(){ return name;}
 };
 
 
@@ -188,6 +195,11 @@ class VkShaderHandler{
       finalizeGlsLang();
     }
 
+    /**VkShaderHandler( const VkShaderHandler& other);
+    VkShaderHandler& operator=( const VkShaderHandler& other) noexcept;
+    VkShaderHandler( VkShaderHandler&& other);
+    VkShaderHandler& operator=( VkShaderHandler&& other) noexcept;
+*/ 
     /**
     * @brief load data from given shader folder with expected extensions
     * @param filesystem::path the directory to load from
@@ -213,4 +225,10 @@ class VkShaderHandler{
     * @return a vector of compiled binary data representing the Spriv executable
     */
     const std::vector<uint32_t> compileGLSLToSPIRV( const std::string& shaderCode,const EShLanguage& shaderStage);
+
+    std::string ListAllShaders();
+
+    ShaderDataFile * getShader(std::string name);
+    VkResult loadAllShaders(const VkDevice *&device);
 };
+

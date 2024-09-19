@@ -3,6 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <stdexcept>
+#include <numeric>
 #include <map>
 #include <glslang/SPIRV/GlslangToSpv.h>
 #include <glslang/SPIRV/Logger.h>
@@ -201,3 +202,10 @@ const std::vector<uint32_t> VkShaderHandler::compileGLSLToSPIRV( const std::stri
 
   return spirv;
 }
+
+std::string VkShaderHandler::ListAllShaders(){
+  return std::accumulate(sDatas.begin(),sDatas.end(),std::string(),[](const std::string& a, ShaderDataFile b){return a + b.getName() + '\n';});
+}
+
+    ShaderDataFile * getShader(std::string name);
+    VkResult loadAllShaders(const VkDevice *&device);

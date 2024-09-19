@@ -1,4 +1,4 @@
-#include "VkTstApp.hpp"
+#include "ABoxApp.hpp"
 #include <exception>
 //#define GLFW_VERSION_MAJOR 3
 //#define GLFW_VERSION_MINOR 3
@@ -12,7 +12,7 @@
 #include <cstdlib>
 
 int main() {
-  VkTstApp app;
+  ABoxApp app;
   std::cout << "App "<< (void *) &app<< '\n';
   glfwInit();
   try {

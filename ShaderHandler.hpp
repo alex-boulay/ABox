@@ -147,7 +147,7 @@ class ShaderDataFile{
     ShaderDataFile(ShaderDataFile&& other);
     ShaderDataFile& operator=(ShaderDataFile && other) noexcept;
 */
-    std::string getName(){ return name;}
+    std::string getName() const { return name;}
 };
 
 
@@ -155,7 +155,7 @@ class ShaderDataFile{
 * @brief Shader Handler is a class that will load all shaders from a given path
 * @member sDatas vector of Shaders datas
 */
-class VkShaderHandler{
+class ShaderHandler{
   bool isGlsInit = false;
   std::vector<ShaderDataFile> sDatas; 
   // Devices are used to bind shader to a device when loading so unloading can be done automaticly;
@@ -176,29 +176,29 @@ class VkShaderHandler{
 
   public :
     
-    VkShaderHandler(){
-      VkShaderHandler("../shaders/");
+    ShaderHandler(){
+      ShaderHandler("../shaders/");
     }
     
-    VkShaderHandler(std::filesystem::path folder){
-      VkShaderHandler({folder});
+    ShaderHandler(std::filesystem::path folder){
+      ShaderHandler({folder});
     }
 
-    VkShaderHandler(std::initializer_list<std::filesystem::path> folderNames){
+    ShaderHandler(std::initializer_list<std::filesystem::path> folderNames){
       initGlsLang();
       for (const std::filesystem::path& folder : folderNames){
         loadShaderDataFromFolder(folder);
       }
     }
 
-    ~VkShaderHandler(){
+    ~ShaderHandler(){
       finalizeGlsLang();
     }
 
-    /**VkShaderHandler( const VkShaderHandler& other);
-    VkShaderHandler& operator=( const VkShaderHandler& other) noexcept;
-    VkShaderHandler( VkShaderHandler&& other);
-    VkShaderHandler& operator=( VkShaderHandler&& other) noexcept;
+    /**ShaderHandler( const ShaderHandler& other);
+    ShaderHandler& operator=( const ShaderHandler& other) noexcept;
+    ShaderHandler( ShaderHandler&& other);
+    ShaderHandler& operator=( ShaderHandler&& other) noexcept;
 */ 
     /**
     * @brief load data from given shader folder with expected extensions
@@ -226,9 +226,14 @@ class VkShaderHandler{
     */
     const std::vector<uint32_t> compileGLSLToSPIRV( const std::string& shaderCode,const EShLanguage& shaderStage);
 
-    std::string ListAllShaders();
+    std::string listAllShaders();
 
     ShaderDataFile * getShader(std::string name);
-    VkResult loadAllShaders(const VkDevice *&device);
+    
+    /**
+    * @brief loads all shaders to the given device
+    * @return the number of shader loaded to the given device
+    */
+    uint32_t loadAllShaders(const VkDevice *&device);
 };
 

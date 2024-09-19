@@ -15,7 +15,7 @@ endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Project configuration
-project(VkTstApp)
+project(ABox)
 
 find_package(Threads REQUIRED)
 find_package(glslang REQUIRED)
@@ -25,15 +25,15 @@ FILE(GLOB SOURCE_FILES "*.cpp")
 FILE(GLOB HEADER_FILES "*.hpp")
 
 # Target executable
-add_executable(VkTstApp ${SOURCE_FILES} ${HEADER_FILES})
+add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 
 # Linker flags (adjust based on your target platform)
-target_link_libraries(VkTstApp PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi -lglslang-default-resource-limits" glslang::glslang glslang::SPIRV)
+target_link_libraries(ABox PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi -lglslang-default-resource-limits" glslang::glslang glslang::SPIRV)
 
 # Specify the install directory for the executable
-install(TARGETS VkTstApp
+install(TARGETS ABox
         RUNTIME DESTINATION bin)
 
 # Optionally install shaders or other resources
-install(DIRECTORY shaders/ DESTINATION share/VkTstApp/shaders)
-install(DIRECTORY resources/ DESTINATION share/VkTstApp/resources)
+install(DIRECTORY shaders/ DESTINATION share/ABox/shaders)
+install(DIRECTORY resources/ DESTINATION share/ABox/resources)

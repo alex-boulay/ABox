@@ -1,4 +1,4 @@
-#include "VkShaderHandler.hpp"
+#include "ShaderHandler.hpp"
 #include <algorithm>
 #include <iostream>
 #include <fstream>
@@ -115,9 +115,9 @@ VkResult ShaderDataFile::unload(const VkDevice * &device){
   return VK_INCOMPLETE;
 }
 
-//--------------- VkShaderHandler -----------------
+//--------------- ShaderHandler -----------------
 
-[[nodiscard]] VkFileResult VkShaderHandler::loadShaderDataFile(const std::filesystem::path& filePath){
+[[nodiscard]] VkFileResult ShaderHandler::loadShaderDataFile(const std::filesystem::path& filePath){
   if(std::filesystem::exists(filePath)){
     FILE_DEBUG_PRINT("Given path found : %s", filePath.string().c_str());
     ExtensionFileResult extFileResult = readExtentions(filePath);
@@ -143,7 +143,7 @@ VkResult ShaderDataFile::unload(const VkDevice * &device){
   }
 }
 
-uint32_t VkShaderHandler::loadShaderDataFromFolder(const std::filesystem::path& dirPath){
+uint32_t ShaderHandler::loadShaderDataFromFolder(const std::filesystem::path& dirPath){
   uint32_t count = 0;
   
   if (!std::filesystem::is_directory(dirPath))
@@ -156,14 +156,14 @@ uint32_t VkShaderHandler::loadShaderDataFromFolder(const std::filesystem::path& 
   return const_cast<uint32_t&>(count);
 }
 
-const std::string VkShaderHandler::loadShaderFromFile(const std::filesystem::path& shaderFile){
+const std::string ShaderHandler::loadShaderFromFile(const std::filesystem::path& shaderFile){
   std::ifstream file(shaderFile);
   if(!file.is_open()) throw std::runtime_error(std::string("Couldn't load Shader File")+ shaderFile.string());
   return std::string((std::istreambuf_iterator<char>(file)),(std::istreambuf_iterator<char>()));
 }
 
 
-const std::vector<uint32_t> VkShaderHandler::compileGLSLToSPIRV( const std::string& shaderCode,const EShLanguage& shaderStage){
+const std::vector<uint32_t> ShaderHandler::compileGLSLToSPIRV( const std::string& shaderCode,const EShLanguage& shaderStage){
   glslang::TShader shader(shaderStage);
   const std::array<const char *,1> shaderStrings = {shaderCode.c_str()};
 
@@ -203,9 +203,16 @@ const std::vector<uint32_t> VkShaderHandler::compileGLSLToSPIRV( const std::stri
   return spirv;
 }
 
-std::string VkShaderHandler::ListAllShaders(){
+std::string ShaderHandler::listAllShaders(){
   return std::accumulate(sDatas.begin(),sDatas.end(),std::string(),[](const std::string& a, ShaderDataFile b){return a + b.getName() + '\n';});
 }
 
-    ShaderDataFile * getShader(std::string name);
-    VkResult loadAllShaders(const VkDevice *&device);
+ShaderDataFile * ShaderHandler::getShader(std::string name){
+  std::vector<ShaderDataFile>::iterator result = std::find_if(sDatas.begin(),sDatas.end(),[&name](const ShaderDataFile &a)->bool{ return a.getName()==name;});
+  return result != sDatas.end() ? &(*result) : nullptr ;
+}
+
+uint32_t ShaderHandler::loadAllShaders(const VkDevice *&device){
+  return std::accumulate(sDatas.begin(), sDatas.end(), 0u,
+    [&device](uint32_t acc,ShaderDataFile& s)->uint32_t{ return acc + (s.load(device) == VK_SUCCESS);});
+}

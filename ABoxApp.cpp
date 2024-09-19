@@ -1,4 +1,4 @@
-#include "VkTstApp.hpp"
+#include "ABoxApp.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdint> 
 #include <ostream>
@@ -32,7 +32,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     return VK_FALSE;
 }
 
-bool VkTstApp::checkValidationLayerSupport() {
+bool ABoxApp::checkValidationLayerSupport() {
   uint32_t layerCount;
   vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
@@ -94,7 +94,7 @@ std::vector<const char*> getRequiredExtensions() {
   return extensions;
 }
 
-void VkTstApp::createSurface(){
+void ABoxApp::createSurface(){
   if(glfwCreateWindowSurface(instance, window, nullptr, &surface)!= VK_SUCCESS)
     throw std::runtime_error("Failed to create window Surface");
   else {
@@ -102,7 +102,7 @@ void VkTstApp::createSurface(){
   }
 }
 
-void VkTstApp::createInstance(){
+void ABoxApp::createInstance(){
   if (enableValidationLayers && !checkValidationLayerSupport()) {
     throw std::runtime_error("validation layers requested, but not available!");
   }
@@ -141,7 +141,7 @@ void VkTstApp::createInstance(){
     throw std::runtime_error("failed to create instance");
 }
 
-void VkTstApp::populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo){
+void ABoxApp::populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo){
   createInfo = {
     .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT ,
     .pNext = nullptr,
@@ -157,7 +157,7 @@ void VkTstApp::populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& create
   };
 }
 
-void VkTstApp::setupDebugMessenger(){
+void ABoxApp::setupDebugMessenger(){
   if(!enableValidationLayers) return ;
 
   VkDebugUtilsMessengerCreateInfoEXT createInfo;
@@ -171,14 +171,14 @@ void VkTstApp::setupDebugMessenger(){
         std::cout << "Validation Layers Enabled !"<< '\n';
   }  
 }
-void VkTstApp::run(){
+void ABoxApp::run(){
   initWindow();
   initVulkan();
   mainLoop();
   cleanup();
 }
 
-void VkTstApp::initWindow(){
+void ABoxApp::initWindow(){
   glfwInit();
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -187,7 +187,7 @@ void VkTstApp::initWindow(){
   window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan Test", nullptr, nullptr);
 }
 
-void VkTstApp::initVulkan(){
+void ABoxApp::initVulkan(){
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -197,7 +197,7 @@ void VkTstApp::initVulkan(){
   createImageViews();
 }
 
-void VkTstApp::createLogicalDevice(){
+void ABoxApp::createLogicalDevice(){
   QueueFamilyIndices indices = findQueueFamilies(physicalDevice);
 
   std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
@@ -237,7 +237,7 @@ void VkTstApp::createLogicalDevice(){
   vkGetDeviceQueue(device, indices.graphicsFamily.value(), 0, &graphicsQueue);
 }
 
-void VkTstApp::pickPhysicalDevice(){
+void ABoxApp::pickPhysicalDevice(){
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
   if(!deviceCount)
@@ -255,7 +255,7 @@ void VkTstApp::pickPhysicalDevice(){
   }
 }
 
-bool VkTstApp::isDeviceSuitable(VkPhysicalDevice device){
+bool ABoxApp::isDeviceSuitable(VkPhysicalDevice device){
   QueueFamilyIndices indices = findQueueFamilies(device);
 
   bool extensionsSupported = checkDeviceExtensionSupport(device);
@@ -267,7 +267,7 @@ bool VkTstApp::isDeviceSuitable(VkPhysicalDevice device){
   return indices.isComplete()&& extensionsSupported && swapChainAdequate;
 }
 
-bool VkTstApp::checkDeviceExtensionSupport(VkPhysicalDevice device){
+bool ABoxApp::checkDeviceExtensionSupport(VkPhysicalDevice device){
   uint32_t extensionCount;
   vkEnumerateDeviceExtensionProperties(device,nullptr,&extensionCount,nullptr);
   
@@ -281,7 +281,7 @@ bool VkTstApp::checkDeviceExtensionSupport(VkPhysicalDevice device){
   return requiredExtensions.empty();
 }
 
-QueueFamilyIndices VkTstApp::findQueueFamilies(VkPhysicalDevice device){
+QueueFamilyIndices ABoxApp::findQueueFamilies(VkPhysicalDevice device){
   QueueFamilyIndices indices;
   uint32_t queueFamilyCount = 0;
   vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
@@ -303,7 +303,7 @@ QueueFamilyIndices VkTstApp::findQueueFamilies(VkPhysicalDevice device){
   return indices;
 }
 
-SwapChainSupportDetails VkTstApp::querySwapChainSupport(VkPhysicalDevice device){
+SwapChainSupportDetails ABoxApp::querySwapChainSupport(VkPhysicalDevice device){
   SwapChainSupportDetails details;
   
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, surface, &details.capabilities);
@@ -326,7 +326,7 @@ SwapChainSupportDetails VkTstApp::querySwapChainSupport(VkPhysicalDevice device)
   return details;
 }
 
-VkSurfaceFormatKHR VkTstApp::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats){
+VkSurfaceFormatKHR ABoxApp::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats){
   for (const auto& availableFormat : availableFormats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB && availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
       return availableFormat;
@@ -335,7 +335,7 @@ VkSurfaceFormatKHR VkTstApp::chooseSwapSurfaceFormat(const std::vector<VkSurface
   return availableFormats[0];
 }
 
-VkPresentModeKHR VkTstApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes){
+VkPresentModeKHR ABoxApp::chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes){
   for (const auto& availablePresentMode : availablePresentModes) {
     if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       return availablePresentMode;
@@ -344,7 +344,7 @@ VkPresentModeKHR VkTstApp::chooseSwapPresentMode(const std::vector<VkPresentMode
   return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D VkTstApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities){
+VkExtent2D ABoxApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities){
   if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
     return capabilities.currentExtent;
   else{
@@ -363,7 +363,7 @@ VkExtent2D VkTstApp::chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabiliti
   }
 }
 
-void VkTstApp::createSwapChain(){
+void ABoxApp::createSwapChain(){
   SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice);
   VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
   VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
@@ -420,7 +420,7 @@ void VkTstApp::createSwapChain(){
   swapChainExtent = extent;
 }
 
-void VkTstApp::createImageViews(){
+void ABoxApp::createImageViews(){
   swapChainImageViews.resize(swapChainImages.size());
 
   constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY ;
@@ -447,17 +447,17 @@ void VkTstApp::createImageViews(){
   }
 }
 
-void VkTstApp::createGraphicsPipeline(){
+void ABoxApp::createGraphicsPipeline(){
   
 }
 
-void VkTstApp::mainLoop(){
+void ABoxApp::mainLoop(){
   while (!glfwWindowShouldClose(window)){
     glfwPollEvents();
   }
 }
 
-void VkTstApp::cleanup(){
+void ABoxApp::cleanup(){
   for (VkImageView imageView : swapChainImageViews)
     vkDestroyImageView(device,imageView, nullptr);
 

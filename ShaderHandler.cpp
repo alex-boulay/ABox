@@ -127,8 +127,7 @@ VkResult ShaderDataFile::unload(const VkDevice * &device){
       FILE_DEBUG_PRINT("Shader Loaded");
       std::vector<uint32_t> code = compileGLSLToSPIRV( shaderF, get<EShLanguage>(*extFileResult.stage));
       FILE_DEBUG_PRINT("Compiled total number of uint32_t : %lu",code.size());
-      ShaderDataFile sdf =ShaderDataFile(filePath.filename(),code,extFileResult.stage,extFileResult.platform);
-      sDatas.push_back(sdf);
+      sDatas.push_back(ShaderDataFile(filePath.filename(),code,extFileResult.stage,extFileResult.platform));
       FILE_DEBUG_PRINT("ShaderData added");
       return VK_FILE_SUCCESS;
     }
@@ -204,7 +203,7 @@ const std::vector<uint32_t> ShaderHandler::compileGLSLToSPIRV( const std::string
 }
 
 std::string ShaderHandler::listAllShaders(){
-  return std::accumulate(sDatas.begin(),sDatas.end(),std::string(),[](const std::string& a, ShaderDataFile b){return a + b.getName() + '\n';});
+  return std::accumulate(sDatas.begin(),sDatas.end(),std::string(),[](const std::string& a,const ShaderDataFile &b){return a + b.getName() + '\n';});
 }
 
 ShaderDataFile * ShaderHandler::getShader(std::string name){

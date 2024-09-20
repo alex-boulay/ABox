@@ -9,7 +9,7 @@
 #include <cassert> 
 #include <algorithm>
 #include <optional>
-#include <iostream>
+#include <utility>
 #include <glslang/Public/ShaderLang.h>
 
 #pragma once
@@ -142,11 +142,22 @@ class ShaderDataFile{
       for (auto bind : sBinds) (void)unload(bind.device);
     }
 
-  /**  ShaderDataFile(const ShaderDataFile& other);
-    ShaderDataFile& operator=(const ShaderDataFile& other) noexcept;
-    ShaderDataFile(ShaderDataFile&& other);
-    ShaderDataFile& operator=(ShaderDataFile && other) noexcept;
-*/
+    ShaderDataFile(const ShaderDataFile& other) = delete;// No Copy -> Unique
+    ShaderDataFile& operator= (const ShaderDataFile& other)= delete;// No Copy -> Unique
+    ShaderDataFile (ShaderDataFile && other) noexcept : 
+      name(other.name),
+      code(other.code),
+      stage(other.stage),
+      platform(other.platform){
+      sBinds = std::exchange(other.sBinds,{});
+    }
+
+    ShaderDataFile& operator=(ShaderDataFile&& other) noexcept{
+      ShaderDataFile temp(std::move(other));
+      std::swap(sBinds, temp.sBinds);
+      return *this;
+    }
+    
     std::string getName() const { return name;}
 };
 
@@ -195,11 +206,11 @@ class ShaderHandler{
       finalizeGlsLang();
     }
 
-    /**ShaderHandler( const ShaderHandler& other);
-    ShaderHandler& operator=( const ShaderHandler& other) noexcept;
-    ShaderHandler( ShaderHandler&& other);
-    ShaderHandler& operator=( ShaderHandler&& other) noexcept;
-*/ 
+    ShaderHandler( const ShaderHandler& other) = delete;//no Copy -> ShaderDataFile are unique
+    ShaderHandler( ShaderHandler&& other)      = delete;//no Copy -> ShaderDataFiles are unique
+    ShaderHandler& operator=( const ShaderHandler& other) noexcept = delete; // todecide if moveable
+    ShaderHandler& operator=( ShaderHandler&& other) noexcept = delete; // not movable atm
+ 
     /**
     * @brief load data from given shader folder with expected extensions
     * @param filesystem::path the directory to load from

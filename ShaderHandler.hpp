@@ -207,8 +207,8 @@ class ShaderHandler{
     }
 
     ShaderHandler( const ShaderHandler& other) = delete;//no Copy -> ShaderDataFile are unique
-    ShaderHandler( ShaderHandler&& other)      = delete;//no Copy -> ShaderDataFiles are unique
-    ShaderHandler& operator=( const ShaderHandler& other) noexcept = delete; // todecide if moveable
+    ShaderHandler& operator=( const ShaderHandler& other) noexcept = delete; // no Copy
+    ShaderHandler( ShaderHandler&& other)      = delete;                // not movable atm
     ShaderHandler& operator=( ShaderHandler&& other) noexcept = delete; // not movable atm
  
     /**

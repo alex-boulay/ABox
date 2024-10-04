@@ -1,11 +1,10 @@
-#pragma once 
-
+#include <optional>
 #include <vector>
 #include <vulkan/vulkan.h>
 #include "DeviceHandler.hpp"
 
 class RessourcesManger{
-  std::vector<DeviceHandler> devices;
+  DeviceHandler devices;
   VkInstance instance;
   
   RessourcesManger(){
@@ -18,6 +17,7 @@ class RessourcesManger{
       .engineVersion      = 10000,
       .apiVersion         = VK_API_VERSION_1_3
     };
+
 
   }
   void displayPhysicalDevices();

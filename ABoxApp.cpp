@@ -125,7 +125,7 @@ void ABoxApp::createInstance(){
   VkInstanceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pNext = enableValidationLayers ? (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo : nullptr,
-    .flags = 0,
+    .flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
     .pApplicationInfo = &appInfo,
     .enabledLayerCount = enableValidationLayers * static_cast<uint32_t>(validationLayers.size()),
     .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,

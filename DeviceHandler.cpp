@@ -2,13 +2,19 @@
 #include <vulkan/vulkan_core.h>
 #include <system_error>
 
-VkResult DeviceHandler::listPhysicalDevices(const VkInstance& instance){
+
+DeviceHandler::DeviceHandler(const VkInstance& instance):instance(instance){
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-  if(!deviceCount)
+  if(!deviceCount){
     throw std::runtime_error("failed to find GPUs with Vulkan support!");
-  std::vector<VkPhysicalDevice> devices(deviceCount);
-  vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+  }
+  pDevices.resize(deviceCount);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, pDevices.data());
+}
+
+VkResult DeviceHandler::listPhysicalDevices(const VkInstance& instance){
+  /**
   for (const auto& device : devices) {
     if (isDeviceSuitable(device)) {
       physical.push_back(device);
@@ -16,6 +22,6 @@ VkResult DeviceHandler::listPhysicalDevices(const VkInstance& instance){
   }
   if (physicalDevices.back() == VK_NULL_HANDLE) {
     throw std::runtime_error("failed to find a suitable GPU!");
-  }
+  }*/
   return VK_SUCCESS;
 }

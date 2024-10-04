@@ -10,13 +10,14 @@ struct deviceBind {
 /** @brief map a physical device to logical ones
 */
 class DeviceHandler{
-  const std::vector<VkPhysicalDevice> physicalList;
-  std::vector<deviceBind> devices;
+  const VkInstance&             instance;
+  std::vector<VkPhysicalDevice> pDevices;
+  std::vector<deviceBind>       devices;
 
   VkResult listPhysicalDevices();
   VkResult pickPhysical();
   VkResult addLogicalDevice();
   VkResult clear();
 
-  DeviceHandler();
+  DeviceHandler(const VkInstance& instance);
 };

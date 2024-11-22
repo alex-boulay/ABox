@@ -245,6 +245,6 @@ class ShaderHandler{
     * @brief loads all shaders to the given device
     * @return the number of shader loaded to the given device
     */
-    uint32_t loadAllShaders(const VkDevice *&device);
+    uint32_t loadAllShaders(const VkDevice* device);
 };
 

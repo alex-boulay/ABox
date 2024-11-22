@@ -125,7 +125,7 @@ void ABoxApp::createInstance(){
   VkInstanceCreateInfo createInfo{
     .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
     .pNext = enableValidationLayers ? (VkDebugUtilsMessengerCreateInfoEXT*) &debugCreateInfo : nullptr,
-    .flags = VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
+    .flags = 0, //VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
     .pApplicationInfo = &appInfo,
     .enabledLayerCount = enableValidationLayers * static_cast<uint32_t>(validationLayers.size()),
     .ppEnabledLayerNames = enableValidationLayers ? validationLayers.data() : nullptr,
@@ -435,11 +435,11 @@ void ABoxApp::createImageViews(){
       .format = swapChainImageFormat,
       .components= { sid, sid, sid, sid},
       .subresourceRange = {
-        .aspectMask = VK_IMAGE_ASPECT_COLOR_BIT,
-        .baseMipLevel = 0,
-        .levelCount = 1,
+        .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+        .baseMipLevel   = 0,
+        .levelCount     = 1,
         .baseArrayLayer = 0,
-        .layerCount = 1
+        .layerCount     = 1
       }
     };
     if(vkCreateImageView(device, &createInfo,nullptr, &swapChainImageViews[i]) != VK_SUCCESS)

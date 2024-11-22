@@ -15,13 +15,13 @@ namespace {
 
   // ---------------Static Types---------------------
   const std::map<std::string, SourcePlatform> extensionToPlatform = {
-      {".glsl", SourcePlatform::GLSL},
-      {".hlsl", SourcePlatform::HLSL},
-      {".fx",   SourcePlatform::HLSL},
+      {".glsl", SourcePlatform::GLSL  },
+      {".hlsl", SourcePlatform::HLSL  },
+      {".fx",   SourcePlatform::HLSL  },
       {".cl",   SourcePlatform::OpenCL},
-      {".cu",   SourcePlatform::CUDA},
-      {".wgsl", SourcePlatform::WGSL},
-      {".rs",   SourcePlatform::Rust},
+      {".cu",   SourcePlatform::CUDA  },
+      {".wgsl", SourcePlatform::WGSL  },
+      {".rs",   SourcePlatform::Rust  },
       {".py",   SourcePlatform::Python}
   };
 
@@ -211,7 +211,7 @@ ShaderDataFile * ShaderHandler::getShader(std::string name){
   return result != sDatas.end() ? &(*result) : nullptr ;
 }
 
-uint32_t ShaderHandler::loadAllShaders(const VkDevice *&device){
+uint32_t ShaderHandler::loadAllShaders(const VkDevice* device){
   return std::accumulate(sDatas.begin(), sDatas.end(), 0u,
-    [&device](uint32_t acc,ShaderDataFile& s)->uint32_t{ return acc + (s.load(device) == VK_SUCCESS);});
+    [&](uint32_t acc,ShaderDataFile& s)->uint32_t{ return acc + (s.load(device) == VK_SUCCESS);});
 }

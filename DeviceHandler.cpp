@@ -1,8 +1,33 @@
 #include "DeviceHandler.hpp"
 #include <memory>
+#include <ostream>
 #include <vulkan/vulkan_core.h>
 #include <stdexcept>
 #include <iostream>
+
+#define OSTREAM_OP(X) std::ostream& operator<<(std::ostream& os, X)
+
+OSTREAM_OP(const VkPhysicalDeviceProperties& phyP){
+  os << "------- Physical Device Properties ----------\n";
+  os << "\t API version : "  << phyP.apiVersion << '\n';
+  os << "\t driver version : " << phyP.driverVersion << '\n';
+  os << "\t vendor ID : " << phyP.vendorID << '\n';
+  os << "\t device ID : " << phyP.deviceID << '\n';
+  os << "\t device type : " << phyP.deviceType << '\n';
+  os << "\t device name : " << phyP.deviceName << '\n';
+  return os; 
+}
+
+OSTREAM_OP(const VkPhysicalDeviceType& phyT){
+  switch (phyT){
+    case VK_PHYSICAL_DEVICE_TYPE_OTHER          : return os << "other type GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU : return os << "integrated GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU   : return os << "discrete GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU    : return os << "virtual GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_CPU            : return os << "CPU";
+    default : return os << " undefined GPU type";
+    }
+}
 
 DeviceHandler::DeviceHandler(std::unique_ptr<VkInstance> instance):instance(std::move(instance)){
   uint32_t deviceCount = 0;
@@ -12,17 +37,31 @@ DeviceHandler::DeviceHandler(std::unique_ptr<VkInstance> instance):instance(std:
 }
 
 VkResult DeviceHandler::listPhysicalDevices(){
-  std::cout<< "instance : boolean "<< (instance != nullptr) << std::endl;
-  
-  return VK_SUCCESS;
+  uint32_t index = 0;
+  for (auto physical : phyDevices) {
+    VkPhysicalDeviceProperties phyProp ={};
+    vkGetPhysicalDeviceProperties(physical, &phyProp);
+    std::cout << "Device n°" << index << " : \n" << phyProp;
+    index++;
+  }
+  return index> 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
 }
 
-/**
-  for (const auto& device : devices) {
-    if (isDeviceSuitable(device)) {
-      physical.push_back(device);
-    }
-  }
-  if (physicalDevices.back() == VK_NULL_HANDLE) {
-    throw std::runtime_error("failed to find a suitable GPU!");
-  }*/
+VkResult DeviceHandler::addLogicalDevice(uint32_t index){
+  VkDeviceCreateInfo devInfo{
+    .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+    .pNext = nullptr,
+    .flags = 0u,
+    .queueCreateInfoCount = 0u,
+    .pQueueCreateInfos = 0u,
+    .enabledLayerCount = 0u,
+    .ppEnabledLayerNames = 0u,
+    .enabledExtensionCount = 0u,
+    .ppEnabledExtensionNames = 0u,
+    .pEnabledFeatures = 0u,
+  };
+  devices.emplace_back(VkDevice{});
+  VkResult res = vkCreateDevice(phyDevices.at(index), &devInfo,nullptr, &devices.back());
+  deviceMap[devices.back()] = phyDevices.at(index);
+  return res;
+}

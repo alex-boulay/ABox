@@ -5,10 +5,19 @@
 #include "DeviceHandler.hpp"
 #include <stdexcept>
 
+#define DELETE_COPY(X)            \
+    X(const X&) = delete;         \
+    X& operator=(const X&) = delete;
+
+#define DELETE_MOVE(X)            \
+    X(X&&) = delete;              \
+    X& operator=(X&&) = delete;
+
 class RessourcesManager{
   DeviceHandler devices;
   VkInstance    instance;
-  
+
+public : 
   RessourcesManager(){
     VkApplicationInfo appInfo{
       .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -33,6 +42,18 @@ class RessourcesManager{
     if (vkCreateInstance(&instanceCreateInfo, nullptr, &instance) != VK_SUCCESS) {
       throw std::runtime_error("failed to create instance!");
     }
-    devices = DeviceHandler(std::unique_ptr<VkInstance>(&instance));
+    devices = DeviceHandler(instance);
   }
+
+  ~RessourcesManager(){
+    devices.~DeviceHandler();
+    vkDestroyInstance(instance,nullptr);
+  }
+
+  DeviceHandler const* getDevices()const { return &devices;}
+  VkInstance getInstance() const{return instance;}
+
+  DELETE_COPY(RessourcesManager)
+  DELETE_MOVE(RessourcesManager)
+
 };

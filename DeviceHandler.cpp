@@ -29,11 +29,18 @@ OSTREAM_OP(const VkPhysicalDeviceType& phyT){
     }
 }
 
-DeviceHandler::DeviceHandler(std::unique_ptr<VkInstance> instance):instance(std::move(instance)){
+DeviceHandler::~DeviceHandler() noexcept{
+  for(auto a: devices) vkDestroyDevice(a, nullptr);
+  std::vector<VkDevice>().swap(devices);
+  std::vector<VkPhysicalDevice>().swap(phyDevices);
+  std::unordered_map<VkDevice,VkPhysicalDevice>().swap(deviceMap);
+}
+
+DeviceHandler::DeviceHandler(VkInstance instance):instance(instance){
   uint32_t deviceCount = 0;
-  vkEnumeratePhysicalDevices(*instance, &deviceCount, nullptr);
+  vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
   phyDevices.resize(deviceCount);
-  vkEnumeratePhysicalDevices(*instance, &deviceCount,phyDevices.data());
+  vkEnumeratePhysicalDevices(instance, &deviceCount,phyDevices.data());
 }
 
 VkResult DeviceHandler::listPhysicalDevices(){
@@ -44,7 +51,7 @@ VkResult DeviceHandler::listPhysicalDevices(){
     std::cout << "Device n°" << index << " : \n" << phyProp;
     index++;
   }
-  return index> 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
+  return index > 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
 }
 
 VkResult DeviceHandler::addLogicalDevice(uint32_t index){

@@ -10,6 +10,8 @@
 #include <set> 
 #include <bitset>
 #include <vulkan/vulkan_core.h>
+#include "RessourcesManager.hpp"
+
 
 #ifdef NDEBUG
     const bool enableValidationLayers = false;
@@ -188,6 +190,7 @@ void ABoxApp::initWindow(){
 }
 
 void ABoxApp::initVulkan(){
+  RessourcesManager rs;
   createInstance();
   setupDebugMessenger();
   createSurface();

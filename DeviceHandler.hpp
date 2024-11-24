@@ -11,10 +11,12 @@
 /** @brief map a physical device to logical ones
 */
 class DeviceHandler{
-  std::unique_ptr<VkInstance>   instance;
+  VkInstance                    instance;
   std::vector<VkPhysicalDevice> phyDevices;
   std::vector<VkDevice>         devices;
-  std::unordered_map<VkDevice,VkPhysicalDevice> deviceMap;
+  std::unordered_map<
+    VkDevice,
+    VkPhysicalDevice>           deviceMap;
 
 public:
   VkResult listPhysicalDevices();
@@ -22,10 +24,10 @@ public:
   VkResult addLogicalDevice(uint32_t index);
   VkResult clear();
 
-  DeviceHandler();
-  DeviceHandler(std::unique_ptr<VkInstance> instance);
+  DeviceHandler(){};
+  DeviceHandler(VkInstance instance);
 
-  ~DeviceHandler();
+  ~DeviceHandler() noexcept;
   // No copy
   DeviceHandler(const DeviceHandler&)            = delete;
   DeviceHandler& operator=(const DeviceHandler&) = delete;

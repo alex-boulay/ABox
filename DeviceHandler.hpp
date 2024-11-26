@@ -19,7 +19,7 @@ class DeviceHandler{
     VkPhysicalDevice>           deviceMap;
 
 public:
-  VkResult listPhysicalDevices();
+  VkResult listPhysicalDevices()const;
   VkResult pickPhysical(uint32_t index);
   VkResult addLogicalDevice(uint32_t index);
   VkResult clear();

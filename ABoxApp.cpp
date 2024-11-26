@@ -191,6 +191,7 @@ void ABoxApp::initWindow(){
 
 void ABoxApp::initVulkan(){
   RessourcesManager rs;
+  rs.getDevices()->listPhysicalDevices();
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -262,12 +263,12 @@ bool ABoxApp::isDeviceSuitable(VkPhysicalDevice device){
   QueueFamilyIndices indices = findQueueFamilies(device);
 
   bool extensionsSupported = checkDeviceExtensionSupport(device);
-  bool swapChainAdequate = false ;
+  bool swapChainAdequate   = false ;
   if(extensionsSupported){
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
     swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
   }
-  return indices.isComplete()&& extensionsSupported && swapChainAdequate;
+  return indices.isComplete() && extensionsSupported && swapChainAdequate;
 }
 
 bool ABoxApp::checkDeviceExtensionSupport(VkPhysicalDevice device){

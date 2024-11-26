@@ -7,17 +7,6 @@
 
 #define OSTREAM_OP(X) std::ostream& operator<<(std::ostream& os, X)
 
-OSTREAM_OP(const VkPhysicalDeviceProperties& phyP){
-  os << "------- Physical Device Properties ----------\n";
-  os << "\t API version : "  << phyP.apiVersion << '\n';
-  os << "\t driver version : " << phyP.driverVersion << '\n';
-  os << "\t vendor ID : " << phyP.vendorID << '\n';
-  os << "\t device ID : " << phyP.deviceID << '\n';
-  os << "\t device type : " << phyP.deviceType << '\n';
-  os << "\t device name : " << phyP.deviceName << '\n';
-  return os; 
-}
-
 OSTREAM_OP(const VkPhysicalDeviceType& phyT){
   switch (phyT){
     case VK_PHYSICAL_DEVICE_TYPE_OTHER          : return os << "other type GPU";
@@ -27,6 +16,17 @@ OSTREAM_OP(const VkPhysicalDeviceType& phyT){
     case VK_PHYSICAL_DEVICE_TYPE_CPU            : return os << "CPU";
     default : return os << " undefined GPU type";
     }
+}
+
+OSTREAM_OP(const VkPhysicalDeviceProperties& phyP){
+  os << "------- Physical Device Properties ----------\n";
+  os << "\t API version : "  << phyP.apiVersion << '\n';
+  os << "\t driver version : " << phyP.driverVersion << '\n';
+  os << "\t vendor ID : " << phyP.vendorID << '\n';
+  os << "\t device ID : " << phyP.deviceID << '\n';
+  os << "\t device type : " << phyP.deviceType << '\n';
+  os << "\t device name : " << phyP.deviceName << '\n';
+  return os; 
 }
 
 DeviceHandler::~DeviceHandler() noexcept{
@@ -39,11 +39,12 @@ DeviceHandler::~DeviceHandler() noexcept{
 DeviceHandler::DeviceHandler(VkInstance instance):instance(instance){
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+  std::cout << "Total number of phy devices : "<<deviceCount<<'\n';
   phyDevices.resize(deviceCount);
   vkEnumeratePhysicalDevices(instance, &deviceCount,phyDevices.data());
 }
 
-VkResult DeviceHandler::listPhysicalDevices(){
+VkResult DeviceHandler::listPhysicalDevices()const{
   uint32_t index = 0;
   for (auto physical : phyDevices) {
     VkPhysicalDeviceProperties phyProp ={};
@@ -69,6 +70,7 @@ VkResult DeviceHandler::addLogicalDevice(uint32_t index){
   };
   devices.emplace_back(VkDevice{});
   VkResult res = vkCreateDevice(phyDevices.at(index), &devInfo,nullptr, &devices.back());
-  deviceMap[devices.back()] = phyDevices.at(index);
+  if(res ==VK_SUCCESS) deviceMap[devices.back()] = phyDevices.at(index);
+  else devices.pop_back();
   return res;
 }

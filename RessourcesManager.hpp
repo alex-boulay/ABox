@@ -50,8 +50,8 @@ public :
     vkDestroyInstance(instance,nullptr);
   }
 
-  DeviceHandler const* getDevices()const { return &devices;}
-  VkInstance getInstance() const{return instance;}
+  DeviceHandler* getDevices(){ return &devices;}
+  VkInstance     getInstance()const{return instance;}
 
   DELETE_COPY(RessourcesManager)
   DELETE_MOVE(RessourcesManager)

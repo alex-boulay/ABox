@@ -16,7 +16,7 @@ class DeviceHandler {
 
 public:
   VkResult listPhysicalDevices() const;
-  VkResult pickPhysical(uint32_t index);
+  // VkResult pickPhysical(uint32_t index);
   VkResult addLogicalDevice(uint32_t index);
   VkResult clear();
 

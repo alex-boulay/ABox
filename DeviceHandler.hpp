@@ -1,16 +1,13 @@
 #ifndef DEVICE_HANDLER_HPP
 #define DEVICE_HANDLER_HPP
 
+#include "PreProcUtils.hpp"
 #include "vulkan/vulkan_core.h"
 #include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 /** @brief map a physical device to logical ones
  */
-
-#ifdef DEBUG_VK_ABOX
-#define VK_ABOX_VALDIATION_LAYERS
-#endif
 
 namespace ABox_Utils {
 

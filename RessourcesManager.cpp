@@ -48,14 +48,10 @@ std::vector<const char *> getExtensions() {
   const char **glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-  std::cout << "Instances Extensions Size : " << InstanceExtensions.size()
-            << std::endl;
   for (uint32_t i = 0; i < glfwExtensionCount; i++)
     InstanceExtensions.insert(glfwExtensions[i]);
 
   glfwExtensionCount = InstanceExtensions.size();
-  std::cout << "Instances Extensions Size : " << InstanceExtensions.size()
-            << std::endl;
 
   return std::vector<const char *>(InstanceExtensions.begin(),
                                    InstanceExtensions.end());

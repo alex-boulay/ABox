@@ -2,18 +2,11 @@
 #define RESSOURCES_MANAGER_HPP
 
 #include "DeviceHandler.hpp"
+#include "PreProcUtils.hpp"
 #include <GLFW/glfw3.h>
 #include <set>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-
-#define DELETE_COPY(X)                                                         \
-  X(const X &) = delete;                                                       \
-  X &operator=(const X &) = delete;
-
-#define DELETE_MOVE(X)                                                         \
-  X(X &&) = delete;                                                            \
-  X &operator=(X &&) = delete;
 
 static std::set<const char *> IntanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS

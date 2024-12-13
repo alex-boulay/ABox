@@ -3,8 +3,6 @@
 #include <ostream>
 #include <vulkan/vulkan_core.h>
 
-#define OSTREAM_OP(X) std::ostream &operator<<(std::ostream &os, X)
-
 using namespace ABox_Utils;
 
 OSTREAM_OP(const VkPhysicalDeviceType &phyT) {

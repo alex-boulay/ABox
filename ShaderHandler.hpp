@@ -1,3 +1,7 @@
+#ifndef SHADER_HANDLER_HPP
+#define SHADER_HANDLER_HPP
+
+#include "PreProcUtils.hpp"
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -11,18 +15,6 @@
 #include <utility>
 #include <vector>
 #include <vulkan/vulkan_core.h>
-
-#pragma once
-
-#define FILE_DEBUG
-// Define DEBUG_PRINT only if DEBUG is enabled
-#ifdef FILE_DEBUG
-#define FILE_DEBUG_PRINT(fmt, ...)                                             \
-  printf("FILE_DEBUG: " fmt "\n", ##__VA_ARGS__)
-#else
-#define FILE_DEBUG_PRINT(fmt, ...)                                             \
-  // Nothing, as DEBUG_PRINT is empty in release mode
-#endif
 
 #define OPENGL_CHOSEN_VERSION 450
 #define VULKAN_CHOSEN_VERSION                                                  \
@@ -253,3 +245,5 @@ public:
    */
   uint32_t loadAllShaders(const VkDevice *device);
 };
+
+#endif // SHADER_HANDLER_HPP

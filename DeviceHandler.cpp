@@ -5,6 +5,8 @@
 
 #define OSTREAM_OP(X) std::ostream &operator<<(std::ostream &os, X)
 
+using namespace ABox_Utils;
+
 OSTREAM_OP(const VkPhysicalDeviceType &phyT) {
   switch (phyT) {
   case VK_PHYSICAL_DEVICE_TYPE_OTHER:
@@ -61,6 +63,7 @@ VkResult DeviceHandler::listPhysicalDevices() const {
 }
 
 VkResult DeviceHandler::addLogicalDevice(uint32_t index) {
+  std::cout << "index : " << index;
   std::cout << "1" << std::endl;
   VkDeviceCreateInfo devInfo{
       .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -78,12 +81,16 @@ VkResult DeviceHandler::addLogicalDevice(uint32_t index) {
   devices.emplace_back(VkDevice{});
   std::cout << "3" << std::endl;
   VkResult res =
-      vkCreateDevice(phyDevices.at(index), &devInfo, nullptr, &devices.back());
+      vkCreateDevice(phyDevices.back(), &devInfo, nullptr, &devices.back());
   std::cout << "4" << std::endl;
-  if (res == VK_SUCCESS)
-    deviceMap[devices.back()] = phyDevices.at(index);
-  else
+  if (res == VK_SUCCESS) {
+    std::cout << "Logical Device Assignment success ! '\n'";
+    deviceMap[devices.back()] = phyDevices.back();
+  } else {
+    std::cout << "Logical Device Assignment Failure, Result Code : " << res
+              << '\n';
     devices.pop_back();
+  }
   std::cout << "5" << std::endl;
   return res;
 }

@@ -1,18 +1,19 @@
-#include <vulkan/vulkan_core.h>
-#include <cstdint> 
+#pragma once
+
+#include <cstdint>
 #include <optional>
+#include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
+#include "ShaderHandler.hpp"
 #include <GLFW/glfw3.h>
 #include <vector>
-#include "ShaderHandler.hpp"
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicsFamily;
   std::optional<uint32_t> presentFamily;
 
   bool isComplete() {
-    return graphicsFamily.has_value() &&
-           presentFamily.has_value();
+    return graphicsFamily.has_value() && presentFamily.has_value();
   }
 };
 
@@ -27,20 +28,16 @@ struct SwapChainSupportDetails {
  * @brief Vulkan Loader application
  *
  */
-class ABoxApp{
-  static const uint_fast16_t WIDTH  = 800;
+class ABoxApp {
+  static const uint_fast16_t WIDTH = 800;
   static const uint_fast16_t HEIGHT = 600;
 
-  const std::vector<const char*> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-  };
-  const std::vector<const char*> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-  };
+  const std::vector<const char *> validationLayers = {
+      "VK_LAYER_KHRONOS_validation"};
+  const std::vector<const char *> deviceExtensions = {
+      VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-
-	
-  GLFWwindow* window;
+  GLFWwindow *window;
   VkInstance instance;
   VkDebugUtilsMessengerEXT debugMessenger;
   VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -67,18 +64,19 @@ class ABoxApp{
   void initWindow();
   bool isDeviceSuitable(VkPhysicalDevice device);
   void mainLoop();
-  void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
+  void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
   void pickPhysicalDevice();
   void setupDebugMessenger();
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
-  VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-  VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
-  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+  VkSurfaceFormatKHR chooseSwapSurfaceFormat(
+      const std::vector<VkSurfaceFormatKHR> &availableFormats);
+  VkPresentModeKHR chooseSwapPresentMode(
+      const std::vector<VkPresentModeKHR> &availablePresentModes);
+  VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR &capabilities);
   void createSwapChain();
   void createImageViews();
   void createGraphicsPipeline();
 
-  public:
-    void run();
+public:
+  void run();
 };
-

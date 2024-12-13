@@ -1,6 +1,9 @@
+#ifndef RESSOURCES_MANAGER_HPP
+#define RESSOURCES_MANAGER_HPP
+
 #include "DeviceHandler.hpp"
 #include <GLFW/glfw3.h>
-#include <stdexcept>
+#include <set>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
@@ -12,46 +15,35 @@
   X(X &&) = delete;                                                            \
   X &operator=(X &&) = delete;
 
+static std::set<const char *> IntanceLayers = {
+#ifdef VK_ABOX_VALIDATION_LAYERS
+    "VK_LAYER_KHRONOS_validation",
+#endif
+#ifdef VK_ABOX_PROFILING
+    "VK_LAYER_KHRONOS_profiles",
+#endif
+};
+
+static std::set<const char *> InstanceExtensions = {
+    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+};
+
 class RessourcesManager {
-  DeviceHandler devices;
+  ABox_Utils::DeviceHandler devices;
   VkInstance instance;
 
 public:
-  RessourcesManager() {
-    VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                              .pNext = nullptr,
-                              .pApplicationName = "ABoxApp",
-                              .applicationVersion = 10000,
-                              .pEngineName = "ABox",
-                              .engineVersion = 10000,
-                              .apiVersion = VK_API_VERSION_1_3};
-    VkInstanceCreateInfo instanceCreateInfo{
-        .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = 0u,
-        .pApplicationInfo = &appInfo,
-        .enabledLayerCount = 0u,
-        .ppEnabledLayerNames = 0u,
-        .enabledExtensionCount = 0u,
-        .ppEnabledExtensionNames = 0u};
-    instanceCreateInfo.ppEnabledExtensionNames =
-        glfwGetRequiredInstanceExtensions(
-            &instanceCreateInfo.enabledExtensionCount);
-    if (vkCreateInstance(&instanceCreateInfo, nullptr, &instance) !=
-        VK_SUCCESS) {
-      throw std::runtime_error("failed to create instance!");
-    }
-    devices = DeviceHandler(instance);
-  }
+  RessourcesManager();
 
-  ~RessourcesManager() {
-    devices.~DeviceHandler();
-    vkDestroyInstance(instance, nullptr);
-  }
+  std::vector<const char *> getExtensions();
 
-  DeviceHandler *getDevices() { return &devices; }
+  ~RessourcesManager();
+
+  ABox_Utils::DeviceHandler *getDevices() { return &devices; }
   VkInstance getInstance() const { return instance; }
 
   DELETE_COPY(RessourcesManager)
   DELETE_MOVE(RessourcesManager)
 };
+
+#endif // RESSOURCES_MANAGER_HPP

@@ -5,9 +5,15 @@
 #include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
-
 /** @brief map a physical device to logical ones
  */
+
+#ifdef DEBUG_VK_ABOX
+#define VK_ABOX_VALDIATION_LAYERS
+#endif
+
+namespace ABox_Utils {
+
 class DeviceHandler {
   VkInstance instance;
   std::vector<VkPhysicalDevice> phyDevices;
@@ -31,5 +37,5 @@ public:
   DeviceHandler(DeviceHandler &&other) noexcept = default;
   DeviceHandler &operator=(DeviceHandler &&other) noexcept = default;
 };
-
+} // namespace ABox_Utils
 #endif

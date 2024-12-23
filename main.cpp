@@ -1,23 +1,25 @@
 #include "ABoxApp.hpp"
 #include <exception>
-//#define GLFW_VERSION_MAJOR 3
-//#define GLFW_VERSION_MINOR 3
-//#define GLFW_VERSION_REVISION 8
+// #define GLFW_VERSION_MAJOR 3
+// #define GLFW_VERSION_MINOR 3
+// #define GLFW_VERSION_REVISION 8
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include <glm/vec4.hpp>
 #include <glm/mat4x4.hpp>
+#include <glm/vec4.hpp>
 
-#include <iostream>
 #include <cstdlib>
+#include <iostream>
 
-int main() {
+int main()
+{
   ABoxApp app;
-  std::cout << "App "<< (void *) &app<< '\n';
+  std::cout << "App " << (void *)&app << '\n';
   glfwInit();
   try {
     app.run();
-  }catch (const std::exception& e){
+  }
+  catch (const std::exception &e) {
     std::cerr << e.what() << '\n';
     return EXIT_FAILURE;
   }

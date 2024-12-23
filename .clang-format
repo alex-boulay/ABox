@@ -1,0 +1,53 @@
+---
+AccessModifierOffset: 1
+AlignAfterOpenBracket: BlockIndent
+AlignArrayOfStructures: Right
+AlignConsecutiveAssignments:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+  AlignCompound: true
+  AlignFunctionPointers: true
+  PadOperators: true
+AlignConsecutiveBitFields:
+  Enabled: true
+  AcrossEmptyLines: true
+  AcrossComments: true
+  AlignCompound: true
+  AlignFunctionPointers: true
+  PadOperators: true
+AlignConsecutiveDeclarations:
+  Enabled: true
+  AcrossEmptyLines: false
+  AcrossComments: true
+  AlignCompound: true
+  AlignFunctionPointers: true
+  PadOperators: true
+UseTab: Never
+Standard: Latest
+NamespaceIndentation: Inner
+Language: Cpp
+KeepEmptyLinesAtEOF: true
+InsertNewlineAtEOF: true
+InsertBraces: true
+IndentWrappedFunctionNames: true
+IndentWidth: 2
+IndentRequiresClause: true
+IndentPPDirectives: BeforeHash
+IndentCaseLabels: true
+FixNamespaceComments: true
+BreakInheritanceList: BeforeComma
+BreakFunctionDefinitionParameters: true
+BreakConstructorInitializers: BeforeComma
+BreakBeforeTernaryOperators: true
+BreakBeforeBraces: Stroustrup
+BreakBeforeInlineASMColon: OnlyMultiline
+AllowAllParametersOfDeclarationOnNextLine: false
+BinPackParameters: false
+BinPackArguments: false
+PackConstructorInitializers: BinPack
+AllowShortFunctionsOnASingleLine: All
+AllowAllArgumentsOnNextLine: false
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortCompoundRequirementOnASingleLine: true
+AllowShortEnumsOnASingleLine: true

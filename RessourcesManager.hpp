@@ -23,9 +23,9 @@ static std::set<const char *> InstanceExtensions = {
 
 class RessourcesManager {
   ABox_Utils::DeviceHandler devices;
-  VkInstance instance;
+  VkInstance                instance;
 
-public:
+   public:
   RessourcesManager();
 
   std::vector<const char *> getExtensions();
@@ -33,10 +33,14 @@ public:
   ~RessourcesManager();
 
   ABox_Utils::DeviceHandler *getDevices() { return &devices; }
-  VkInstance getInstance() const { return instance; }
+  VkInstance                 getInstance() const { return instance; }
 
-  DELETE_COPY(RessourcesManager)
-  DELETE_MOVE(RessourcesManager)
+  DELETE_COPY(
+      RessourcesManager
+  )
+  DELETE_MOVE(
+      RessourcesManager
+  )
 };
 
 #endif // RESSOURCES_MANAGER_HPP

@@ -12,12 +12,12 @@
 namespace ABox_Utils {
 
 class DeviceHandler {
-  VkInstance instance;
-  std::vector<VkPhysicalDevice> phyDevices;
-  std::vector<VkDevice> devices;
+  VkInstance                                     instance;
+  std::vector<VkPhysicalDevice>                  phyDevices;
+  std::vector<VkDevice>                          devices;
   std::unordered_map<VkDevice, VkPhysicalDevice> deviceMap;
 
-public:
+   public:
   VkResult listPhysicalDevices() const;
   // VkResult pickPhysical(uint32_t index);
   VkResult addLogicalDevice(uint32_t index);
@@ -28,10 +28,10 @@ public:
 
   ~DeviceHandler() noexcept;
   // No copy
-  DeviceHandler(const DeviceHandler &) = delete;
-  DeviceHandler &operator=(const DeviceHandler &) = delete;
+  DeviceHandler(const DeviceHandler &)                     = delete;
+  DeviceHandler &operator=(const DeviceHandler &)          = delete;
   // Move possible but as vector are defined no use to move
-  DeviceHandler(DeviceHandler &&other) noexcept = default;
+  DeviceHandler(DeviceHandler &&other) noexcept            = default;
   DeviceHandler &operator=(DeviceHandler &&other) noexcept = default;
 };
 } // namespace ABox_Utils

@@ -74,6 +74,7 @@ std::vector<const char *> RessourcesManager::getExtensions() {
   return std::vector<const char *>(InstanceExtensions.begin(),
                                    InstanceExtensions.end());
 }
+
 RessourcesManager::~RessourcesManager() {
   devices.~DeviceHandler();
   vkDestroyInstance(instance, nullptr);

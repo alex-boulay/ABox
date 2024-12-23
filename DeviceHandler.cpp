@@ -5,24 +5,24 @@
 
 using namespace ABox_Utils;
 
-OSTREAM_OP(const VkPhysicalDeviceType &phyT) {
+OSTREAM_OP(
+    const VkPhysicalDeviceType &phyT
+)
+{
   switch (phyT) {
-  case VK_PHYSICAL_DEVICE_TYPE_OTHER:
-    return os << "other type GPU";
-  case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU:
-    return os << "integrated GPU";
-  case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU:
-    return os << "discrete GPU";
-  case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU:
-    return os << "virtual GPU";
-  case VK_PHYSICAL_DEVICE_TYPE_CPU:
-    return os << "CPU";
-  default:
-    return os << " undefined GPU type";
+    case VK_PHYSICAL_DEVICE_TYPE_OTHER: return os << "other type GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU: return os << "integrated GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU: return os << "discrete GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU: return os << "virtual GPU";
+    case VK_PHYSICAL_DEVICE_TYPE_CPU: return os << "CPU";
+    default: return os << " undefined GPU type";
   }
 }
 
-OSTREAM_OP(const VkPhysicalDeviceProperties &phyP) {
+OSTREAM_OP(
+    const VkPhysicalDeviceProperties &phyP
+)
+{
   os << "------- Physical Device Properties ----------\n";
   os << "\t API version : " << phyP.apiVersion << '\n';
   os << "\t driver version : " << phyP.driverVersion << '\n';
@@ -33,15 +33,21 @@ OSTREAM_OP(const VkPhysicalDeviceProperties &phyP) {
   return os;
 }
 
-DeviceHandler::~DeviceHandler() noexcept {
-  for (auto a : devices)
+DeviceHandler::~DeviceHandler() noexcept
+{
+  for (auto a : devices) {
     vkDestroyDevice(a, nullptr);
+  }
   std::vector<VkDevice>().swap(devices);
   std::vector<VkPhysicalDevice>().swap(phyDevices);
   std::unordered_map<VkDevice, VkPhysicalDevice>().swap(deviceMap);
 }
 
-DeviceHandler::DeviceHandler(VkInstance instance) : instance(instance) {
+DeviceHandler::DeviceHandler(
+    VkInstance instance
+)
+    : instance(instance)
+{
   uint32_t deviceCount = 0;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
   std::cout << "Total number of phy devices : " << deviceCount << '\n';
@@ -49,7 +55,8 @@ DeviceHandler::DeviceHandler(VkInstance instance) : instance(instance) {
   vkEnumeratePhysicalDevices(instance, &deviceCount, phyDevices.data());
 }
 
-VkResult DeviceHandler::listPhysicalDevices() const {
+VkResult DeviceHandler::listPhysicalDevices() const
+{
   uint32_t index = 0;
   for (auto physical : phyDevices) {
     VkPhysicalDeviceProperties phyProp = {};
@@ -60,20 +67,23 @@ VkResult DeviceHandler::listPhysicalDevices() const {
   return index > 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
 }
 
-VkResult DeviceHandler::addLogicalDevice(uint32_t index) {
+VkResult DeviceHandler::addLogicalDevice(
+    uint32_t index
+)
+{
   std::cout << "index : " << index;
   std::cout << "1" << std::endl;
   VkDeviceCreateInfo devInfo{
-      .sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
-      .pNext = nullptr,
-      .flags = 0u,
-      .queueCreateInfoCount = 0u,
-      .pQueueCreateInfos = 0u,
-      .enabledLayerCount = 0u,
-      .ppEnabledLayerNames = 0u,
-      .enabledExtensionCount = 0u,
+      .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
+      .pNext                   = nullptr,
+      .flags                   = 0u,
+      .queueCreateInfoCount    = 0u,
+      .pQueueCreateInfos       = 0u,
+      .enabledLayerCount       = 0u,
+      .ppEnabledLayerNames     = 0u,
+      .enabledExtensionCount   = 0u,
       .ppEnabledExtensionNames = 0u,
-      .pEnabledFeatures = 0u,
+      .pEnabledFeatures        = 0u,
   };
   std::cout << "2" << std::endl;
   devices.emplace_back(VkDevice{});
@@ -84,7 +94,8 @@ VkResult DeviceHandler::addLogicalDevice(uint32_t index) {
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
     deviceMap[devices.back()] = phyDevices.back();
-  } else {
+  }
+  else {
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
               << '\n';
     devices.pop_back();

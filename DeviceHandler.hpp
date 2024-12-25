@@ -2,10 +2,9 @@
 #define DEVICE_HANDLER_HPP
 
 #include "PreProcUtils.hpp"
-#include "vulkan/vulkan_core.h"
-#include <unordered_map>
-#include <vector>
 #include <vulkan/vulkan_core.h>
+#include <vector>
+#include <unordered_map>
 /** @brief map a physical device to logical ones
  */
 
@@ -18,10 +17,11 @@ class DeviceHandler {
   std::unordered_map<VkDevice, VkPhysicalDevice> deviceMap;
 
    public:
+
   VkResult listPhysicalDevices() const;
-  // VkResult pickPhysical(uint32_t index);
   VkResult addLogicalDevice(uint32_t index);
   VkResult clear();
+  uint32_t listQueueFamilies();
 
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);

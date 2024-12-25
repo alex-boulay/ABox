@@ -4,22 +4,9 @@
 #include "DeviceHandler.hpp"
 #include "PreProcUtils.hpp"
 #include <GLFW/glfw3.h>
-#include <set>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
-static std::set<const char *> IntanceLayers = {
-#ifdef VK_ABOX_VALIDATION_LAYERS
-    "VK_LAYER_KHRONOS_validation",
-#endif
-#ifdef VK_ABOX_PROFILING
-    "VK_LAYER_KHRONOS_profiles",
-#endif
-};
-
-static std::set<const char *> InstanceExtensions = {
-    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-};
 
 class RessourcesManager {
   ABox_Utils::DeviceHandler devices;
@@ -35,6 +22,7 @@ class RessourcesManager {
   ABox_Utils::DeviceHandler *getDevices() { return &devices; }
   VkInstance                 getInstance() const { return instance; }
 
+  std::vector<const char*> getLayerNames();
   DELETE_COPY(
       RessourcesManager
   )

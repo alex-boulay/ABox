@@ -2,37 +2,60 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <set>
+
+
+static std::set<const char *> InstanceLayers = {
+#ifdef VK_ABOX_VALIDATION_LAYERS
+    "VK_LAYER_KHRONOS_validation",
+#endif
+#ifdef VK_ABOX_PROFILING
+    "VK_LAYER_KHRONOS_profiles",
+#endif
+};
+
+static std::set<const char *> InstanceExtensions = {
+    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+};
+
+
+std::vector<const char*> RessourcesManager::getLayerNames(){
+  std::vector<const char*> result;
+  for (const char* a : InstanceLayers)
+    result.push_back(a);
+  return result;
+}
 
 RessourcesManager::RessourcesManager() {
 
-  VkApplicationInfo appInfo{.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-                            .pNext = nullptr,
-                            .pApplicationName = "ABoxApp",
-                            .applicationVersion = 10000,
-                            .pEngineName = "ABox",
-                            .engineVersion = 10000,
-                            .apiVersion = VK_API_VERSION_1_3};
+  VkApplicationInfo appInfo{
+    .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+    .pNext = nullptr,
+    .pApplicationName = "ABoxApp",
+    .applicationVersion = 10000,
+    .pEngineName = "ABox",
+    .engineVersion = 10000,
+    .apiVersion = VK_API_VERSION_1_3
+  };
 
-  std::vector<const char *> extBuffer = getExtensions();
-
-  getExtensions();
-  extBuffer = getExtensions();
+  std::vector<const char *> extBuffer = std::move(getExtensions());
+  std::vector<const char *> layerBuffer = std::move(getLayerNames());
 
   for (auto a : extBuffer)
-    std::cout << a << '\n';
+    std::cout << "Extension : " << a << '\n';
+
+  for (auto a : layerBuffer)
+    std::cout << "Layer : " << a << '\n';
   VkInstanceCreateInfo instanceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
       .pNext = nullptr,
-      .flags = 0u,
+      .flags = 0, //VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
       .pApplicationInfo = &appInfo,
-      .enabledLayerCount = 0u,
-      .ppEnabledLayerNames = 0u,
+      .enabledLayerCount = static_cast<uint32_t>(layerBuffer.size()),
+      .ppEnabledLayerNames = layerBuffer.data(),
       .enabledExtensionCount = static_cast<uint32_t>(extBuffer.size()),
-      .ppEnabledExtensionNames = extBuffer.data()};
-
-  instanceCreateInfo.ppEnabledExtensionNames =
-      glfwGetRequiredInstanceExtensions(
-          &instanceCreateInfo.enabledExtensionCount);
+      .ppEnabledExtensionNames = extBuffer.data()
+  };
 
   VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
   if (res != VK_SUCCESS) {

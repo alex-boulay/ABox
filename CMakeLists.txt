@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.25)
 #Cpp standards
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+#set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
 
 # Enable AddressSanitizer in debug mode
 if(CMAKE_BUILD_TYPE MATCHES Debug)

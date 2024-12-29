@@ -21,6 +21,7 @@ class DeviceHandler {
   VkResult addLogicalDevice(uint32_t index);
   VkResult clear();
   uint32_t listQueueFamilies();
+  VkResult DeviceExtensionSupport(VkPhysicalDevice device);
 
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);

@@ -231,7 +231,7 @@ void ABoxApp::initVulkan()
 {
   RessourcesManager rs;
   rs.getDevices()->listPhysicalDevices();
-  rs.getDevices()->addLogicalDevice(0);
+  rs.getDevices()->addLogicalDevice(0u);
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -265,6 +265,14 @@ void ABoxApp::createLogicalDevice()
 
   VkPhysicalDeviceFeatures deviceFeatures{};
 
+  std::cout << " Devices Extension List :\n";
+  for (const auto &a : deviceExtensions) {
+    std::cout << a << std::endl;
+  }
+  std::cout << "Current Queue Families  : \n";
+  for (const auto &a : uniqueQueueFamilies) {
+    std::cout << a << std::endl;
+  }
   VkDeviceCreateInfo createInfo{
       .sType                = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext                = nullptr,
@@ -300,11 +308,16 @@ void ABoxApp::pickPhysicalDevice()
   }
   std::vector<VkPhysicalDevice> devices(deviceCount);
   vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+
+  uint32_t DEBUG_int = 0;
   for (const auto &device : devices) {
+    std::cout << "Current Phy dev : " << DEBUG_int++;
     if (isDeviceSuitable(device)) {
+      std::cout << " - The Device is suitable.";
       physicalDevice = device;
       break;
     }
+    std::cout << std::endl;
   }
   if (physicalDevice == VK_NULL_HANDLE) {
     throw std::runtime_error("failed to find a suitable GPU!");
@@ -354,6 +367,7 @@ bool ABoxApp::checkDeviceExtensionSupport(
   for (const auto &extension : availableExtensions) {
     requiredExtensions.erase(extension.extensionName);
   }
+  std::cout << std::endl;
   return requiredExtensions.empty();
 }
 

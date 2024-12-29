@@ -16,10 +16,27 @@ std::string toString(
   return (bit ? "true" : "false");
 }
 
+std::set<const char *> deviceExtensions{
+    VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+    "VK_KHR_portability_subset",
+};
+
 std::set<VkQueueFlags> necessaryDeviceQueueFamilyFLags{
     VK_QUEUE_GRAPHICS_BIT,
     VK_QUEUE_COMPUTE_BIT
 };
+bool hasGraphicQueue(
+    VkQueueFamilyProperties qfp
+)
+{
+  return qfp.queueFlags & VK_QUEUE_GRAPHICS_BIT;
+}
+bool hasComputeQueue(
+    VkQueueFamilyProperties qfp
+)
+{
+  return qfp.queueFlags & VK_QUEUE_COMPUTE_BIT;
+}
 
 bool isValidQueueFamily(
     VkQueueFamilyProperties qfp
@@ -29,8 +46,6 @@ bool isValidQueueFamily(
     if (!(n & qfp.queueFlags)) {
       return false;
     }
-    std::cout << " flags : " << qfp.queueFlags << " n Value : " << n
-              << " combinaison : " << (n & qfp.queueFlags) << "\n";
   }
   return true;
 }
@@ -57,7 +72,7 @@ std::stringstream vkQueueFlagSS(
      << toString(flag & VK_QUEUE_GRAPHICS_BIT)
      << "\nVK_QUEUE_COMPUTE_BIT - 0x2 : "
      << toString(flag & VK_QUEUE_COMPUTE_BIT)
-     << "\nVK_QUEUE_gTRANSFER_BIT - 0x4 : "
+     << "\nVK_QUEUE_TRANSFER_BIT - 0x4 : "
      << toString(flag & VK_QUEUE_TRANSFER_BIT)
      << "\nVK_QUEUE_SPARSE_BINDING_BIT - 0x8: "
      << toString(flag & VK_QUEUE_SPARSE_BINDING_BIT)
@@ -178,13 +193,50 @@ DeviceHandler::DeviceHandler(
   vkEnumeratePhysicalDevices(instance, &deviceCount, phyDevices.data());
 }
 
+VkResult DeviceHandler::DeviceExtensionSupport(
+    VkPhysicalDevice device
+)
+{
+  uint32_t extensionCount = 0u;
+  vkEnumerateDeviceExtensionProperties(
+      device,
+      nullptr,
+      &extensionCount,
+      nullptr
+  );
+
+  std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+  vkEnumerateDeviceExtensionProperties(
+      device,
+      nullptr,
+      &extensionCount,
+      availableExtensions.data()
+  );
+
+  std::set<std::string> requiredExtensions(
+      deviceExtensions.begin(),
+      deviceExtensions.end()
+  );
+  for (const auto &extension : availableExtensions) {
+#ifdef DEBUG_VK_ABOX
+    std::cout << "Dev extension : " << extension.extensionName
+              << " - Version : " << extension.specVersion << '\n';
+#endif
+    requiredExtensions.erase(extension.extensionName);
+  }
+  return requiredExtensions.empty() ? VK_SUCCESS
+                                    : VK_ERROR_EXTENSION_NOT_PRESENT;
+}
+
 VkResult DeviceHandler::listPhysicalDevices() const
 {
   uint32_t index = 0;
   for (auto physical : phyDevices) {
     VkPhysicalDeviceProperties phyProp = {};
+    VkPhysicalDeviceFeatures   phyFeat = {};
     vkGetPhysicalDeviceProperties(physical, &phyProp);
     std::cout << "Device n°" << index << " : \n" << phyProp;
+    vkGetPhysicalDeviceFeatures(physical, &phyFeat);
     index++;
   }
   return index > 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
@@ -196,20 +248,34 @@ VkResult DeviceHandler::addLogicalDevice(
 {
   std::cout << "index : " << index;
   std::cout << "1" << std::endl;
-
+  const float             queuePriority = 1.0f;
+  VkDeviceQueueCreateInfo qCI{
+      .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+      .pNext            = nullptr,
+      .flags            = 0u,
+      .queueFamilyIndex = 0u,
+      .queueCount       = 1u,
+      .pQueuePriorities = &queuePriority
+  };
+  std::cout << "1.bis \n";
+  std::vector<const char *> devExtVect(
+      deviceExtensions.begin(),
+      deviceExtensions.end()
+  );
   listQueueFamilies();
   VkDeviceCreateInfo devInfo{
       .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext                   = nullptr,
       .flags                   = 0u,
-      .queueCreateInfoCount    = 0u,
-      .pQueueCreateInfos       = 0u,
-      .enabledLayerCount       = 0u,
-      .ppEnabledLayerNames     = 0u,
-      .enabledExtensionCount   = 0u,
-      .ppEnabledExtensionNames = 0u,
-      .pEnabledFeatures        = 0u,
+      .queueCreateInfoCount    = 1u,
+      .pQueueCreateInfos       = &qCI,
+      .enabledLayerCount       = 0u,      // should not be used
+      .ppEnabledLayerNames     = nullptr, // should not be used
+      .enabledExtensionCount   = static_cast<uint32_t>(devExtVect.size()),
+      .ppEnabledExtensionNames = devExtVect.data(),
+      .pEnabledFeatures        = nullptr,
   };
+
   std::cout << "2" << std::endl;
   devices.emplace_back(VkDevice{});
   std::cout << "3" << std::endl;

@@ -1,11 +1,9 @@
 #include "DeviceHandler.hpp"
-#include <array>
 #include <bitset>
 #include <climits>
 #include <cstdint>
 #include <iostream>
 #include <ostream>
-#include <set>
 #include <vulkan/vulkan_core.h>
 
 namespace ABox_Utils {
@@ -204,6 +202,23 @@ void DeviceHandler::loadNecessaryQueueFamilies(
     }
   }
 }
+std::set<uint32_t> DeviceHandler::getQueueFamilyIndices()
+{
+  std::set<uint32_t> indices;
+  if (fIndices.graphicQueueIndex.has_value()) {
+    indices.insert(fIndices.graphicQueueIndex.value());
+  }
+  if (fIndices.renderQueueIndex.has_value()) {
+    indices.insert(fIndices.renderQueueIndex.value());
+  }
+  return indices;
+}
+
+std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices()
+{
+  auto s = getQueueFamilyIndices();
+  return std::vector<uint32_t>(s.cbegin(), s.cend());
+}
 
 VkResult DeviceHandler::addLogicalDevice(
     uint32_t     index,
@@ -212,10 +227,14 @@ VkResult DeviceHandler::addLogicalDevice(
 {
   std::cout << "index : " << index;
   std::cout << "1" << std::endl;
-  const float                            queuePriority = 1.0f;
-  std::array<VkDeviceQueueCreateInfo, 2> qCI;
+  const float queuePriority = 1.0f;
+  loadNecessaryQueueFamilies(index, surface);
+
+  std::vector<uint32_t>                fiList = listQueueFamilyIndices();
+  std::vector<VkDeviceQueueCreateInfo> qCI(fiList.size());
+
   for (uint32_t i = 0; i < qCI.size(); i++) {
-    qCI[i] = {
+    qCI[i] = VkDeviceQueueCreateInfo{
         .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext            = nullptr,
         .flags            = 0u,
@@ -234,7 +253,7 @@ VkResult DeviceHandler::addLogicalDevice(
       .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext                   = nullptr,
       .flags                   = 0u,
-      .queueCreateInfoCount    = qCI.size(),
+      .queueCreateInfoCount    = static_cast<uint32_t>(qCI.size()),
       .pQueueCreateInfos       = qCI.data(),
       .enabledLayerCount       = 0u,      // should not be used
       .ppEnabledLayerNames     = nullptr, // should not be used
@@ -304,7 +323,7 @@ OSTREAM_OP(
 }
 
 std::stringstream vkQueueFlagSS(
-    VkQueueFlags flag
+    const VkQueueFlags &flag
 )
 {
   std::stringstream   ss;
@@ -336,7 +355,7 @@ std::stringstream vkQueueFlagSS(
 }
 
 OSTREAM_OP(
-    VkExtent3D ext
+    const VkExtent3D &ext
 )
 {
   os << " Width : " << ext.width << " - Height : " << ext.height
@@ -345,7 +364,7 @@ OSTREAM_OP(
 }
 
 OSTREAM_OP(
-    VkQueueFamilyProperties prop
+    const VkQueueFamilyProperties &prop
 )
 {
   os << "VkQueueFamilyProperties : {\n\t queueCount : " << prop.queueCount

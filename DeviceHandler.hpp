@@ -3,6 +3,7 @@
 
 #include "PreProcUtils.hpp"
 #include <optional>
+#include <set>
 #include <sstream>
 #include <unordered_map>
 #include <vector>
@@ -34,6 +35,8 @@ class DeviceHandler {
   uint32_t listQueueFamilies();
   VkResult DeviceExtensionSupport(VkPhysicalDevice device);
   void     loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
+  std::set<uint32_t>    getQueueFamilyIndices();
+  std::vector<uint32_t> listQueueFamilyIndices();
 
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);
@@ -47,9 +50,9 @@ class DeviceHandler {
   DeviceHandler &operator=(DeviceHandler &&other) noexcept = default;
 };
 
-std::stringstream vkQueueFlagSS(VkQueueFlags flag);
-OSTREAM_OP(VkQueueFamilyProperties prop);
-OSTREAM_OP(VkExtent3D ext);
+std::stringstream vkQueueFlagSS(const VkQueueFlags &flag);
+OSTREAM_OP(const VkQueueFamilyProperties &prop);
+OSTREAM_OP(const VkExtent3D &ext);
 OSTREAM_OP(const VkPhysicalDeviceProperties &phyP);
 OSTREAM_OP(const VkPhysicalDeviceType &phyT);
 } // namespace ABox_Utils

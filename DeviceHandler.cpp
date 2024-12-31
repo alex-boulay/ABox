@@ -3,6 +3,7 @@
 #include <climits>
 #include <cstdint>
 #include <iostream>
+#include <map>
 #include <ostream>
 #include <vulkan/vulkan_core.h>
 
@@ -163,12 +164,14 @@ VkResult DeviceHandler::DeviceExtensionSupport(
 
 VkResult DeviceHandler::listPhysicalDevices() const
 {
-  uint32_t index = 0;
+  uint32_t                   index   = 0;
+  VkPhysicalDeviceProperties phyProp = {};
+  VkPhysicalDeviceFeatures   phyFeat = {};
   for (auto physical : phyDevices) {
-    VkPhysicalDeviceProperties phyProp = {};
-    VkPhysicalDeviceFeatures   phyFeat = {};
     vkGetPhysicalDeviceProperties(physical, &phyProp);
+#ifdef DEBUG_VK_ABOX
     std::cout << "Device n°" << index << " : \n" << phyProp;
+#endif
     vkGetPhysicalDeviceFeatures(physical, &phyFeat);
     index++;
   }
@@ -225,8 +228,6 @@ VkResult DeviceHandler::addLogicalDevice(
     VkSurfaceKHR surface
 )
 {
-  std::cout << "index : " << index;
-  std::cout << "1" << std::endl;
   const float queuePriority = 1.0f;
   loadNecessaryQueueFamilies(index, surface);
 
@@ -243,7 +244,6 @@ VkResult DeviceHandler::addLogicalDevice(
         .pQueuePriorities = &queuePriority
     };
   }
-  std::cout << "1.bis \n";
   std::vector<const char *> devExtVect(
       deviceExtensions.begin(),
       deviceExtensions.end()
@@ -262,12 +262,10 @@ VkResult DeviceHandler::addLogicalDevice(
       .pEnabledFeatures        = nullptr,
   };
 
-  std::cout << "2" << std::endl;
   devices.emplace_back(VkDevice{});
-  std::cout << "3" << std::endl;
-  VkPhysicalDevice phydev = phyDevices[1];
+  VkPhysicalDevice phydev = phyDevices[findBestPhysicalDevice()];
   VkResult res = vkCreateDevice(phydev, &devInfo, nullptr, &devices.back());
-  std::cout << "4" << std::endl;
+
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
     deviceMap[devices.back()] = phydev;
@@ -280,12 +278,67 @@ VkResult DeviceHandler::addLogicalDevice(
   std::cout << "5" << std::endl;
   return res;
 }
-
-uint32_t findBestPhysicalDevice()
+uint32_t rateDeviceSuitability(
+    VkPhysicalDeviceProperties deviceProperties,
+    VkPhysicalDeviceFeatures   deviceFeatures
+)
 {
-  // TODO make a real function that finds the best one
+
+  uint32_t score = 0;
+
+  // Les carte graphiques dédiées ont un énorme avantage en terme de
+  // performances
+  if (deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+    score += 1000;
+  }
+  else if (deviceProperties.deviceType ==
+           VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
+    score += 200;
+  }
+
+  // La taille maximale des textures affecte leur qualité
+  score += deviceProperties.limits.maxImageDimension2D;
+
+  // L'application (fictive) ne peut fonctionner sans les geometry shaders
+  if (!deviceFeatures.geometryShader) {
+    return 0;
+  }
+
+  return score;
+}
+
+uint32_t DeviceHandler::findBestPhysicalDevice()
+{
+  // Score maping to physical device index
+  std::multimap<uint32_t, uint32_t> candidates;
+
+  VkPhysicalDeviceProperties phyProp = {};
+  VkPhysicalDeviceFeatures   phyFeat = {};
+  for (uint32_t devIndex = 0; devIndex < phyDevices.size(); devIndex++) {
+    vkGetPhysicalDeviceProperties(phyDevices.at(devIndex), &phyProp);
+    vkGetPhysicalDeviceFeatures(phyDevices.at(devIndex), &phyFeat);
+    uint32_t score = rateDeviceSuitability(phyProp, phyFeat);
+    candidates.insert(std::make_pair(score, devIndex));
+#ifdef DEBUG_VK_ABOX
+    std::cout << "Score : " << score << "\tdevIndex : " << devIndex << '\n';
+#endif
+  }
+
+  if (candidates.rbegin()->first > 0) {
+#ifdef DEBUG_VK_ABOX
+    std::cout << "Physical Device selected is PhyDevice n°"
+              << candidates.rbegin()->second << "\n";
+#endif
+    return candidates.rbegin()->second;
+  }
+  else {
+    throw std::runtime_error(
+        "None of the installed GPU are compatible with the Application ! \n"
+    );
+  }
   return 0;
 }
+
 VkResult DeviceHandler::addLogicalDevice(
     VkSurfaceKHR surface
 )

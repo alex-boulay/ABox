@@ -38,6 +38,8 @@ class DeviceHandler {
   std::set<uint32_t>    getQueueFamilyIndices();
   std::vector<uint32_t> listQueueFamilyIndices();
 
+  uint32_t findBestPhysicalDevice();
+
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);
 

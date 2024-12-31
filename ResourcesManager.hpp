@@ -7,27 +7,31 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
-
-class RessourcesManager {
+class ResourcesManager {
   ABox_Utils::DeviceHandler devices;
   VkInstance                instance;
+  VkSurfaceKHR              surface;
 
    public:
-  RessourcesManager();
+  ResourcesManager();
 
   std::vector<const char *> getExtensions();
 
-  ~RessourcesManager();
+  ~ResourcesManager();
 
   ABox_Utils::DeviceHandler *getDevices() { return &devices; }
   VkInstance                 getInstance() const { return instance; }
 
-  std::vector<const char*> getLayerNames();
+  VkSurfaceKHR *getSurfacePtr() { return &surface; }
+  VkResult      addLogicalDevice();
+  VkResult      addLogicalDevice(uint32_t physicalDeviceIndex);
+
+  std::vector<const char *> getLayerNames();
   DELETE_COPY(
-      RessourcesManager
+      ResourcesManager
   )
   DELETE_MOVE(
-      RessourcesManager
+      ResourcesManager
   )
 };
 

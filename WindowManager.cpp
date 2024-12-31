@@ -1,3 +1,4 @@
+#include "ResourcesManager.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include "WindowManager.hpp"
 #include <GLFW/glfw3.h>
@@ -36,20 +37,6 @@ WindowManager::~WindowManager()
   glfwTerminate();
 }
 
-VkSurfaceKHR WindowManager::createVulkanSurface(
-    VkInstance instance
-)
-{
-  VkResult err = glfwCreateWindowSurface(instance, window, nullptr, &surface);
-  return surface;
-}
-void WindowManager::destroyVulkanSurface(
-    VkInstance instance
-)
-{
-  vkDestroySurfaceKHR(instance, surface, nullptr);
-}
-
 void WindowManager::framebufferResizeCallback(
     GLFWwindow *window,
     int         width_,
@@ -60,4 +47,20 @@ void WindowManager::framebufferResizeCallback(
             << "\tNew Width : " << width_ << '\n'
             << "\tNew Height : " << height_ << std::endl;
   // Recreate the Swapchain
+}
+
+VkResult WindowManager::createSurface(
+    ResourcesManager &rm
+)
+{
+  VkResult res = glfwCreateWindowSurface(
+      rm.getInstance(),
+      window,
+      nullptr,
+      rm.getSurfacePtr()
+  );
+  if (res != VK_SUCCESS) {
+    throw std::runtime_error("Failed to create Vulkan surface!");
+  }
+  return res;
 }

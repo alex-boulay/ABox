@@ -1,8 +1,9 @@
-#include "RessourcesManager.hpp"
+#include "ResourcesManager.hpp"
 #include <iostream>
 #include <set>
 #include <sstream>
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 static std::set<const char *> InstanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS
@@ -17,7 +18,7 @@ static std::set<const char *> InstanceExtensions = {
     VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
 }; // getExtensions was added to fetch necessary functions for glfw.
 
-std::vector<const char *> RessourcesManager::getLayerNames()
+std::vector<const char *> ResourcesManager::getLayerNames()
 {
   std::vector<const char *> result;
   for (const char *a : InstanceLayers) {
@@ -26,7 +27,7 @@ std::vector<const char *> RessourcesManager::getLayerNames()
   return result;
 }
 
-RessourcesManager::RessourcesManager()
+ResourcesManager::ResourcesManager()
 {
 
   VkApplicationInfo appInfo{
@@ -87,7 +88,7 @@ std::vector<const char *> getExtensions()
   );
 }
 
-std::vector<const char *> RessourcesManager::getExtensions()
+std::vector<const char *> ResourcesManager::getExtensions()
 {
   uint32_t     glfwExtensionCount = 0;
   const char **glfwExtensions;
@@ -109,8 +110,22 @@ std::vector<const char *> RessourcesManager::getExtensions()
   );
 }
 
-RessourcesManager::~RessourcesManager()
+ResourcesManager::~ResourcesManager()
 {
   devices.~DeviceHandler();
+  if (surface != VK_NULL_HANDLE) {
+    vkDestroySurfaceKHR(instance, surface, nullptr);
+  }
   vkDestroyInstance(instance, nullptr);
+}
+
+VkResult ResourcesManager::addLogicalDevice()
+{
+  return devices.addLogicalDevice(surface);
+}
+VkResult ResourcesManager::addLogicalDevice(
+    uint32_t physicalDeviceIndex
+)
+{
+  return devices.addLogicalDevice(physicalDeviceIndex, surface);
 }

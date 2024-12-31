@@ -1,5 +1,5 @@
 #include "ABoxApp.hpp"
-#include "RessourcesManager.hpp"
+#include "ResourcesManager.hpp"
 #include "WindowManager.hpp"
 #include <GLFW/glfw3.h>
 #include <algorithm>
@@ -230,11 +230,11 @@ void ABoxApp::initWindow()
 
 void ABoxApp::initVulkan()
 {
-  RessourcesManager rs;
+  ResourcesManager rs;
   rs.getDevices()->listPhysicalDevices();
-  rs.getDevices()->addLogicalDevice(0u);
   WindowManager wm(720u, 1200u);
-  wm.createVulkanSurface(rs.getInstance());
+  wm.createSurface(rs);
+  rs.addLogicalDevice();
   createInstance();
   setupDebugMessenger();
   createSurface();

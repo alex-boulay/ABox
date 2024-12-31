@@ -1,4 +1,5 @@
 #include "DeviceHandler.hpp"
+#include <array>
 #include <bitset>
 #include <climits>
 #include <iostream>
@@ -186,7 +187,7 @@ DeviceHandler::DeviceHandler(
 )
     : instance(instance)
 {
-  uint32_t deviceCount = 0;
+  uint32_t deviceCount = 0u;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
   std::cout << "Total number of phy devices : " << deviceCount << '\n';
   phyDevices.resize(deviceCount);
@@ -228,6 +229,20 @@ VkResult DeviceHandler::DeviceExtensionSupport(
                                     : VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
+bool supportsPresentation(
+    VkPhysicalDevice pD,
+    VkSurfaceKHR     surface,
+    uint32_t         qFamIndex
+)
+{
+  VkBool32 support;
+  if (VK_SUCCESS !=
+      vkGetPhysicalDeviceSurfaceSupportKHR(pD, qFamIndex, surface, &support)) {
+    std::cout << "Error Querying Physical Device Support for KHR Surfaces !\n";
+  }
+  return support;
+}
+
 VkResult DeviceHandler::listPhysicalDevices() const
 {
   uint32_t index = 0;
@@ -248,15 +263,18 @@ VkResult DeviceHandler::addLogicalDevice(
 {
   std::cout << "index : " << index;
   std::cout << "1" << std::endl;
-  const float             queuePriority = 1.0f;
-  VkDeviceQueueCreateInfo qCI{
-      .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-      .pNext            = nullptr,
-      .flags            = 0u,
-      .queueFamilyIndex = 0u,
-      .queueCount       = 1u,
-      .pQueuePriorities = &queuePriority
-  };
+  const float                            queuePriority = 1.0f;
+  std::array<VkDeviceQueueCreateInfo, 2> qCI;
+  for (uint32_t i = 0; i < qCI.size(); i++) {
+    qCI[i] = {
+        .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+        .pNext            = nullptr,
+        .flags            = 0u,
+        .queueFamilyIndex = 0u,
+        .queueCount       = 1u,
+        .pQueuePriorities = &queuePriority
+    };
+  }
   std::cout << "1.bis \n";
   std::vector<const char *> devExtVect(
       deviceExtensions.begin(),
@@ -267,8 +285,8 @@ VkResult DeviceHandler::addLogicalDevice(
       .sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
       .pNext                   = nullptr,
       .flags                   = 0u,
-      .queueCreateInfoCount    = 1u,
-      .pQueueCreateInfos       = &qCI,
+      .queueCreateInfoCount    = qCI.size(),
+      .pQueueCreateInfos       = qCI.data(),
       .enabledLayerCount       = 0u,      // should not be used
       .ppEnabledLayerNames     = nullptr, // should not be used
       .enabledExtensionCount   = static_cast<uint32_t>(devExtVect.size()),
@@ -279,12 +297,12 @@ VkResult DeviceHandler::addLogicalDevice(
   std::cout << "2" << std::endl;
   devices.emplace_back(VkDevice{});
   std::cout << "3" << std::endl;
-  VkResult res =
-      vkCreateDevice(phyDevices.front(), &devInfo, nullptr, &devices.back());
+  VkPhysicalDevice phydev = phyDevices[1];
+  VkResult res = vkCreateDevice(phydev, &devInfo, nullptr, &devices.back());
   std::cout << "4" << std::endl;
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
-    deviceMap[devices.back()] = phyDevices.front();
+    deviceMap[devices.back()] = phydev;
   }
   else {
     std::cout << "Logical Device Assignment Failure, Result Code : " << res

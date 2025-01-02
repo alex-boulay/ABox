@@ -56,7 +56,7 @@ SwapchainManager::SwapchainManager(
   chooseSwapPresentMode();
   chooseSwapExtent();
 
-  // TODO
+  // TODO : query Qfam with the device.
   ABox_Utils::QueueFamilyIndices indices;
   //= findQueueFamilies(phyDev);
 
@@ -125,6 +125,7 @@ SwapchainManager::SwapchainManager(
   swapChainExtent      = extent;
 };
 
+//-- TODO : All these functions
 VkResult SwapchainManager::querySwapChainSupport(
     VkPhysicalDevice phyDev
 )

@@ -185,11 +185,11 @@ QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
 {
   QueueFamilyIndices result;
   uint32_t           queueCount = 0;
-  VkPhysicalDevice  *pPD        = &phyDevices.at(phyDev);
-  vkGetPhysicalDeviceQueueFamilyProperties(*pPD, &queueCount, nullptr);
+  VkPhysicalDevice   pPD        = phyDevices.at(phyDev);
+  vkGetPhysicalDeviceQueueFamilyProperties(pPD, &queueCount, nullptr);
   std::vector<VkQueueFamilyProperties> queueFamilies(queueCount);
   vkGetPhysicalDeviceQueueFamilyProperties(
-      *pPD,
+      pPD,
       &queueCount,
       queueFamilies.data()
   );
@@ -200,7 +200,7 @@ QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
     }
   }
   for (uint32_t i = 0; i < queueCount; i++) {
-    if (supportsPresentation(*pPD, surface, i)) {
+    if (supportsPresentation(pPD, surface, i)) {
       result.renderQueueIndex = i;
       break;
     }

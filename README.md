@@ -14,7 +14,7 @@ glslang-dev glslang-tools spirv-tools GLFW
 - enhance device picking ?? :
   - prompt to choose physical device.
 - VkShader Loading and binding
-- RessourcesManager Instance Loading :
+- ResourcesManager Instance Loading :
   - Finalising Layers
   - Finalising extensions
 

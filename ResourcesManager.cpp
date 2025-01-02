@@ -64,7 +64,7 @@ ResourcesManager::ResourcesManager()
   VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
   if (res != VK_SUCCESS) {
     std::stringstream ss;
-    ss << "Ressource Manager Error : failed to create instance! VkResult = "
+    ss << "Resources Manager Error : failed to create instance! VkResult = "
        << res << std::endl;
     throw std::runtime_error(ss.str());
   }

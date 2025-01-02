@@ -17,13 +17,19 @@ struct QueueFamilyIndices {
   std::optional<uint32_t> graphicQueueIndex;
   std::optional<uint32_t> renderQueueIndex;
 };
+struct DeviceBoundElements {
+  VkPhysicalDevice   physical;
+  QueueFamilyIndices fIndices;
+};
 
 class DeviceHandler {
-  VkInstance                                     instance;
-  std::vector<VkPhysicalDevice>                  phyDevices;
-  std::vector<VkDevice>                          devices;
-  std::unordered_map<VkDevice, VkPhysicalDevice> deviceMap;
-  QueueFamilyIndices                             fIndices;
+  VkInstance                                        instance;
+  std::vector<VkPhysicalDevice>                     phyDevices;
+  std::vector<VkDevice>                             devices;
+  std::unordered_map<VkDevice, DeviceBoundElements> deviceMap;
+
+  std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
+  std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
 
    public:
   VkResult listPhysicalDevices() const;
@@ -34,9 +40,8 @@ class DeviceHandler {
   VkResult clear();
   uint32_t listQueueFamilies();
   VkResult DeviceExtensionSupport(VkPhysicalDevice device);
-  void     loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
-  std::set<uint32_t>    getQueueFamilyIndices();
-  std::vector<uint32_t> listQueueFamilyIndices();
+  QueueFamilyIndices
+      loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
 
   uint32_t findBestPhysicalDevice();
 

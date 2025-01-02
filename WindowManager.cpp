@@ -20,7 +20,6 @@ WindowManager::WindowManager(
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
   if (!window) {
-    glfwTerminate();
     throw std::runtime_error("Failed to create GLFW window");
   }
 
@@ -34,7 +33,7 @@ WindowManager::WindowManager(
 WindowManager::~WindowManager()
 {
   glfwDestroyWindow(window);
-  glfwTerminate();
+  // glfwTerminate();
 }
 
 void WindowManager::framebufferResizeCallback(

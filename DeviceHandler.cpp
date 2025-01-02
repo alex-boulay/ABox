@@ -112,7 +112,7 @@ DeviceHandler::~DeviceHandler() noexcept
   }
   std::vector<VkDevice>().swap(devices);
   std::vector<VkPhysicalDevice>().swap(phyDevices);
-  std::unordered_map<VkDevice, VkPhysicalDevice>().swap(deviceMap);
+  std::unordered_map<VkDevice, DeviceBoundElements>().swap(deviceMap);
 }
 
 DeviceHandler::DeviceHandler(
@@ -178,13 +178,14 @@ VkResult DeviceHandler::listPhysicalDevices() const
   return index > 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
 }
 
-void DeviceHandler::loadNecessaryQueueFamilies(
+QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
     uint32_t     phyDev,
     VkSurfaceKHR surface
 )
 {
-  uint32_t          queueCount = 0;
-  VkPhysicalDevice *pPD        = &phyDevices.at(phyDev);
+  QueueFamilyIndices result;
+  uint32_t           queueCount = 0;
+  VkPhysicalDevice  *pPD        = &phyDevices.at(phyDev);
   vkGetPhysicalDeviceQueueFamilyProperties(*pPD, &queueCount, nullptr);
   std::vector<VkQueueFamilyProperties> queueFamilies(queueCount);
   vkGetPhysicalDeviceQueueFamilyProperties(
@@ -194,32 +195,38 @@ void DeviceHandler::loadNecessaryQueueFamilies(
   );
   for (uint32_t i = 0; i < queueCount; i++) {
     if (hasGraphicQueue(queueFamilies.at(i))) {
-      fIndices.graphicQueueIndex = i;
+      result.graphicQueueIndex = i;
       break;
     }
   }
   for (uint32_t i = 0; i < queueCount; i++) {
     if (supportsPresentation(*pPD, surface, i)) {
-      fIndices.renderQueueIndex = i;
+      result.renderQueueIndex = i;
       break;
     }
   }
+  return result;
 }
-std::set<uint32_t> DeviceHandler::getQueueFamilyIndices()
+
+std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
+    QueueFamilyIndices fi
+)
 {
   std::set<uint32_t> indices;
-  if (fIndices.graphicQueueIndex.has_value()) {
-    indices.insert(fIndices.graphicQueueIndex.value());
+  if (fi.graphicQueueIndex.has_value()) {
+    indices.insert(fi.graphicQueueIndex.value());
   }
-  if (fIndices.renderQueueIndex.has_value()) {
-    indices.insert(fIndices.renderQueueIndex.value());
+  if (fi.renderQueueIndex.has_value()) {
+    indices.insert(fi.renderQueueIndex.value());
   }
   return indices;
 }
 
-std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices()
+std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices(
+    QueueFamilyIndices fi
+)
 {
-  auto s = getQueueFamilyIndices();
+  auto s = getQueueFamilyIndices(fi);
   return std::vector<uint32_t>(s.cbegin(), s.cend());
 }
 
@@ -229,20 +236,23 @@ VkResult DeviceHandler::addLogicalDevice(
 )
 {
   const float queuePriority = 1.0f;
-  loadNecessaryQueueFamilies(index, surface);
 
-  std::vector<uint32_t>                fiList = listQueueFamilyIndices();
-  std::vector<VkDeviceQueueCreateInfo> qCI(fiList.size());
+  DeviceBoundElements dbe = {
+      .physical = phyDevices.at(index),
+      .fIndices = loadNecessaryQueueFamilies(index, surface)
+  };
 
-  for (uint32_t i = 0; i < qCI.size(); i++) {
-    qCI[i] = VkDeviceQueueCreateInfo{
+  std::vector<VkDeviceQueueCreateInfo> qCI;
+
+  for (uint32_t famIndex : listQueueFamilyIndices(dbe.fIndices)) {
+    qCI.push_back(VkDeviceQueueCreateInfo{
         .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
         .pNext            = nullptr,
         .flags            = 0u,
-        .queueFamilyIndex = 0u,
+        .queueFamilyIndex = famIndex,
         .queueCount       = 1u,
         .pQueuePriorities = &queuePriority
-    };
+    });
   }
   std::vector<const char *> devExtVect(
       deviceExtensions.begin(),
@@ -268,16 +278,15 @@ VkResult DeviceHandler::addLogicalDevice(
 
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
-    deviceMap[devices.back()] = phydev;
+    deviceMap[devices.back()] = dbe;
   }
   else {
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
               << '\n';
     devices.pop_back();
   }
-  std::cout << "5" << std::endl;
   return res;
-}
+} // namespace ABox_Utils
 uint32_t rateDeviceSuitability(
     VkPhysicalDeviceProperties deviceProperties,
     VkPhysicalDeviceFeatures   deviceFeatures

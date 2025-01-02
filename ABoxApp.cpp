@@ -232,9 +232,9 @@ void ABoxApp::initVulkan()
 {
   ResourcesManager rs;
   rs.getDevices()->listPhysicalDevices();
+  rs.addLogicalDevice();
   WindowManager wm(720u, 1200u);
   wm.createSurface(rs);
-  rs.addLogicalDevice();
   createInstance();
   setupDebugMessenger();
   createSurface();

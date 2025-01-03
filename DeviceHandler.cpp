@@ -5,6 +5,7 @@
 #include <iostream>
 #include <map>
 #include <ostream>
+#include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
 namespace ABox_Utils {
@@ -201,7 +202,7 @@ QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
   }
   for (uint32_t i = 0; i < queueCount; i++) {
     if (supportsPresentation(pPD, surface, i)) {
-      result.renderQueueIndex = i;
+      result.presentQueueIndex = i;
       break;
     }
   }
@@ -216,8 +217,8 @@ std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
   if (fi.graphicQueueIndex.has_value()) {
     indices.insert(fi.graphicQueueIndex.value());
   }
-  if (fi.renderQueueIndex.has_value()) {
-    indices.insert(fi.renderQueueIndex.value());
+  if (fi.presentQueueIndex.has_value()) {
+    indices.insert(fi.presentQueueIndex.value());
   }
   return indices;
 }
@@ -235,6 +236,11 @@ VkResult DeviceHandler::addLogicalDevice(
     VkSurfaceKHR surface
 )
 {
+  if (surface == VK_NULL_HANDLE) {
+    throw std::runtime_error(
+        "Given Surface is not initialised (or has already been freed)."
+    );
+  }
   const float queuePriority = 1.0f;
 
   DeviceBoundElements dbe = {

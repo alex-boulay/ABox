@@ -22,6 +22,16 @@
   X(X &&)            = delete;                                                 \
   X &operator=(X &&) = delete;
 
+/** @brief removes the copy constructor */
+#define DEFAULT_COPY(X)                                                        \
+  X(const X &) noexcept            = default;                                  \
+  X &operator=(const X &) noexcept = default;
+
+/** @brief removes the move constructor */
+#define DEFAULT_MOVE(X)                                                        \
+  X(X &&) noexcept            = default;                                       \
+  X &operator=(X &&) noexcept = default;
+
 /** @brief ostream operator automaping type */
 #define OSTREAM_OP(X) std::ostream &operator<<(std::ostream &os, X)
 

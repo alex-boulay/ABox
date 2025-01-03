@@ -15,7 +15,7 @@ namespace ABox_Utils {
 
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicQueueIndex;
-  std::optional<uint32_t> renderQueueIndex;
+  std::optional<uint32_t> presentQueueIndex;
 };
 struct DeviceBoundElements {
   VkPhysicalDevice   physical;
@@ -49,12 +49,16 @@ class DeviceHandler {
   DeviceHandler(VkInstance instance);
 
   ~DeviceHandler() noexcept;
+
   // No copy
-  DeviceHandler(const DeviceHandler &)                     = delete;
-  DeviceHandler &operator=(const DeviceHandler &)          = delete;
+  DELETE_COPY(
+      DeviceHandler
+  )
+
   // Move possible but as vector are defined no use to move
-  DeviceHandler(DeviceHandler &&other) noexcept            = default;
-  DeviceHandler &operator=(DeviceHandler &&other) noexcept = default;
+  DEFAULT_MOVE(
+      DeviceHandler
+  )
 };
 
 std::stringstream vkQueueFlagSS(const VkQueueFlags &flag);

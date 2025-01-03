@@ -12,6 +12,7 @@ SwapchainManager::SwapchainManager(
     VkDevice         device
 )
 {
+  // query part can be a standalone function
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, surface, &capabilities);
   uint32_t formatCount;
   vkGetPhysicalDeviceSurfaceFormatsKHR(phyDev, surface, &formatCount, nullptr);
@@ -51,24 +52,25 @@ SwapchainManager::SwapchainManager(
     throw std::runtime_error(ss.str());
   }
 
-  querySwapChainSupport(phyDev);
   chooseSwapSurfaceFormat();
   chooseSwapPresentMode();
   chooseSwapExtent();
 
   // TODO : query Qfam with the device.
+  // might need to bind from DeviceHandler -> DeviceMap[device]->fIndices
   ABox_Utils::QueueFamilyIndices indices;
   //= findQueueFamilies(phyDev);
 
   std::vector<uint32_t> queueFamilyIndices = {
       indices.graphicQueueIndex.value(),
-      indices.renderQueueIndex.value()
+      indices.presentQueueIndex.value()
   };
 
 #define SCSC_Mi capabilities.minImageCount + 1
 #define SCSC_Ma capabilities.maxImageCount
 #define SCSC_MinC std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi)
-#define SCSC_CONCURENT (indices.graphicQueueIndex != indices.renderQueueIndex)
+#define SCSC_CONCURENT                                                         \
+  (indices.graphicQueueIndex.value() != indices.presentQueueIndex.value())
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -125,13 +127,34 @@ SwapchainManager::SwapchainManager(
   swapChainExtent      = extent;
 };
 
-//-- TODO : All these functions
-VkResult SwapchainManager::querySwapChainSupport(
-    VkPhysicalDevice phyDev
-)
+VkResult SwapchainManager::chooseSwapSurfaceFormat()
 {
-  return VK_SUCCESS;
+  for (const auto &availableFormat : formats) {
+    if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
+        availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
+      surfaceFormat = availableFormat;
+      return VK_SUCCESS;
+    }
+  }
+  surfaceFormat = formats.at(0);
+#ifdef DEBUG_VK_ABOX
+  std::cout << "Could not find a suitable swapSurfaceFomat."
+            << "(first one from available taken)" << std::endl;
+#endif
+  return VK_INCOMPLETE;
 }
-VkResult SwapchainManager::chooseSwapSurfaceFormat() { return VK_SUCCESS; }
-VkResult SwapchainManager::chooseSwapPresentMode() { return VK_SUCCESS; }
+VkResult SwapchainManager::chooseSwapPresentMode()
+{
+  for (const auto &availablePresentMode : presentModes) {
+    if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
+      presentMode = availablePresentMode;
+      return VK_SUCCESS;
+    }
+  }
+  presentMode = VK_PRESENT_MODE_FIFO_KHR;
+#ifdef DEBUG_VK_ABOX
+  std::cout << "Could not find a Mailbox Presentation Mode." << std::endl;
+#endif
+  return VK_INCOMPLETE;
+}
 VkResult SwapchainManager::chooseSwapExtent() { return VK_SUCCESS; }

@@ -1,3 +1,4 @@
+
 #ifndef DEVICE_HANDLER_HPP
 #define DEVICE_HANDLER_HPP
 
@@ -8,22 +9,32 @@
 #include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
-/** @brief map a physical device to logical ones
- */
 
 namespace ABox_Utils {
 
+/**
+ * @struct QueueFamilyIndices
+ * @brief represent optional queue family indices
+ */
 struct QueueFamilyIndices {
   std::optional<uint32_t> graphicQueueIndex;
   std::optional<uint32_t> presentQueueIndex;
 };
+/**
+ * @struct DeviceBoundElements
+ * @brief Represents elements bounded to the Logical Device
+ */
 struct DeviceBoundElements {
   VkPhysicalDevice   physical;
   QueueFamilyIndices fIndices;
 };
 
+/**
+ * @class DeviceHandler
+ * @brief Handle specifics to logical devices and their different bindings
+ */
 class DeviceHandler {
-  VkInstance                                        instance;
+  // VkInstance                                        instance;
   std::vector<VkPhysicalDevice>                     phyDevices;
   std::vector<VkDevice>                             devices;
   std::unordered_map<VkDevice, DeviceBoundElements> deviceMap;
@@ -34,10 +45,24 @@ class DeviceHandler {
    public:
   VkResult listPhysicalDevices() const;
 
+  /**
+   * @brief add a Logical device while guessing which Physical Device is the
+   * best suited to do the job
+   *
+   * @param VkSurfaceKHR surface the surface which will bind presentation
+   * @return VkResult : VK_SUCCESS if succeded else a corresponding error value
+   */
   VkResult addLogicalDevice(VkSurfaceKHR surface);
+  /**3
+   *
+   * @param uint32_t index the physical device index to select
+   * @param[[VkSurfaceKHR] surface the surface which will bind presentation
+   * @return a VkResult if VK_SUCCESS if succeded else a corresponding error
+   * value
+   */
   VkResult addLogicalDevice(uint32_t index, VkSurfaceKHR surface);
 
-  VkResult clear();
+  // TODO : VkResult clear();
   uint32_t listQueueFamilies();
   VkResult DeviceExtensionSupport(VkPhysicalDevice device);
   QueueFamilyIndices

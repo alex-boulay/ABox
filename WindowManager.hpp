@@ -4,10 +4,18 @@
 #include <string>
 #include <vulkan/vulkan_core.h>
 
+/**
+ * @class WindowManager
+ * @brief manage window proprieties and callbacks, handle some
+ * of the calls to the ressoureManager aiming for the surface
+ * used inside the window, it also manage to keep trace
+ * of te width and height of the window and associated swapchain
+ */
 class WindowManager {
   GLFWwindow *window;
   uint32_t    width, height;
-  std::string title = "ABox";
+  std::string title              = "ABox";
+  bool        framebufferResized = false;
 
    public:
   WindowManager(uint32_t w, uint32_t h);
@@ -20,7 +28,6 @@ class WindowManager {
   uint32_t getHeight() const { return height; }
 
   GLFWwindow *getWindow() const { return window; }
-  bool        framebufferResized = false;
 
   static void
       framebufferResizeCallback(GLFWwindow *window, int width_, int height_);

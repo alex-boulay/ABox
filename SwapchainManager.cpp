@@ -1,7 +1,9 @@
 #include "SwapchainManager.hpp"
 #include "DeviceHandler.hpp"
+#include <algorithm>
 #include <ios>
 #include <iostream>
+#include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
@@ -54,7 +56,8 @@ SwapchainManager::SwapchainManager(
 
   chooseSwapSurfaceFormat();
   chooseSwapPresentMode();
-  chooseSwapExtent();
+  // TODO : set the with and height from the window manager
+  chooseSwapExtent(width, height);
 
   // TODO : query Qfam with the device.
   // might need to bind from DeviceHandler -> DeviceMap[device]->fIndices
@@ -157,4 +160,30 @@ VkResult SwapchainManager::chooseSwapPresentMode()
 #endif
   return VK_INCOMPLETE;
 }
-VkResult SwapchainManager::chooseSwapExtent() { return VK_SUCCESS; }
+
+VkResult SwapchainManager::chooseSwapExtent(
+    uint32_t width,
+    uint32_t height
+)
+{
+
+  if (capabilities.currentExtent.width !=
+      std::numeric_limits<uint32_t>::max()) {
+    extent = capabilities.currentExtent;
+  }
+  else {
+    extent = {
+        std::clamp(
+            extent.width,
+            capabilities.minImageExtent.width,
+            capabilities.maxImageExtent.width
+        ),
+        extent.height = std::clamp(
+            extent.height,
+            capabilities.minImageExtent.height,
+            capabilities.maxImageExtent.height
+        )
+    };
+  }
+  return VK_SUCCESS;
+}

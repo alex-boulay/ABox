@@ -119,7 +119,7 @@ DeviceHandler::~DeviceHandler() noexcept
 DeviceHandler::DeviceHandler(
     VkInstance instance
 )
-    : instance(instance)
+//: instance(instance)
 {
   uint32_t deviceCount = 0u;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);

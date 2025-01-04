@@ -26,7 +26,7 @@ class SwapchainManager {
   VkResult querySwapChainSupport(VkPhysicalDevice phyDev);
   VkResult chooseSwapSurfaceFormat();
   VkResult chooseSwapPresentMode();
-  VkResult chooseSwapExtent();
+  VkResult chooseSwapExtent(uint32_t width, uint32_t height);
 
    public:
   SwapchainManager(
@@ -34,6 +34,10 @@ class SwapchainManager {
       VkSurfaceKHR     surface,
       VkDevice         device
   );
+
+  // Latter implementation for windowcallback
+  // windowManager::resize(SwapchainManager sm): VkResult
+  // resizeSwapChain(uint32_t width, uint32_t height);
 };
 
 #endif

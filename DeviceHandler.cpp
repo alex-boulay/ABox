@@ -360,8 +360,20 @@ VkResult DeviceHandler::addLogicalDevice(
 {
   return addLogicalDevice(findBestPhysicalDevice(), surface);
 }
-//------DISPLAY FUNCTIONS --- Maybe Need to opacity----//
 
+VkDevice DeviceHandler::getDevice(
+    uint32_t index
+)
+{
+  return devices.at(index);
+}
+DeviceBoundElements DeviceHandler::getBoundElements(
+    VkDevice device
+) const
+{
+  return deviceMap.at(device);
+}
+//------DISPLAY FUNCTIONS --- Maybe Need to opacity----//
 OSTREAM_OP(
     const VkPhysicalDeviceType &phyT
 )

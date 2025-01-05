@@ -21,7 +21,8 @@ class WindowManager {
   WindowManager(uint32_t w, uint32_t h);
   ~WindowManager();
 
-  VkResult createSurface(ResourcesManager &rm);
+  VkResult createSurface(ResourcesManager &rm) const;
+  VkResult createSwapchain(ResourcesManager &rm) const;
   void     destroySurface();
 
   uint32_t getWidth() const { return width; }

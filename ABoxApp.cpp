@@ -235,6 +235,7 @@ void ABoxApp::initVulkan()
   WindowManager wm(720u, 1200u);
   wm.createSurface(rs);
   rs.addLogicalDevice();
+  rs.createSwapchain(wm.getWidth(), wm.getHeight());
   createInstance();
   setupDebugMessenger();
   createSurface();

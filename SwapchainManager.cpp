@@ -1,6 +1,7 @@
 #include "SwapchainManager.hpp"
 #include "DeviceHandler.hpp"
 #include <algorithm>
+#include <cstdint>
 #include <ios>
 #include <iostream>
 #include <limits>
@@ -11,7 +12,9 @@
 SwapchainManager::SwapchainManager(
     VkPhysicalDevice phyDev,
     VkSurfaceKHR     surface,
-    VkDevice         device
+    VkDevice         device,
+    uint32_t         width,
+    uint32_t         height
 )
 {
   // query part can be a standalone function

@@ -50,7 +50,7 @@ void WindowManager::framebufferResizeCallback(
 
 VkResult WindowManager::createSurface(
     ResourcesManager &rm
-)
+) const
 {
   VkResult res = glfwCreateWindowSurface(
       rm.getInstance(),
@@ -62,4 +62,11 @@ VkResult WindowManager::createSurface(
     throw std::runtime_error("Failed to create Vulkan surface!");
   }
   return res;
+}
+
+VkResult WindowManager::createSwapchain(
+    ResourcesManager &rm
+) const
+{
+  return rm.createSwapchain(width, height);
 }

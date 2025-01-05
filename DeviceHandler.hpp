@@ -1,4 +1,3 @@
-
 #ifndef DEVICE_HANDLER_HPP
 #define DEVICE_HANDLER_HPP
 
@@ -34,7 +33,6 @@ struct DeviceBoundElements {
  * @brief Handle specifics to logical devices and their different bindings
  */
 class DeviceHandler {
-  // VkInstance                                        instance;
   std::vector<VkPhysicalDevice>                     phyDevices;
   std::vector<VkDevice>                             devices;
   std::unordered_map<VkDevice, DeviceBoundElements> deviceMap;
@@ -53,7 +51,7 @@ class DeviceHandler {
    * @return VkResult : VK_SUCCESS if succeded else a corresponding error value
    */
   VkResult addLogicalDevice(VkSurfaceKHR surface);
-  /**3
+  /**
    *
    * @param uint32_t index the physical device index to select
    * @param[[VkSurfaceKHR] surface the surface which will bind presentation
@@ -74,6 +72,9 @@ class DeviceHandler {
   DeviceHandler(VkInstance instance);
 
   ~DeviceHandler() noexcept;
+
+  VkDevice            getDevice(uint32_t index);
+  DeviceBoundElements getBoundElements(VkDevice device) const;
 
   // No copy
   DELETE_COPY(

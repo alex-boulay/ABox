@@ -1,4 +1,6 @@
 #include "ResourcesManager.hpp"
+#include "DeviceHandler.hpp"
+#include "SwapchainManager.hpp"
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -128,4 +130,15 @@ VkResult ResourcesManager::addLogicalDevice(
 )
 {
   return devices.addLogicalDevice(physicalDeviceIndex, surface);
+}
+
+VkResult ResourcesManager::createSwapchain(
+    uint32_t width,
+    uint32_t height
+)
+{
+  VkDevice                        logDev = devices.getDevice(0);
+  ABox_Utils::DeviceBoundElements dbe    = devices.getBoundElements(logDev);
+  swapchain = SwapchainManager(dbe.physical, surface, logDev, width, height);
+  return VK_SUCCESS;
 }

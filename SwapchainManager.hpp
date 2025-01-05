@@ -1,6 +1,7 @@
 #ifndef SWAPCHAIN_MANAGER_HPP
 #define SWAPCHAIN_MANAGER_HPP
 
+#include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -32,7 +33,9 @@ class SwapchainManager {
   SwapchainManager(
       VkPhysicalDevice phyDev,
       VkSurfaceKHR     surface,
-      VkDevice         device
+      VkDevice         device,
+      uint32_t         width,
+      uint32_t         height
   );
 
   // Latter implementation for windowcallback

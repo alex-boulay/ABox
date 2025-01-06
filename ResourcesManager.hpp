@@ -3,7 +3,6 @@
 
 #include "DeviceHandler.hpp"
 #include "PreProcUtils.hpp"
-#include "SwapchainManager.hpp"
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -13,8 +12,7 @@ class ResourcesManager {
   VkInstance                instance;
 
   // Display chain
-  VkSurfaceKHR     surface;
-  SwapchainManager swapchain;
+  VkSurfaceKHR surface;
 
    public:
   ResourcesManager();
@@ -29,7 +27,9 @@ class ResourcesManager {
   VkSurfaceKHR *getSurfacePtr() { return &surface; }
   VkResult      addLogicalDevice();
   VkResult      addLogicalDevice(uint32_t physicalDeviceIndex);
-  VkResult      createSwapchain(uint32_t width, uint32_t height);
+
+  VkResult
+      createSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0u);
 
   std::vector<const char *> getLayerNames();
   DELETE_COPY(

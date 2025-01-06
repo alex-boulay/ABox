@@ -2,6 +2,7 @@
 #include <bitset>
 #include <climits>
 #include <cstdint>
+#include <ios>
 #include <iostream>
 #include <map>
 #include <ostream>
@@ -9,13 +10,6 @@
 #include <vulkan/vulkan_core.h>
 
 namespace ABox_Utils {
-
-std::string toString(
-    bool bit
-)
-{
-  return (bit ? "true" : "false");
-}
 
 std::set<const char *> deviceExtensions{
     VK_KHR_SWAPCHAIN_EXTENSION_NAME,
@@ -79,7 +73,6 @@ std::set<uint32_t> QueueFamilyIndices_ = {};
 
 uint32_t DeviceHandler::listQueueFamilies()
 {
-  uint32_t indices;
   uint32_t queueCount;
   std::cout << " Listing Queue Families :\n";
   for (uint16_t i = 0; i < phyDevices.size(); i++) {
@@ -98,8 +91,8 @@ uint32_t DeviceHandler::listQueueFamilies()
     for (uint16_t qi = 0; qi < queueFamilies.size(); qi++) {
       std::cout << "\t QueueFamily n°" << qi << '\n';
       std::cout << queueFamilies.at(qi) << '\n';
-      std::cout << "Is a valid QueueFamily : "
-                << toString(isValidQueueFamily(queueFamilies.at(qi))) << '\n';
+      std::cout << "Is a valid QueueFamily : " << std::boolalpha
+                << bool(isValidQueueFamily(queueFamilies.at(qi))) << '\n';
     }
   }
   std::cout << std::endl;
@@ -119,7 +112,6 @@ DeviceHandler::~DeviceHandler() noexcept
 DeviceHandler::DeviceHandler(
     VkInstance instance
 )
-//: instance(instance)
 {
   uint32_t deviceCount = 0u;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
@@ -244,8 +236,9 @@ VkResult DeviceHandler::addLogicalDevice(
   const float queuePriority = 1.0f;
 
   DeviceBoundElements dbe = {
-      .physical = phyDevices.at(index),
-      .fIndices = loadNecessaryQueueFamilies(index, surface)
+      .physical  = phyDevices.at(index),
+      .fIndices  = loadNecessaryQueueFamilies(index, surface),
+      .swapchain = {}
   };
 
   std::vector<VkDeviceQueueCreateInfo> qCI;
@@ -373,6 +366,24 @@ DeviceBoundElements DeviceHandler::getBoundElements(
 {
   return deviceMap.at(device);
 }
+
+VkResult DeviceHandler::addSwapchain(
+    uint32_t     width,
+    uint32_t     height,
+    VkSurfaceKHR surface,
+    uint_fast8_t devIndex
+)
+{
+  if (devices.size() <= devIndex) {
+    return VK_ERROR_DEVICE_LOST;
+  }
+  VkDevice                        logDev = devices.at(devIndex);
+  ABox_Utils::DeviceBoundElements dbe    = deviceMap.at(logDev);
+  deviceMap[logDev].swapchain =
+      SwapchainManager(dbe.physical, surface, logDev, width, height);
+  return VK_SUCCESS;
+}
+
 //------DISPLAY FUNCTIONS --- Maybe Need to opacity----//
 OSTREAM_OP(
     const VkPhysicalDeviceType &phyT
@@ -413,24 +424,22 @@ std::stringstream vkQueueFlagSS(
   for (uint32_t i = 0; i < f_size; i++) {
     ss << bits[f_size - 1 - i] << (i % CHAR_BIT == (CHAR_BIT - 1) ? " " : "");
   }
-  ss << "\nVK_QUEUE_GRAPHICS_BIT - 0x1 : "
-     << toString(flag & VK_QUEUE_GRAPHICS_BIT)
-     << "\nVK_QUEUE_COMPUTE_BIT - 0x2 : "
-     << toString(flag & VK_QUEUE_COMPUTE_BIT)
-     << "\nVK_QUEUE_TRANSFER_BIT - 0x4 : "
-     << toString(flag & VK_QUEUE_TRANSFER_BIT)
+  ss << std::boolalpha
+     << "\nVK_QUEUE_GRAPHICS_BIT - 0x1 : " << bool(flag & VK_QUEUE_GRAPHICS_BIT)
+     << "\nVK_QUEUE_COMPUTE_BIT - 0x2 : " << bool(flag & VK_QUEUE_COMPUTE_BIT)
+     << "\nVK_QUEUE_TRANSFER_BIT - 0x4 : " << bool(flag & VK_QUEUE_TRANSFER_BIT)
      << "\nVK_QUEUE_SPARSE_BINDING_BIT - 0x8: "
-     << toString(flag & VK_QUEUE_SPARSE_BINDING_BIT)
+     << bool(flag & VK_QUEUE_SPARSE_BINDING_BIT)
      << "\nVK_QUEUE_PROTECTED_BIT - 0x10: "
-     << toString(flag & VK_QUEUE_PROTECTED_BIT)
+     << bool(flag & VK_QUEUE_PROTECTED_BIT)
      << "\nVK_QUEUE_VIDEO_DECODE_BIT_KHR - 0x20: "
-     << toString(flag & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+     << bool(flag & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
      << "\nVK_QUEUE_VIDEO_ENCODE_BIT_KHR - 0x40: "
-     << toString(flag & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+     << bool(flag & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
      << "\nVK_QUEUE_OPTICAL_FLOW_BIT_NV - 0x100: "
-     << toString(flag & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+     << bool(flag & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
      << "\nVK_QUEUE_FLAG_BITS_MAX_ENUM - 0x7FFFFFFF: "
-     << toString(flag & VK_QUEUE_FLAG_BITS_MAX_ENUM);
+     << bool(flag & VK_QUEUE_FLAG_BITS_MAX_ENUM);
   return ss;
 }
 

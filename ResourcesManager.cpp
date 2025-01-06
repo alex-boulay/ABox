@@ -1,6 +1,5 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
-#include "SwapchainManager.hpp"
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -42,8 +41,8 @@ ResourcesManager::ResourcesManager()
       .apiVersion         = VK_API_VERSION_1_3
   };
 
-  std::vector<const char *> extBuffer   = std::move(getExtensions());
-  std::vector<const char *> layerBuffer = std::move(getLayerNames());
+  std::vector<const char *> extBuffer   = getExtensions();
+  std::vector<const char *> layerBuffer = getLayerNames();
 
   for (auto a : extBuffer) {
     std::cout << "Extension : " << a << '\n';
@@ -134,11 +133,9 @@ VkResult ResourcesManager::addLogicalDevice(
 
 VkResult ResourcesManager::createSwapchain(
     uint32_t width,
-    uint32_t height
+    uint32_t height,
+    uint32_t devIndex
 )
 {
-  VkDevice                        logDev = devices.getDevice(0);
-  ABox_Utils::DeviceBoundElements dbe    = devices.getBoundElements(logDev);
-  swapchain = SwapchainManager(dbe.physical, surface, logDev, width, height);
-  return VK_SUCCESS;
+  return devices.addSwapchain(width, height, surface, devIndex);
 }

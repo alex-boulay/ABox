@@ -2,6 +2,7 @@
 #define DEVICE_HANDLER_HPP
 
 #include "PreProcUtils.hpp"
+#include "SwapchainManager.hpp"
 #include <optional>
 #include <set>
 #include <sstream>
@@ -24,8 +25,9 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 struct DeviceBoundElements {
-  VkPhysicalDevice   physical;
-  QueueFamilyIndices fIndices;
+  VkPhysicalDevice                physical;
+  QueueFamilyIndices              fIndices;
+  std::optional<SwapchainManager> swapchain;
 };
 
 /**
@@ -75,6 +77,12 @@ class DeviceHandler {
 
   VkDevice            getDevice(uint32_t index);
   DeviceBoundElements getBoundElements(VkDevice device) const;
+  VkResult            addSwapchain(
+                 uint32_t     width,
+                 uint32_t     height,
+                 VkSurfaceKHR surface,
+                 uint_fast8_t devIndex
+             );
 
   // No copy
   DELETE_COPY(

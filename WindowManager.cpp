@@ -37,9 +37,9 @@ WindowManager::~WindowManager()
 }
 
 void WindowManager::framebufferResizeCallback(
-    GLFWwindow *window,
-    int         width_,
-    int         height_
+    [[maybe_unused]] GLFWwindow *window,
+    int                          width_,
+    int                          height_
 )
 {
   std::cout << "Resizing has been called \n"

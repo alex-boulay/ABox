@@ -13,6 +13,8 @@ SwapchainManager::SwapchainManager(
     VkPhysicalDevice phyDev,
     VkSurfaceKHR     surface,
     VkDevice         device,
+    uint32_t         rQDI,
+    uint32_t         gQDI,
     uint32_t         width,
     uint32_t         height
 )
@@ -63,20 +65,14 @@ SwapchainManager::SwapchainManager(
   chooseSwapExtent(width, height);
 
   // TODO : query Qfam with the device.
-  // might need to bind from DeviceHandler -> DeviceMap[device]->fIndices
-  ABox_Utils::QueueFamilyIndices indices;
   //= findQueueFamilies(phyDev);
 
-  std::vector<uint32_t> queueFamilyIndices = {
-      indices.graphicQueueIndex.value(),
-      indices.presentQueueIndex.value()
-  };
+  std::vector<uint32_t> queueFamilyIndices = {rQDI, gQDI};
 
 #define SCSC_Mi capabilities.minImageCount + 1
 #define SCSC_Ma capabilities.maxImageCount
 #define SCSC_MinC std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi)
-#define SCSC_CONCURENT                                                         \
-  (indices.graphicQueueIndex.value() != indices.presentQueueIndex.value())
+#define SCSC_CONCURENT (rQDI != gQDI)
 
   VkSwapchainCreateInfoKHR createInfo{
       .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
@@ -151,7 +147,9 @@ VkResult SwapchainManager::chooseSwapSurfaceFormat()
 }
 VkResult SwapchainManager::chooseSwapPresentMode()
 {
+  std::cout << "size of present mode " << presentModes.size() << std::endl;
   for (const auto &availablePresentMode : presentModes) {
+    std::cout << availablePresentMode << std::endl;
     if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       presentMode = availablePresentMode;
       return VK_SUCCESS;

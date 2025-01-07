@@ -34,6 +34,8 @@ class SwapchainManager {
       VkPhysicalDevice phyDev,
       VkSurfaceKHR     surface,
       VkDevice         device,
+      uint32_t         rQDI,
+      uint32_t         gQDI,
       uint32_t         width,
       uint32_t         height
   );

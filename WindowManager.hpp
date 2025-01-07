@@ -22,8 +22,9 @@ class WindowManager {
   ~WindowManager();
 
   VkResult createSurface(ResourcesManager &rm) const;
-  VkResult createSwapchain(ResourcesManager &rm) const;
-  void     destroySurface();
+  VkResult
+       createSwapchain(ResourcesManager &rm, uint_fast8_t devIndex = 0) const;
+  void destroySurface();
 
   uint32_t getWidth() const { return width; }
   uint32_t getHeight() const { return height; }

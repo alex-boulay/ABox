@@ -379,8 +379,15 @@ VkResult DeviceHandler::addSwapchain(
   }
   VkDevice                        logDev = devices.at(devIndex);
   ABox_Utils::DeviceBoundElements dbe    = deviceMap.at(logDev);
-  deviceMap[logDev].swapchain =
-      SwapchainManager(dbe.physical, surface, logDev, width, height);
+  deviceMap[logDev].swapchain            = SwapchainManager(
+      dbe.physical,
+      surface,
+      logDev,
+      deviceMap[logDev].fIndices.presentQueueIndex.value(),
+      deviceMap[logDev].fIndices.graphicQueueIndex.value(),
+      width,
+      height
+  );
   return VK_SUCCESS;
 }
 

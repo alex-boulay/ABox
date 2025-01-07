@@ -1,4 +1,5 @@
 #include "ResourcesManager.hpp"
+#include <cstdint>
 #define GLFW_INCLUDE_VULKAN
 #include "WindowManager.hpp"
 #include <GLFW/glfw3.h>
@@ -65,8 +66,9 @@ VkResult WindowManager::createSurface(
 }
 
 VkResult WindowManager::createSwapchain(
-    ResourcesManager &rm
+    ResourcesManager &rm,
+    uint_fast8_t      devIndex
 ) const
 {
-  return rm.createSwapchain(width, height);
+  return rm.createSwapchain(width, height, devIndex);
 }

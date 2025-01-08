@@ -1,6 +1,7 @@
 #ifndef SWAPCHAIN_MANAGER_HPP
 #define SWAPCHAIN_MANAGER_HPP
 
+#include "PreProcUtils.hpp"
 #include <cstdint>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -8,7 +9,8 @@
 class SwapchainManager {
 
   // Main Utils
-  VkSwapchainKHR           swapChain;
+  VkDevice                 device; //= VK_NULL_HANDLE;
+  VkSwapchainKHR           swapChain = VK_NULL_HANDLE;
   std::vector<VkImage>     swapChainImages;
   VkFormat                 swapChainImageFormat;
   VkExtent2D               swapChainExtent;
@@ -28,17 +30,22 @@ class SwapchainManager {
   VkResult chooseSwapSurfaceFormat();
   VkResult chooseSwapPresentMode();
   VkResult chooseSwapExtent(uint32_t width, uint32_t height);
+  VkResult createImageViews();
 
    public:
   SwapchainManager(
       VkPhysicalDevice phyDev,
       VkSurfaceKHR     surface,
-      VkDevice         device,
+      VkDevice         logdev,
       uint32_t         rQDI,
       uint32_t         gQDI,
       uint32_t         width,
       uint32_t         height
   );
+  ~SwapchainManager();
+
+  // DEFAULT_COPY(SwapchainManager);
+  // DEFAULT_MOVE(SwapchainManager);
 
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult

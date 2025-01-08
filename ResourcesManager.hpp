@@ -8,8 +8,8 @@
 #include <vulkan/vulkan_core.h>
 
 class ResourcesManager {
-  ABox_Utils::DeviceHandler devices;
   VkInstance                instance;
+  ABox_Utils::DeviceHandler devices;
 
   // Display chain
   VkSurfaceKHR surface;

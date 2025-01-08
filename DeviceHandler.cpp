@@ -1,4 +1,5 @@
 #include "DeviceHandler.hpp"
+#include "SwapchainManager.hpp"
 #include <bitset>
 #include <climits>
 #include <cstdint>
@@ -99,14 +100,12 @@ uint32_t DeviceHandler::listQueueFamilies()
   return queueCount;
 }
 
-DeviceHandler::~DeviceHandler() noexcept
+DeviceHandler::~DeviceHandler()
 {
+  deviceMap.clear();
   for (auto a : devices) {
     vkDestroyDevice(a, nullptr);
   }
-  std::vector<VkDevice>().swap(devices);
-  std::vector<VkPhysicalDevice>().swap(phyDevices);
-  std::unordered_map<VkDevice, DeviceBoundElements>().swap(deviceMap);
 }
 
 DeviceHandler::DeviceHandler(

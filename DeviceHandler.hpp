@@ -73,7 +73,7 @@ class DeviceHandler {
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);
 
-  ~DeviceHandler() noexcept;
+  ~DeviceHandler();
 
   VkDevice            getDevice(uint32_t index);
   DeviceBoundElements getBoundElements(VkDevice device) const;

@@ -12,12 +12,13 @@
 SwapchainManager::SwapchainManager(
     VkPhysicalDevice phyDev,
     VkSurfaceKHR     surface,
-    VkDevice         device,
+    VkDevice         logdev,
     uint32_t         rQDI,
     uint32_t         gQDI,
     uint32_t         width,
     uint32_t         height
 )
+    : device(logdev)
 {
   // query part can be a standalone function
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, surface, &capabilities);
@@ -61,11 +62,7 @@ SwapchainManager::SwapchainManager(
 
   chooseSwapSurfaceFormat();
   chooseSwapPresentMode();
-  // TODO : set the with and height from the window manager
   chooseSwapExtent(width, height);
-
-  // TODO : query Qfam with the device.
-  //= findQueueFamilies(phyDev);
 
   std::vector<uint32_t> queueFamilyIndices = {rQDI, gQDI};
 
@@ -127,6 +124,8 @@ SwapchainManager::SwapchainManager(
 
   swapChainImageFormat = surfaceFormat.format;
   swapChainExtent      = extent;
+
+  // createImageViews();
 };
 
 VkResult SwapchainManager::chooseSwapSurfaceFormat()
@@ -188,3 +187,59 @@ VkResult SwapchainManager::chooseSwapExtent(
   }
   return VK_SUCCESS;
 }
+
+VkResult SwapchainManager::createImageViews()
+{
+  VkResult return_value = VK_INCOMPLETE;
+
+  swapChainImageViews.resize(swapChainImages.size());
+  constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+  for (size_t i = 0; i < swapChainImages.size(); i++) {
+    VkImageViewCreateInfo createInfo = {
+        .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext      = nullptr,
+        .flags      = 0,
+        .image      = swapChainImages[i],
+        .viewType   = VK_IMAGE_VIEW_TYPE_2D,
+        .format     = swapChainImageFormat,
+        .components = {sid, sid, sid, sid},
+        .subresourceRange =
+            {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                       .baseMipLevel   = 0,
+                       .levelCount     = 1,
+                       .baseArrayLayer = 0,
+                       .layerCount     = 1}
+    };
+    return_value = vkCreateImageView(
+        device,
+        &createInfo,
+        nullptr,
+        &swapChainImageViews[i]
+    );
+    if (return_value != VK_SUCCESS) {
+      throw std::runtime_error("failed to create image views!");
+    }
+  }
+  return return_value;
+}
+
+SwapchainManager::~SwapchainManager()
+{
+  if (swapChain != VK_NULL_HANDLE && device != VK_NULL_HANDLE) {
+
+    std::cout << std::boolalpha
+              << "Image views size : " << swapChainImageViews.size() << '\n';
+    for (auto imageView : swapChainImageViews) {
+      if (imageView != VK_NULL_HANDLE) {
+        vkDestroyImageView(device, imageView, nullptr);
+      }
+    }
+    std::cout << "swapchain null : " << (swapChain == VK_NULL_HANDLE)
+              << " - device null : " << (device == VK_NULL_HANDLE) << std::endl;
+
+    vkDestroySwapchainKHR(device, swapChain, nullptr);
+    swapChain = VK_NULL_HANDLE;
+  }
+}
+

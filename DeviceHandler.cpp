@@ -3,6 +3,7 @@
 #include <bitset>
 #include <climits>
 #include <cstdint>
+#include <functional>
 #include <ios>
 #include <iostream>
 #include <map>
@@ -102,9 +103,14 @@ uint32_t DeviceHandler::listQueueFamilies()
 
 DeviceHandler::~DeviceHandler()
 {
-  deviceMap.clear();
-  for (auto a : devices) {
-    vkDestroyDevice(a, nullptr);
+  for (auto a : deviceMap) {
+    if (a.second.swapchain.has_value()) {
+      a.second.swapchain.value().~SwapchainManager();
+    }
+  }
+  for (auto a = devices.begin(); a != devices.end(); ++a) {
+    vkDestroyDevice(*a, nullptr);
+    a = devices.erase(a);
   }
 }
 
@@ -276,7 +282,7 @@ VkResult DeviceHandler::addLogicalDevice(
 
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
-    deviceMap[devices.back()] = dbe;
+    deviceMap[&devices.back()] = dbe;
   }
   else {
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
@@ -360,10 +366,10 @@ VkDevice DeviceHandler::getDevice(
   return devices.at(index);
 }
 DeviceBoundElements DeviceHandler::getBoundElements(
-    VkDevice device
+    VkDevice *pdevice
 ) const
 {
-  return deviceMap.at(device);
+  return deviceMap.at(pdevice);
 }
 
 VkResult DeviceHandler::addSwapchain(
@@ -376,12 +382,12 @@ VkResult DeviceHandler::addSwapchain(
   if (devices.size() <= devIndex) {
     return VK_ERROR_DEVICE_LOST;
   }
-  VkDevice                        logDev = devices.at(devIndex);
+  VkDevice                       *logDev = &devices.at(devIndex);
   ABox_Utils::DeviceBoundElements dbe    = deviceMap.at(logDev);
   deviceMap[logDev].swapchain            = SwapchainManager(
       dbe.physical,
-      surface,
-      logDev,
+      std::function([&]() { return &surface; }),
+      std::function([&]() { return logDev; }),
       deviceMap[logDev].fIndices.presentQueueIndex.value(),
       deviceMap[logDev].fIndices.graphicQueueIndex.value(),
       width,

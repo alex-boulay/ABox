@@ -3,19 +3,21 @@
 
 #include "PreProcUtils.hpp"
 #include <cstdint>
+#include <functional>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
 class SwapchainManager {
 
   // Main Utils
-  VkDevice                 device; //= VK_NULL_HANDLE;
   VkSwapchainKHR           swapChain = VK_NULL_HANDLE;
   std::vector<VkImage>     swapChainImages;
   VkFormat                 swapChainImageFormat;
   VkExtent2D               swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
 
+  std::function<VkDevice *()>     deviceCallback;
+  std::function<VkSurfaceKHR *()> surfaceCallback;
   // Listings
   VkSurfaceCapabilitiesKHR        capabilities;
   std::vector<VkSurfaceFormatKHR> formats;
@@ -34,13 +36,13 @@ class SwapchainManager {
 
    public:
   SwapchainManager(
-      VkPhysicalDevice phyDev,
-      VkSurfaceKHR     surface,
-      VkDevice         logdev,
-      uint32_t         rQDI,
-      uint32_t         gQDI,
-      uint32_t         width,
-      uint32_t         height
+      VkPhysicalDevice                phyDev,
+      std::function<VkSurfaceKHR *()> surface,
+      std::function<VkDevice *()>     devC,
+      uint32_t                        rQDI,
+      uint32_t                        gQDI,
+      uint32_t                        width,
+      uint32_t                        height
   );
   ~SwapchainManager();
 

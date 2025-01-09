@@ -35,9 +35,9 @@ struct DeviceBoundElements {
  * @brief Handle specifics to logical devices and their different bindings
  */
 class DeviceHandler {
-  std::vector<VkPhysicalDevice>                     phyDevices;
-  std::vector<VkDevice>                             devices;
-  std::unordered_map<VkDevice, DeviceBoundElements> deviceMap;
+  std::vector<VkPhysicalDevice>                       phyDevices;
+  std::vector<VkDevice>                               devices;
+  std::unordered_map<VkDevice *, DeviceBoundElements> deviceMap;
 
   std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
   std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
@@ -76,7 +76,7 @@ class DeviceHandler {
   ~DeviceHandler();
 
   VkDevice            getDevice(uint32_t index);
-  DeviceBoundElements getBoundElements(VkDevice device) const;
+  DeviceBoundElements getBoundElements(VkDevice *pdevice) const;
   VkResult            addSwapchain(
                  uint32_t     width,
                  uint32_t     height,

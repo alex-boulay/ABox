@@ -212,10 +212,10 @@ void ABoxApp::setupDebugMessenger()
 }
 void ABoxApp::run()
 {
-  initWindow();
+  // initWindow();
   initVulkan();
-  mainLoop();
-  cleanup();
+  // mainLoop();
+  //  cleanup();
 }
 
 void ABoxApp::initWindow()
@@ -230,12 +230,7 @@ void ABoxApp::initWindow()
 
 void ABoxApp::initVulkan()
 {
-  ResourcesManager rs;
-  rs.getDevices()->listPhysicalDevices();
-  WindowManager wm(720u, 1200u);
-  wm.createSurface(rs);
-  rs.addLogicalDevice();
-  rs.createSwapchain(wm.getWidth(), wm.getHeight());
+  /**
   createInstance();
   setupDebugMessenger();
   createSurface();
@@ -243,6 +238,14 @@ void ABoxApp::initVulkan()
   createLogicalDevice();
   createSwapChain();
   createImageViews();
+*/
+
+  ResourcesManager rs;
+  rs.getDeviceHandler()->listPhysicalDevices();
+  WindowManager wm(720u, 1200u);
+  wm.createSurface(rs);
+  rs.addLogicalDevice();
+  rs.createSwapchain(wm.getWidth(), wm.getHeight());
 }
 
 void ABoxApp::createLogicalDevice()

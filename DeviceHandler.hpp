@@ -3,6 +3,7 @@
 
 #include "PreProcUtils.hpp"
 #include "SwapchainManager.hpp"
+#include <cstdint>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -35,9 +36,9 @@ struct DeviceBoundElements {
  * @brief Handle specifics to logical devices and their different bindings
  */
 class DeviceHandler {
-  std::vector<VkPhysicalDevice>                       phyDevices;
-  std::vector<VkDevice>                               devices;
-  std::unordered_map<VkDevice *, DeviceBoundElements> deviceMap;
+  std::vector<VkPhysicalDevice>                          phyDevices;
+  std::vector<VkDevice>                                  devices;
+  std::unordered_map<uint_fast16_t, DeviceBoundElements> deviceMap;
 
   std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
   std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
@@ -75,14 +76,14 @@ class DeviceHandler {
 
   ~DeviceHandler();
 
-  VkDevice            getDevice(uint32_t index);
-  DeviceBoundElements getBoundElements(VkDevice *pdevice) const;
-  VkResult            addSwapchain(
-                 uint32_t     width,
-                 uint32_t     height,
-                 VkSurfaceKHR surface,
-                 uint_fast8_t devIndex
-             );
+  VkDevice *getDevice(uint32_t index);
+  // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
+  VkResult  addSwapchain(
+       uint32_t                        width,
+       uint32_t                        height,
+       std::function<VkSurfaceKHR *()> getSurface,
+       uint_fast8_t                    devIndex
+   );
 
   // No copy
   DELETE_COPY(

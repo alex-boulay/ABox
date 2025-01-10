@@ -16,7 +16,7 @@ class SwapchainManager {
   VkExtent2D               swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
 
-  std::function<VkDevice *()>     deviceCallback;
+  VkDevice                        device;
   std::function<VkSurfaceKHR *()> surfaceCallback;
   // Listings
   VkSurfaceCapabilitiesKHR        capabilities;
@@ -35,19 +35,20 @@ class SwapchainManager {
   VkResult createImageViews();
 
    public:
+  SwapchainManager();
   SwapchainManager(
       VkPhysicalDevice                phyDev,
       std::function<VkSurfaceKHR *()> surface,
-      std::function<VkDevice *()>     devC,
+      VkDevice                        logicalDevice,
       uint32_t                        rQDI,
       uint32_t                        gQDI,
       uint32_t                        width,
       uint32_t                        height
   );
-  ~SwapchainManager();
+  ~SwapchainManager() noexcept(false);
 
-  // DEFAULT_COPY(SwapchainManager);
-  // DEFAULT_MOVE(SwapchainManager);
+  DELETE_COPY(SwapchainManager);
+  DEFAULT_MOVE(SwapchainManager);
 
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult

@@ -1,6 +1,7 @@
 #include "SwapchainManager.hpp"
 #include "DeviceHandler.hpp"
 #include <algorithm>
+#include <boost/stacktrace.hpp>
 #include <cstdint>
 #include <ios>
 #include <iostream>
@@ -9,19 +10,22 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
+SwapchainManager::SwapchainManager()
+    : swapChain(VK_NULL_HANDLE)
+    , device(VK_NULL_HANDLE) {};
+
 SwapchainManager::SwapchainManager(
     VkPhysicalDevice                phyDev,
     std::function<VkSurfaceKHR *()> surfaceC,
-    std::function<VkDevice *()>     devC,
+    VkDevice                        logicalDevice,
     uint32_t                        rQDI,
     uint32_t                        gQDI,
     uint32_t                        width,
     uint32_t                        height
 )
-    : deviceCallback(devC)
+    : device(logicalDevice)
 {
   VkSurfaceKHR surface = *surfaceC();
-  VkDevice    *pDevice = devC();
   // query part can be a standalone function
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, surface, &capabilities);
   uint32_t formatCount;
@@ -102,7 +106,7 @@ SwapchainManager::SwapchainManager(
 #undef SCSC_Mi
 #undef SCSC_MinC
 
-  if (vkCreateSwapchainKHR(*pDevice, &createInfo, nullptr, &swapChain) !=
+  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain !");
   }
@@ -111,14 +115,14 @@ SwapchainManager::SwapchainManager(
   }
 
   vkGetSwapchainImagesKHR(
-      *pDevice,
+      device,
       swapChain,
       &createInfo.minImageCount,
       nullptr
   );
   swapChainImages.resize(createInfo.minImageCount);
   vkGetSwapchainImagesKHR(
-      *pDevice,
+      device,
       swapChain,
       &createInfo.minImageCount,
       swapChainImages.data()
@@ -214,7 +218,7 @@ VkResult SwapchainManager::createImageViews()
                        .layerCount     = 1}
     };
     return_value = vkCreateImageView(
-        *(deviceCallback()),
+        device,
         &createInfo,
         nullptr,
         &swapChainImageViews[i]
@@ -222,28 +226,38 @@ VkResult SwapchainManager::createImageViews()
     if (return_value != VK_SUCCESS) {
       throw std::runtime_error("failed to create image views!");
     }
+    else {
+      std::cout << "Image Views created \n" << std::endl;
+    }
   }
   return return_value;
 }
 
-SwapchainManager::~SwapchainManager()
+SwapchainManager::~SwapchainManager() noexcept(
+    false
+)
 {
-  VkDevice *pDevice = deviceCallback();
-  if (swapChain != VK_NULL_HANDLE && *pDevice != VK_NULL_HANDLE) {
+  std::cout << boost::stacktrace::stacktrace() << std::endl;
+  std::cout << "Swapchain Destruction Start" << std::endl;
+  if (device != VK_NULL_HANDLE) {
+    std::cout << "swapchain handle : " << swapChain
+              << " - device handle : " << device << std::endl;
+    if (swapChain != VK_NULL_HANDLE && device != VK_NULL_HANDLE) {
 
-    std::cout << std::boolalpha
-              << "Image views size : " << swapChainImageViews.size() << '\n';
-    for (auto imageView : swapChainImageViews) {
-      if (imageView != VK_NULL_HANDLE) {
-        vkDestroyImageView(*pDevice, imageView, nullptr);
+      std::cout << "Image views size : " << swapChainImageViews.size() << '\n';
+      for (auto imageView : swapChainImageViews) {
+        if (imageView != VK_NULL_HANDLE) {
+          vkDestroyImageView(device, imageView, nullptr);
+          std::cout << "ImageView Destroyed" << std::endl;
+        }
+        else {
+          std::cout << "Image View Not destroyed" << std::endl;
+        }
       }
-    }
-    std::cout << "swapchain null : " << (swapChain == VK_NULL_HANDLE)
-              << " - device null : " << (*(deviceCallback()) == VK_NULL_HANDLE)
-              << std::endl;
 
-    vkDestroySwapchainKHR(*pDevice, swapChain, nullptr);
-    swapChain = VK_NULL_HANDLE;
+      vkDestroySwapchainKHR(device, swapChain, nullptr);
+      swapChain = VK_NULL_HANDLE;
+    }
   }
 }
 

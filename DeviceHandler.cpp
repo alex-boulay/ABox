@@ -103,15 +103,14 @@ uint32_t DeviceHandler::listQueueFamilies()
 
 DeviceHandler::~DeviceHandler()
 {
-  for (auto a : deviceMap) {
-    if (a.second.swapchain.has_value()) {
-      a.second.swapchain.value().~SwapchainManager();
-    }
-  }
+
+  std::cout << "Delete Call to DeviceHandler " << std::endl;
+  deviceMap.clear();
+  std::cout << "Device Map Clear call done" << std::endl;
   for (auto a = devices.begin(); a != devices.end(); ++a) {
     vkDestroyDevice(*a, nullptr);
-    a = devices.erase(a);
   }
+  std::cout << "Logical devices Removed From Vulkan" << std::endl;
 }
 
 DeviceHandler::DeviceHandler(
@@ -240,11 +239,9 @@ VkResult DeviceHandler::addLogicalDevice(
   }
   const float queuePriority = 1.0f;
 
-  DeviceBoundElements dbe = {
-      .physical  = phyDevices.at(index),
-      .fIndices  = loadNecessaryQueueFamilies(index, surface),
-      .swapchain = {}
-  };
+  DeviceBoundElements dbe;
+  dbe.physical = phyDevices.at(index);
+  dbe.fIndices = loadNecessaryQueueFamilies(index, surface);
 
   std::vector<VkDeviceQueueCreateInfo> qCI;
 
@@ -282,7 +279,7 @@ VkResult DeviceHandler::addLogicalDevice(
 
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
-    deviceMap[&devices.back()] = dbe;
+    deviceMap[uint_fast16_t(devices.size() - 1)] = std::move(dbe);
   }
   else {
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
@@ -359,40 +356,34 @@ VkResult DeviceHandler::addLogicalDevice(
   return addLogicalDevice(findBestPhysicalDevice(), surface);
 }
 
-VkDevice DeviceHandler::getDevice(
+VkDevice *DeviceHandler::getDevice(
     uint32_t index
 )
 {
-  return devices.at(index);
-}
-DeviceBoundElements DeviceHandler::getBoundElements(
-    VkDevice *pdevice
-) const
-{
-  return deviceMap.at(pdevice);
+  return &devices.at(index);
 }
 
 VkResult DeviceHandler::addSwapchain(
-    uint32_t     width,
-    uint32_t     height,
-    VkSurfaceKHR surface,
-    uint_fast8_t devIndex
+    uint32_t                        width,
+    uint32_t                        height,
+    std::function<VkSurfaceKHR *()> getSurface,
+    uint_fast8_t                    devIndex
 )
 {
   if (devices.size() <= devIndex) {
     return VK_ERROR_DEVICE_LOST;
   }
-  VkDevice                       *logDev = &devices.at(devIndex);
-  ABox_Utils::DeviceBoundElements dbe    = deviceMap.at(logDev);
-  deviceMap[logDev].swapchain            = SwapchainManager(
-      dbe.physical,
-      std::function([&]() { return &surface; }),
-      std::function([&]() { return logDev; }),
-      deviceMap[logDev].fIndices.presentQueueIndex.value(),
-      deviceMap[logDev].fIndices.graphicQueueIndex.value(),
+  std::cout << "DBE maping " << std::endl;
+  deviceMap[devIndex].swapchain = SwapchainManager(
+      deviceMap[devIndex].physical,
+      getSurface,
+      devices[devIndex],
+      deviceMap[devIndex].fIndices.presentQueueIndex.value(),
+      deviceMap[devIndex].fIndices.graphicQueueIndex.value(),
       width,
       height
   );
+  std::cout << "SwapchainMapping done " << std::endl;
   return VK_SUCCESS;
 }
 

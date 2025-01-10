@@ -21,7 +21,7 @@ class ResourcesManager {
 
   ~ResourcesManager();
 
-  ABox_Utils::DeviceHandler *getDevices() { return &devices; }
+  ABox_Utils::DeviceHandler *getDeviceHandler() { return &devices; }
   VkInstance                 getInstance() const { return instance; }
 
   VkSurfaceKHR *getSurfacePtr() { return &surface; }

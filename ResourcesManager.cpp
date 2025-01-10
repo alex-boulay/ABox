@@ -1,5 +1,6 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
+#include <functional>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -113,6 +114,7 @@ std::vector<const char *> ResourcesManager::getExtensions()
 
 ResourcesManager::~ResourcesManager()
 {
+  std::cout << "Delete Call to ressourceManager" << std::endl;
   devices.~DeviceHandler();
   if (surface != VK_NULL_HANDLE) {
     vkDestroySurfaceKHR(instance, surface, nullptr);
@@ -137,5 +139,10 @@ VkResult ResourcesManager::createSwapchain(
     uint32_t devIndex
 )
 {
-  return devices.addSwapchain(width, height, surface, devIndex);
+  return devices.addSwapchain(
+      width,
+      height,
+      std::function([&]() { return &(this->surface); }),
+      devIndex
+  );
 }

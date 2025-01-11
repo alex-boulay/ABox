@@ -43,7 +43,33 @@ class DeviceHandler {
   std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
   std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
 
+  bool destroyed = false;
+
    public:
+  DeviceHandler(
+      DeviceHandler &&other
+  ) noexcept
+      : phyDevices(other.phyDevices)
+      , devices(other.devices)
+      , deviceMap(std::move(other.deviceMap))
+  {
+    other.destroyed = true;
+  }
+
+  DeviceHandler &operator=(
+      DeviceHandler &&other
+  ) noexcept
+  {
+    if (this != &other) {
+      // Copy assignment: copy the members from `other` to `this`
+      phyDevices      = other.phyDevices;
+      devices         = other.devices;
+      deviceMap       = std::move(other.deviceMap);
+      other.destroyed = true;
+    }
+    return *this;
+  }
+
   VkResult listPhysicalDevices() const;
 
   /**
@@ -87,11 +113,6 @@ class DeviceHandler {
 
   // No copy
   DELETE_COPY(
-      DeviceHandler
-  )
-
-  // Move possible but as vector are defined no use to move
-  DEFAULT_MOVE(
       DeviceHandler
   )
 };

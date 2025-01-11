@@ -53,7 +53,7 @@ class ABoxApp {
   VkFormat                 swapChainImageFormat;
   VkExtent2D               swapChainExtent;
   std::vector<VkImageView> swapChainImageViews;
-  ShaderHandler            shaderHandler;
+  // ShaderHandler            shaderHandler;
 
   bool checkValidationLayerSupport();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);

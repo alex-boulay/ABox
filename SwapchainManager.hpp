@@ -45,10 +45,66 @@ class SwapchainManager {
       uint32_t                        width,
       uint32_t                        height
   );
-  ~SwapchainManager() noexcept(false);
+  ~SwapchainManager();
+
+  // Move constructor
+  SwapchainManager(
+      SwapchainManager &&other
+  ) noexcept
+      : swapChain(other.swapChain)
+      , swapChainImages(std::move(other.swapChainImages))
+      , swapChainImageFormat(other.swapChainImageFormat)
+      , swapChainExtent(other.swapChainExtent)
+      , swapChainImageViews(std::move(other.swapChainImageViews))
+      , device(other.device)
+      , surfaceCallback(std::move(other.surfaceCallback))
+      , capabilities(other.capabilities)
+      , formats(std::move(other.formats))
+      , presentModes(std::move(other.presentModes))
+      , surfaceFormat(other.surfaceFormat)
+      , presentMode(other.presentMode)
+      , extent(other.extent)
+  {
+    // Null out the source object to indicate ownership transfer
+    other.swapChain            = VK_NULL_HANDLE;
+    other.swapChainImageFormat = VK_FORMAT_UNDEFINED;
+    other.device               = VK_NULL_HANDLE;
+    other.surfaceCallback      = nullptr;
+  }
+
+  // Move assignment operator
+  SwapchainManager &operator=(
+      SwapchainManager &&other
+  ) noexcept
+  {
+    if (this != &other) {
+      // Free current resources if necessary (e.g., destroy swapchain)
+
+      // Transfer resources from 'other' to 'this'
+      swapChain            = other.swapChain;
+      swapChainImages      = std::move(other.swapChainImages);
+      swapChainImageFormat = other.swapChainImageFormat;
+      swapChainExtent      = other.swapChainExtent;
+      swapChainImageViews  = std::move(other.swapChainImageViews);
+      device               = other.device;
+      surfaceCallback      = std::move(other.surfaceCallback);
+      capabilities         = other.capabilities;
+      formats              = std::move(other.formats);
+      presentModes         = std::move(other.presentModes);
+      surfaceFormat        = other.surfaceFormat;
+      presentMode          = other.presentMode;
+      extent               = other.extent;
+
+      // Null out the source object to indicate ownership transfer
+      other.swapChain            = VK_NULL_HANDLE;
+      other.swapChainImageFormat = VK_FORMAT_UNDEFINED;
+      other.device               = VK_NULL_HANDLE;
+      other.surfaceCallback      = nullptr;
+    }
+    return *this;
+  }
 
   DELETE_COPY(SwapchainManager);
-  DEFAULT_MOVE(SwapchainManager);
 
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult

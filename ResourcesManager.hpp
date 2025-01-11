@@ -35,6 +35,7 @@ class ResourcesManager {
   DELETE_COPY(
       ResourcesManager
   )
+
   DELETE_MOVE(
       ResourcesManager
   )

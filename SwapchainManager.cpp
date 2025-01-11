@@ -1,7 +1,6 @@
 #include "SwapchainManager.hpp"
 #include "DeviceHandler.hpp"
 #include <algorithm>
-#include <boost/stacktrace.hpp>
 #include <cstdint>
 #include <ios>
 #include <iostream>
@@ -233,11 +232,8 @@ VkResult SwapchainManager::createImageViews()
   return return_value;
 }
 
-SwapchainManager::~SwapchainManager() noexcept(
-    false
-)
+SwapchainManager::~SwapchainManager()
 {
-  std::cout << boost::stacktrace::stacktrace() << std::endl;
   std::cout << "Swapchain Destruction Start" << std::endl;
   if (device != VK_NULL_HANDLE) {
     std::cout << "swapchain handle : " << swapChain

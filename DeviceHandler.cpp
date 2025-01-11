@@ -103,12 +103,17 @@ uint32_t DeviceHandler::listQueueFamilies()
 
 DeviceHandler::~DeviceHandler()
 {
-
-  std::cout << "Delete Call to DeviceHandler " << std::endl;
-  deviceMap.clear();
-  std::cout << "Device Map Clear call done" << std::endl;
-  for (auto a = devices.begin(); a != devices.end(); ++a) {
-    vkDestroyDevice(*a, nullptr);
+  std::cout << "Delete Call to DeviceHandler " << destroyed << std::endl;
+  if (!destroyed) {
+    deviceMap.clear();
+    std::cout << "Device Map Clear call done empty :" << deviceMap.empty()
+              << std::endl;
+    for (auto a = devices.begin(); a != devices.end(); ++a) {
+      if (*a != VK_NULL_HANDLE) {
+        vkDestroyDevice(*a, nullptr);
+      }
+    }
+    destroyed = true;
   }
   std::cout << "Logical devices Removed From Vulkan" << std::endl;
 }

@@ -116,10 +116,15 @@ ResourcesManager::~ResourcesManager()
 {
   std::cout << "Delete Call to ressourceManager" << std::endl;
   devices.~DeviceHandler();
-  if (surface != VK_NULL_HANDLE) {
-    vkDestroySurfaceKHR(instance, surface, nullptr);
+  devices = ABox_Utils::DeviceHandler();
+  std::cout << "Deleting Surface : " << surface << " && Instance : " << instance
+            << std::endl;
+  if (instance != VK_NULL_HANDLE) {
+    if (surface != VK_NULL_HANDLE) {
+      vkDestroySurfaceKHR(instance, surface, nullptr);
+    }
+    vkDestroyInstance(instance, nullptr);
   }
-  vkDestroyInstance(instance, nullptr);
 }
 
 VkResult ResourcesManager::addLogicalDevice()

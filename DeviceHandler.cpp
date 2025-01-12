@@ -101,23 +101,6 @@ uint32_t DeviceHandler::listQueueFamilies()
   return queueCount;
 }
 
-DeviceHandler::~DeviceHandler()
-{
-  std::cout << "Delete Call to DeviceHandler " << destroyed << std::endl;
-  if (!destroyed) {
-    deviceMap.clear();
-    std::cout << "Device Map Clear call done empty :" << deviceMap.empty()
-              << std::endl;
-    for (auto a = devices.begin(); a != devices.end(); ++a) {
-      if (*a != VK_NULL_HANDLE) {
-        vkDestroyDevice(*a, nullptr);
-      }
-    }
-    destroyed = true;
-  }
-  std::cout << "Logical devices Removed From Vulkan" << std::endl;
-}
-
 DeviceHandler::DeviceHandler(
     VkInstance instance
 )
@@ -164,6 +147,18 @@ VkResult DeviceHandler::DeviceExtensionSupport(
                                     : VK_ERROR_EXTENSION_NOT_PRESENT;
 }
 
+void DeviceHandler::removeBindings()
+{
+  deviceMap.clear();
+  for (auto &dev : devices) {
+    if (dev != VK_NULL_HANDLE) {
+      std::cout << "Destroying device :" << (void *)dev << std::endl;
+      vkDestroyDevice(dev, nullptr);
+      std::cout << "Device destroyed : " << (dev == VK_NULL_HANDLE);
+    }
+  }
+  devices.clear();
+}
 VkResult DeviceHandler::listPhysicalDevices() const
 {
   uint32_t                   index   = 0;

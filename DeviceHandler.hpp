@@ -3,6 +3,7 @@
 
 #include "PreProcUtils.hpp"
 #include "SwapchainManager.hpp"
+#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <set>
@@ -51,21 +52,36 @@ class DeviceHandler {
   ) noexcept
       : phyDevices(other.phyDevices)
       , devices(other.devices)
-      , deviceMap(std::move(other.deviceMap))
   {
-    other.destroyed = true;
+    for (auto &a : other.deviceMap) {
+      deviceMap[a.first] = {
+          .physical  = a.second.physical,
+          .fIndices  = a.second.fIndices,
+          .swapchain = std::move(a.second.swapchain)
+      };
+      a.second.swapchain = SwapchainManager();
+    }
   }
-
   DeviceHandler &operator=(
       DeviceHandler &&other
   ) noexcept
   {
     if (this != &other) {
       // Copy assignment: copy the members from `other` to `this`
-      phyDevices      = other.phyDevices;
-      devices         = other.devices;
-      deviceMap       = std::move(other.deviceMap);
-      other.destroyed = true;
+      phyDevices = other.phyDevices;
+      devices    = other.devices;
+
+      other.phyDevices.clear();
+      other.devices.clear();
+      for (auto &a : other.deviceMap) {
+        deviceMap[a.first] = {
+            .physical  = a.second.physical,
+            .fIndices  = a.second.fIndices,
+            .swapchain = std::move(a.second.swapchain)
+        };
+
+        a.second.swapchain = SwapchainManager();
+      }
     }
     return *this;
   }
@@ -77,7 +93,8 @@ class DeviceHandler {
    * best suited to do the job
    *
    * @param VkSurfaceKHR surface the surface which will bind presentation
-   * @return VkResult : VK_SUCCESS if succeded else a corresponding error value
+   * @return VkResult : VK_SUCCESS if succeded else a corresponding error
+   * value
    */
   VkResult addLogicalDevice(VkSurfaceKHR surface);
   /**
@@ -100,7 +117,7 @@ class DeviceHandler {
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);
 
-  ~DeviceHandler();
+  void removeBindings();
 
   VkDevice *getDevice(uint32_t index);
   // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;

@@ -104,6 +104,8 @@ class SwapchainManager {
     return *this;
   }
 
+  VkExtent2D getExtent() const noexcept { return extent; }
+
   DELETE_COPY(SwapchainManager);
 
   // Latter implementation for windowcallback

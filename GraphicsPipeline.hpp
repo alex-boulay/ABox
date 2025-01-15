@@ -4,6 +4,7 @@
 #include "SwapchainManager.hpp"
 #include <array>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -14,10 +15,19 @@ static const std::array<VkDynamicState, 2> dynamicStates = {
 };
 
 class GraphicsPipeline {
+
+  // External element
+  const VkDevice &device;
+
   VkViewport       viewport;
   VkRect2D         scissor;
   VkPipelineLayout pipelineLayout;
-  const VkDevice  &device;
+
+  VkRenderPass     renderPass;
+  VkPipelineLayout pipelineLayout;
+
+  VkPipeline graphicsPipeline; // main object
+
   // bindShaderHandlers here
   //
   GraphicsPipeline(
@@ -26,6 +36,8 @@ class GraphicsPipeline {
   )
       : device(device)
   {
+    VkResult res = CreateRenderPass(sm);
+
     VkPipelineDynamicStateCreateInfo dynamicState{
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
         .pNext = nullptr,
@@ -130,8 +142,7 @@ class GraphicsPipeline {
         .pushConstantRangeCount = 0u,
         .pPushConstantRanges    = nullptr
     };
-    VkResult res = VK_SUCCESS;
-    res          = vkCreatePipelineLayout(
+    res = vkCreatePipelineLayout(
         device, // TODO: add Device Management to Pipeline
         &pipelineLayoutInfo,
         nullptr,
@@ -141,11 +152,117 @@ class GraphicsPipeline {
       std::cout << "Vulkan Error value : " << res << std::endl;
       throw std::runtime_error("failed to create pipeline layout !");
     }
+
+    VkGraphicsPipelineCreateInfo pipelineInfo{
+        .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext               = nullptr,
+        .flags               = 0u,
+        .stageCount          = 2u,
+        .pStages             = shaderStages,
+        .pVertexInputState   = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssembly,
+        .pTessellationState  = nullptr,
+        .pViewportState      = &viewportState,
+        .pRasterizationState = &rasterizer,
+        .pMultisampleState   = &multisampling,
+        .pDepthStencilState  = nullptr,
+        .pColorBlendState    = &colorBlending,
+        .pDynamicState       = &dynamicState,
+        .layout              = pipelineLayout,
+        .renderPass          = renderPass,
+        .subpass             = 0,
+        .basePipelineHandle  = VK_NULL_HANDLE,
+        .basePipelineIndex   = -1,
+    };
+
+    res = vkCreateGraphicsPipelines(
+        device,
+        VK_NULL_HANDLE,
+        1,
+        &pipelineInfo,
+        nullptr,
+        &graphicsPipeline
+    );
+    if (res != VK_SUCCESS) {
+      std::stringstream ss;
+      ss << "Failed to create the graphics pipeline !\n\tError value : " << res
+         << std::endl;
+      throw std::runtime_error(ss.str().c_str());
+    }
   }
-  void CreateRenderPass() { VkAttachmentDescription colorAttachment{}; }
+  VkResult CreateRenderPass(
+      const SwapchainManager &sm
+  )
+  {
+    VkAttachmentDescription colorAttachment{
+        .flags          = 0u,
+        .format         = sm.getFormat(),
+        .samples        = VK_SAMPLE_COUNT_1_BIT,
+        .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
+        .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
+        .stencilLoadOp  = VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+        .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
+        .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
+        .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+    };
+    VkAttachmentReference colorAttachmentRef{
+        .attachment = 0,
+        .layout     = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL
+    };
+    VkSubpassDescription subpass{
+        .flags                   = 0u,
+        .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
+        .inputAttachmentCount    = 0u,
+        .pInputAttachments       = nullptr,
+        .colorAttachmentCount    = 1u,
+        .pColorAttachments       = &colorAttachmentRef,
+        .pResolveAttachments     = nullptr,
+        .pDepthStencilAttachment = nullptr,
+        .preserveAttachmentCount = 0u,
+        .pPreserveAttachments    = nullptr
+    };
+    VkRenderPassCreateInfo renderPassInfo{
+        .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+        .pNext           = nullptr,
+        .flags           = 0u,
+        .attachmentCount = 1u,
+        .pAttachments    = &colorAttachment,
+        .subpassCount    = 1u,
+        .pSubpasses      = &subpass,
+        .dependencyCount = 0u,
+        .pDependencies   = nullptr
+    };
+    VkResult res =
+        vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
+
+    if (res != VK_SUCCESS) {
+      std::stringstream ss;
+      ss << "Failed to create render pass !\n\tError value : " << res
+         << std::endl;
+      throw std::runtime_error(ss.str().c_str());
+    }
+
+    return res;
+  }
   ~GraphicsPipeline()
   {
-    vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+    if (device != VK_NULL_HANDLE) {
+      if (pipelineLayout != VK_NULL_HANDLE) {
+        vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
+      }
+      else {
+        std::cout << "Pipeline layout already freed(nullhandle)" << std::endl;
+      }
+      if (renderPass != VK_NULL_HANDLE) {
+        vkDestroyRenderPass(device, renderPass, nullptr);
+      }
+      else {
+        std::cout << "Render pass already freed(nullhandle)" << std::endl;
+      }
+    }
+    else {
+      std::cout << "Vk Device allready freed (nullhandle)" << std::endl;
+    }
   }
 };
 

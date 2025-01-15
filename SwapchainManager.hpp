@@ -108,6 +108,8 @@ class SwapchainManager {
 
   DELETE_COPY(SwapchainManager);
 
+  VkFormat getFormat() const noexcept { return swapChainImageFormat; }
+
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult
   // resizeSwapChain(uint32_t width, uint32_t height);

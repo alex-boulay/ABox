@@ -3,7 +3,6 @@
 
 #include "PreProcUtils.hpp"
 #include "SwapchainManager.hpp"
-#include <algorithm>
 #include <cstdint>
 #include <optional>
 #include <set>
@@ -43,8 +42,6 @@ class DeviceHandler {
 
   std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
   std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
-
-  bool destroyed = false;
 
    public:
   DeviceHandler(

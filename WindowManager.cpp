@@ -64,11 +64,11 @@ VkResult WindowManager::createSurface(
   }
   return res;
 }
-
+/**
 VkResult WindowManager::createSwapchain(
     ResourcesManager &rm,
     uint_fast8_t      devIndex
 ) const
 {
   return rm.createSwapchain(width, height, devIndex);
-}
+}*/

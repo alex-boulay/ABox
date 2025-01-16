@@ -8,8 +8,8 @@
 #include <vulkan/vulkan_core.h>
 
 class ResourcesManager {
-  VkInstance                instance;
-  ABox_Utils::DeviceHandler devices;
+  VkInstance instance;
+  // ABox_Utils::DeviceHandler devices;
 
   // Display chain
   VkSurfaceKHR surface;
@@ -21,8 +21,8 @@ class ResourcesManager {
 
   ~ResourcesManager();
 
-  ABox_Utils::DeviceHandler *getDeviceHandler() { return &devices; }
-  VkInstance                 getInstance() const { return instance; }
+  // ABox_Utils::DeviceHandler *getDeviceHandler() { return &devices; }
+  VkInstance getInstance() const { return instance; }
 
   VkSurfaceKHR *getSurfacePtr() { return &surface; }
   VkResult      addLogicalDevice();

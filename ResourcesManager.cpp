@@ -70,8 +70,9 @@ ResourcesManager::ResourcesManager()
        << res << std::endl;
     throw std::runtime_error(ss.str());
   }
-  devices = ABox_Utils::DeviceHandler(instance);
+  // devices = ABox_Utils::DeviceHandler(instance);
 }
+
 std::vector<const char *> getExtensions()
 {
   uint32_t     glfwExtensionCount = 0;
@@ -115,18 +116,20 @@ std::vector<const char *> ResourcesManager::getExtensions()
 ResourcesManager::~ResourcesManager()
 {
   std::cout << "Delete Call to ressourceManager" << std::endl;
-  devices.removeBindings();
+  // devices.removeBindings();
   std::cout << "Deleting Surface : " << surface << " && Instance : " << instance
             << std::endl;
   if (instance != VK_NULL_HANDLE) {
     if (surface != VK_NULL_HANDLE) {
       vkDestroySurfaceKHR(instance, surface, nullptr);
+      surface = VK_NULL_HANDLE;
     }
     vkDestroyInstance(instance, nullptr);
+    instance = VK_NULL_HANDLE;
   }
 }
 
-VkResult ResourcesManager::addLogicalDevice()
+/**VkResult ResourcesManager::addLogicalDevice()
 {
   return devices.addLogicalDevice(surface);
 }
@@ -135,9 +138,9 @@ VkResult ResourcesManager::addLogicalDevice(
 )
 {
   return devices.addLogicalDevice(physicalDeviceIndex, surface);
-}
+}*/
 
-VkResult ResourcesManager::createSwapchain(
+/**VkResult ResourcesManager::createSwapchain(
     uint32_t width,
     uint32_t height,
     uint32_t devIndex
@@ -149,4 +152,4 @@ VkResult ResourcesManager::createSwapchain(
       std::function([&]() { return &(this->surface); }),
       devIndex
   );
-}
+}*/

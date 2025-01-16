@@ -241,11 +241,11 @@ void ABoxApp::initVulkan()
 */
 
   ResourcesManager rs;
-  rs.getDeviceHandler()->listPhysicalDevices();
-  WindowManager wm(720u, 1200u);
-  wm.createSurface(rs);
-  rs.addLogicalDevice();
-  rs.createSwapchain(wm.getWidth(), wm.getHeight());
+  //   rs.getDeviceHandler()->listPhysicalDevices();
+  WindowManager    wm(720u, 1200u);
+  // wm.createSurface(rs);
+  //       rs.addLogicalDevice();
+  //        rs.createSwapchain(wm.getWidth(), wm.getHeight());
 }
 
 void ABoxApp::createLogicalDevice()

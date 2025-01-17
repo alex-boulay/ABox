@@ -8,11 +8,11 @@
 #include <vulkan/vulkan_core.h>
 
 class ResourcesManager {
-  VkInstance instance;
+  VkInstance instance = VK_NULL_HANDLE;
   // ABox_Utils::DeviceHandler devices;
 
   // Display chain
-  VkSurfaceKHR surface;
+  VkSurfaceKHR surface = VK_NULL_HANDLE;
 
    public:
   ResourcesManager();

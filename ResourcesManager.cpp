@@ -124,6 +124,8 @@ ResourcesManager::~ResourcesManager()
       vkDestroySurfaceKHR(instance, surface, nullptr);
       surface = VK_NULL_HANDLE;
     }
+    // leak here :
+    // add the vulkan debug layers to the instance
     vkDestroyInstance(instance, nullptr);
     instance = VK_NULL_HANDLE;
   }
@@ -131,13 +133,13 @@ ResourcesManager::~ResourcesManager()
 
 /**VkResult ResourcesManager::addLogicalDevice()
 {
-  return devices.addLogicalDevice(surface);
+return devices.addLogicalDevice(surface);
 }
 VkResult ResourcesManager::addLogicalDevice(
-    uint32_t physicalDeviceIndex
+  uint32_t physicalDeviceIndex
 )
 {
-  return devices.addLogicalDevice(physicalDeviceIndex, surface);
+return devices.addLogicalDevice(physicalDeviceIndex, surface);
 }*/
 
 /**VkResult ResourcesManager::createSwapchain(

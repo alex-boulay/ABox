@@ -14,6 +14,12 @@ class DebugHandler {
   bool checkValidationLayerSupport();
   bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 
-  void populateDebugMessenger(VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-  void setupDebugMessenger();
+  VkDebugUtilsMessengerCreateInfoEXT populateDebugMessenger();
+  void                               setupDebugMessenger(VkInstance instance);
+
+   public:
+  const VkDebugUtilsMessengerEXT &getDebugMessenger() const
+  {
+    return debugMessenger;
+  }
 };

@@ -31,30 +31,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
   return VK_FALSE;
 }
 
-bool DebugHandler::checkValidationLayerSupport()
-{
-  uint32_t layerCount;
-  vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
-
-  std::vector<VkLayerProperties> availableLayers(layerCount);
-  vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
-
-  for (const char *layerName : validationLayers) {
-    bool layerFound = false;
-
-    for (const auto &layerProperties : availableLayers) {
-      if (strcmp(layerName, layerProperties.layerName) == 0) {
-        layerFound = true;
-        break;
-      }
-    }
-
-    if (!layerFound) {
-      return false;
-    }
-  }
-  return true;
-}
 VkResult CreateDebugUtilsMessengerEXT(
     VkInstance                                instance,
     const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
@@ -87,46 +63,18 @@ void DestroyDebugUtilsMessengerEXT(
   }
 }
 
-std::vector<const char *> getRequiredExtensions()
-{
-  uint32_t     glfwExtensionCount = 0;
-  const char **glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-  std::vector<const char *> extensions(
-      glfwExtensions,
-      glfwExtensions + glfwExtensionCount
-  );
-
-  if (enableValidationLayers) {
-    extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-  }
-
-  return extensions;
-}
-
 // TODO: tranfert debug to Instance creation
-void DebugHandler::createInstance()
+void DebugHandler::createInstance(
+    VkInstance instance
+)
 {
   if (enableValidationLayers && !checkValidationLayerSupport()) {
     throw std::runtime_error("validation layers requested, but not available!");
   }
 
-  VkApplicationInfo appInfo{
-      .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-      .pNext              = nullptr,
-      .pApplicationName   = "Tests on Vulkan",
-      .applicationVersion = VK_MAKE_VERSION(1, 0, 0),
-      .pEngineName        = "No Engine",
-      .engineVersion      = VK_MAKE_VERSION(1, 0, 0),
-      .apiVersion         = VK_API_VERSION_1_3
-  };
-
-  auto extensions = getRequiredExtensions();
-
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
   if (enableValidationLayers) {
-    populateDebugMessenger(debugCreateInfo);
+    debugCreateInfo = populateDebugMessenger();
   }
 
   VkInstanceCreateInfo createInfo{
@@ -135,16 +83,15 @@ void DebugHandler::createInstance()
                    ? (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo
                    : nullptr,
       .flags = 0, // VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
-      .pApplicationInfo  = &appInfo,
+      .pApplicationInfo  = nullptr,
       .enabledLayerCount = enableValidationLayers *
                            static_cast<uint32_t>(validationLayers.size()),
       .ppEnabledLayerNames =
           enableValidationLayers ? validationLayers.data() : nullptr,
-      .enabledExtensionCount   = static_cast<uint32_t>(extensions.size()),
-      .ppEnabledExtensionNames = extensions.data()
+      .enabledExtensionCount   = 0u,
+      .ppEnabledExtensionNames = nullptr
   };
 
-  VkInstance instance;
   std::cout << "Instance info struct filled." << '\n';
   VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
   std::cout << "Instance info struct result value : " << result << '\n';
@@ -153,11 +100,9 @@ void DebugHandler::createInstance()
   }
 }
 
-void DebugHandler::populateDebugMessenger(
-    VkDebugUtilsMessengerCreateInfoEXT &createInfo
-)
+VkDebugUtilsMessengerCreateInfoEXT DebugHandler::populateDebugMessenger()
 {
-  createInfo = {
+  return {
       .sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT,
       .pNext = nullptr,
       .flags = 0,
@@ -172,17 +117,18 @@ void DebugHandler::populateDebugMessenger(
   };
 }
 
-void DebugHandler::setupDebugMessenger()
+void DebugHandler::setupDebugMessenger(
+    VkInstance instance
+)
 {
   if (!enableValidationLayers) {
     return;
   }
 
-  VkDebugUtilsMessengerCreateInfoEXT createInfo;
-  populateDebugMessenger(createInfo);
+  VkDebugUtilsMessengerCreateInfoEXT createInfo = populateDebugMessenger();
   // TODO : to remove here just for compilation
-  VkInstance instance = VK_NULL_HANDLE;
-  VkResult   result   = CreateDebugUtilsMessengerEXT(
+
+  VkResult result = CreateDebugUtilsMessengerEXT(
       instance,
       &createInfo,
       nullptr,

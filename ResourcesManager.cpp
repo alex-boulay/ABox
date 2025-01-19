@@ -7,6 +7,9 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
+#ifdef DEBUG_VK_ABOX
+#endif
+
 static std::set<const char *> InstanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS
     "VK_LAYER_KHRONOS_validation",
@@ -30,6 +33,7 @@ std::vector<const char *> ResourcesManager::getLayerNames()
 }
 
 ResourcesManager::ResourcesManager()
+    : debugHandler(instance)
 {
 
   VkApplicationInfo appInfo{
@@ -52,9 +56,13 @@ ResourcesManager::ResourcesManager()
   for (auto a : layerBuffer) {
     std::cout << "Layer : " << a << '\n';
   }
+
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
+      debugHandler.populateDebugMessenger();
+
   VkInstanceCreateInfo instanceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = nullptr,
+      .pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo,
       .flags = 0, // VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
       .pApplicationInfo        = &appInfo,
       .enabledLayerCount       = static_cast<uint32_t>(layerBuffer.size()),

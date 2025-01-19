@@ -1,23 +1,21 @@
-#include <vector>
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
-const std::vector<const char *> validationLayers = {
-    "VK_LAYER_KHRONOS_validation"
-};
-const std::vector<const char *> deviceExtensions = {
-    VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
 class DebugHandler {
 
   VkDebugUtilsMessengerEXT debugMessenger;
+  VkInstance               instance;
 
   bool checkValidationLayerSupport();
-  bool checkDeviceExtensionSupport(VkPhysicalDevice device);
+  bool checkDeviceExtensionSupport();
 
-  VkDebugUtilsMessengerCreateInfoEXT populateDebugMessenger();
-  void                               setupDebugMessenger(VkInstance instance);
+  void setupDebugMessenger();
 
    public:
+  DebugHandler(VkInstance instance);
+  ~DebugHandler();
+
+  VkDebugUtilsMessengerCreateInfoEXT populateDebugMessenger();
+
   const VkDebugUtilsMessengerEXT &getDebugMessenger() const
   {
     return debugMessenger;

@@ -6,13 +6,19 @@
 #include <GLFW/glfw3.h>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-
+#ifdef DEBUG_VK_ABOX
+  #include "DebugHandler.hpp"
+#endif
 class ResourcesManager {
   VkInstance instance = VK_NULL_HANDLE;
   // ABox_Utils::DeviceHandler devices;
 
   // Display chain
   VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+#ifdef DEBUG_VK_ABOX
+  DebugHandler debugHandler;
+#endif
 
    public:
   ResourcesManager();

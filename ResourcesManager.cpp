@@ -33,7 +33,6 @@ std::vector<const char *> ResourcesManager::getLayerNames()
 }
 
 ResourcesManager::ResourcesManager()
-    : debugHandler(instance)
 {
 
   VkApplicationInfo appInfo{
@@ -78,6 +77,8 @@ ResourcesManager::ResourcesManager()
        << res << std::endl;
     throw std::runtime_error(ss.str());
   }
+  debugHandler = DebugHandler(instance);
+  debugHandler.setupDebugMessenger();
   // devices = ABox_Utils::DeviceHandler(instance);
 }
 

@@ -84,7 +84,8 @@ void DebugHandler::setupDebugMessenger()
       &debugMessenger
   );
   if (result != VK_SUCCESS) {
-    std::cout << "Result value : " << result << '\n';
+    std::cout << "Error setting up Debug Messenger - result value : " << result
+              << '\n';
     throw std::runtime_error("failed to set up debug messenger!");
   }
   else {
@@ -97,13 +98,15 @@ DebugHandler::DebugHandler(
 )
     : instance(instance)
 {
-  setupDebugMessenger();
 }
+
 DebugHandler::~DebugHandler()
 {
-  auto func = (PFN_vkDestroyDebugUtilsMessengerEXT
-  )vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
-  if (func != nullptr) {
-    func(instance, debugMessenger, nullptr);
+  if (instance != VK_NULL_HANDLE) {
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT
+    )vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+      func(instance, debugMessenger, nullptr);
+    }
   }
 }

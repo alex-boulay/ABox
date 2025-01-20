@@ -14,7 +14,7 @@ class ABoxApp {
   static const uint_fast16_t width  = 800;
   static const uint_fast16_t height = 600;
 
-  ShaderHandler shaderHandler;
+  // ShaderHandler shaderHandler;
 
   void mainLoop();
 

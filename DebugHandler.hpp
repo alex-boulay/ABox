@@ -2,18 +2,18 @@
 
 class DebugHandler {
 
-  VkDebugUtilsMessengerEXT debugMessenger;
-  VkInstance               instance;
+  VkDebugUtilsMessengerEXT debugMessenger = {};
+  VkInstance               instance       = VK_NULL_HANDLE;
 
   bool checkValidationLayerSupport();
   bool checkDeviceExtensionSupport();
 
-  void setupDebugMessenger();
-
    public:
+  DebugHandler() {};
   DebugHandler(VkInstance instance);
   ~DebugHandler();
 
+  void                               setupDebugMessenger();
   VkDebugUtilsMessengerCreateInfoEXT populateDebugMessenger();
 
   const VkDebugUtilsMessengerEXT &getDebugMessenger() const

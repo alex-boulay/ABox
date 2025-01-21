@@ -129,6 +129,9 @@ ResourcesManager::~ResourcesManager()
   std::cout << "Deleting Surface : " << surface << " && Instance : " << instance
             << std::endl;
   if (instance != VK_NULL_HANDLE) {
+
+    std::cout << "Deleting DebugHandler " << std::endl;
+    debugHandler.~DebugHandler();
     if (surface != VK_NULL_HANDLE) {
       vkDestroySurfaceKHR(instance, surface, nullptr);
       surface = VK_NULL_HANDLE;

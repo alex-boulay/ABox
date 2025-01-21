@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
@@ -102,11 +103,16 @@ DebugHandler::DebugHandler(
 
 DebugHandler::~DebugHandler()
 {
+  std::cout << "Call to DebugHandler " << (instance == VK_NULL_HANDLE)
+            << std::endl;
   if (instance != VK_NULL_HANDLE) {
+    std::cout << "inside destroy" << std::endl;
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT
     )vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
+      std::cout << "func  not nllptr" << std::endl;
       func(instance, debugMessenger, nullptr);
     }
   }
+  std::cout << "debughandler done " << std::endl;
 }

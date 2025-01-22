@@ -15,7 +15,6 @@ int main()
 {
   ABoxApp app;
   std::cout << "App " << (void *)&app << '\n';
-  glfwInit();
   try {
     app.run();
   }

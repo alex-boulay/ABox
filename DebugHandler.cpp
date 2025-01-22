@@ -113,6 +113,7 @@ DebugHandler::~DebugHandler()
       std::cout << "func  not nllptr" << std::endl;
       func(instance, debugMessenger, nullptr);
     }
+    instance = VK_NULL_HANDLE;
   }
   std::cout << "debughandler done " << std::endl;
 }

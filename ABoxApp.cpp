@@ -1,9 +1,8 @@
 #include "ABoxApp.hpp"
 #include "ResourcesManager.hpp"
 #include "WindowManager.hpp"
-#include <GLFW/glfw3.h>
 #include <cstring>
-#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan.h>
 
 void ABoxApp::run() { mainLoop(); }
 
@@ -17,13 +16,5 @@ ABoxApp::ABoxApp()
   //         rs.createSwapchain(wm.getWidth(), wm.getHeight());
 }
 
-void ABoxApp::mainLoop()
-{
-  int a = 0;
-  int b = 1;
-  while (a < 17000000) {
-    b = a * b;
-    a++;
-  }
-}
+void ABoxApp::mainLoop() {}
 

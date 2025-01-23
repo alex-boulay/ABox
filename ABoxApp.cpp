@@ -1,20 +1,21 @@
 #include "ABoxApp.hpp"
-#include "ResourcesManager.hpp"
-#include "WindowManager.hpp"
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <cstring>
-#include <vulkan/vulkan.h>
+#include <stdexcept>
 
-void ABoxApp::run() { mainLoop(); }
+void ABoxApp::run() {}
 
 ABoxApp::ABoxApp()
 {
-  ResourcesManager rs;
-  //    rs.getDeviceHandler()->listPhysicalDevices();
-  //  WindowManager    wm(720u, 1200u);
-  //  wm.createSurface(rs);
-  //        rs.addLogicalDevice();
-  //         rs.createSwapchain(wm.getWidth(), wm.getHeight());
+  glfwInit();
+  if (!glfwVulkanSupported()) {
+    throw std::runtime_error("Vulkan Loader or ICD not found !");
+  }
+  rs.getDeviceHandler()->listPhysicalDevices();
+  // wm.createSurface(rs);
+  // rs.addLogicalDevice();
+  // rs.createSwapchain(wm.getWidth(), wm.getHeight());
 }
 
-void ABoxApp::mainLoop() {}
-
+ABoxApp::~ABoxApp() { glfwTerminate(); };

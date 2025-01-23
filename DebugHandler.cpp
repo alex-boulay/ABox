@@ -103,17 +103,19 @@ DebugHandler::DebugHandler(
 
 DebugHandler::~DebugHandler()
 {
-  std::cout << "Call to DebugHandler " << (instance == VK_NULL_HANDLE)
+  std::cout << "DebugHandler destructor entry " << (instance == VK_NULL_HANDLE)
             << std::endl;
   if (instance != VK_NULL_HANDLE) {
-    std::cout << "inside destroy" << std::endl;
+    std::cout << "Destroying debug dependencies" << std::endl;
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT
     )vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
-      std::cout << "func  not nllptr" << std::endl;
       func(instance, debugMessenger, nullptr);
     }
     instance = VK_NULL_HANDLE;
+    std::cout << "Debughandler external ressources freeing Done " << std::endl;
   }
-  std::cout << "debughandler done " << std::endl;
+  else {
+    std::cout << "Debug handler : no external ressources to free" << std::endl;
+  }
 }

@@ -20,6 +20,7 @@ project(ABox)
 
 find_package(Threads REQUIRED)
 find_package(glslang REQUIRED)
+find_package(Vulkan REQUIRED)
 find_package(SPIRV-Tools REQUIRED)
 
 FILE(GLOB SOURCE_FILES "*.cpp")
@@ -29,8 +30,10 @@ FILE(GLOB HEADER_FILES "*.hpp")
 add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 
 # Linker flags (adjust based on your target platform)
-target_link_libraries(ABox PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi -lglslang-default-resource-limits" glslang::glslang glslang::SPIRV)
-
+target_link_libraries(ABox PRIVATE "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi -lglslang-default-resource-limits" Vulkan::Vulkan glslang::glslang glslang::SPIRV)
+set_target_properties(ABox PROPERTIES
+  INSTALL_RPATH "$VULKAN_SDK/lib"
+)
 # Specify the install directory for the executable
 install(TARGETS ABox
         RUNTIME DESTINATION bin)

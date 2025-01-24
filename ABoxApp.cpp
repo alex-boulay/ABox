@@ -10,7 +10,7 @@ void ABoxApp::run() { mainLoop(); }
 ABoxApp::ABoxApp()
 {
   ResourcesManager rs;
-  //    rs.getDeviceHandler()->listPhysicalDevices();
+  rs.getDeviceHandler()->listPhysicalDevices();
   //  WindowManager    wm(720u, 1200u);
   //  wm.createSurface(rs);
   //        rs.addLogicalDevice();

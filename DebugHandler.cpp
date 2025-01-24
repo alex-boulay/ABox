@@ -63,43 +63,6 @@ void DestroyDebugUtilsMessengerEXT(
   }
 }
 
-// TODO: tranfert debug to Instance creation
-void DebugHandler::createInstance(
-    VkInstance instance
-)
-{
-  if (enableValidationLayers && !checkValidationLayerSupport()) {
-    throw std::runtime_error("validation layers requested, but not available!");
-  }
-
-  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo{};
-  if (enableValidationLayers) {
-    debugCreateInfo = populateDebugMessenger();
-  }
-
-  VkInstanceCreateInfo createInfo{
-      .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = enableValidationLayers
-                   ? (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo
-                   : nullptr,
-      .flags = 0, // VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
-      .pApplicationInfo  = nullptr,
-      .enabledLayerCount = enableValidationLayers *
-                           static_cast<uint32_t>(validationLayers.size()),
-      .ppEnabledLayerNames =
-          enableValidationLayers ? validationLayers.data() : nullptr,
-      .enabledExtensionCount   = 0u,
-      .ppEnabledExtensionNames = nullptr
-  };
-
-  std::cout << "Instance info struct filled." << '\n';
-  VkResult result = vkCreateInstance(&createInfo, nullptr, &instance);
-  std::cout << "Instance info struct result value : " << result << '\n';
-  if (result != VK_SUCCESS) {
-    throw std::runtime_error("failed to create instance");
-  }
-}
-
 VkDebugUtilsMessengerCreateInfoEXT DebugHandler::populateDebugMessenger()
 {
   return {

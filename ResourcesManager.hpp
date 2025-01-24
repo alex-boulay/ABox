@@ -3,9 +3,11 @@
 
 #include "DeviceHandler.hpp"
 #include "PreProcUtils.hpp"
-#include <GLFW/glfw3.h>
+#include <unordered_set>
 #include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
+#ifdef DEBUG_VK_ABOX
+  #include "DebugHandler.hpp"
+#endif
 
 class ResourcesManager {
   VkInstance                instance = VK_NULL_HANDLE;
@@ -13,6 +15,23 @@ class ResourcesManager {
 
   // Display chain
   VkSurfaceKHR surface = VK_NULL_HANDLE;
+
+#ifdef DEBUG_VK_ABOX
+  DebugHandler debugHandler;
+#endif
+
+  std::unordered_set<const char *> InstanceLayers = {
+#ifdef VK_ABOX_VALIDATION_LAYERS
+      "VK_LAYER_KHRONOS_validation",
+#endif
+#ifdef VK_ABOX_PROFILING__
+      "VK_LAYER_KHRONOS_profiles",
+#endif
+  };
+
+  std::unordered_set<const char *> InstanceExtensions = {
+      VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+  }; // getExtensions was added to fetch necessary functions for glfw.
 
    public:
   ResourcesManager();

@@ -8,9 +8,27 @@ void ABoxApp::run() {}
 
 ABoxApp::ABoxApp()
 {
+<<<<<<< HEAD
+  ResourcesManager rs;
+  rs.getDeviceHandler()->listPhysicalDevices();
+  //  WindowManager    wm(720u, 1200u);
+  //  wm.createSurface(rs);
+  //        rs.addLogicalDevice();
+  //         rs.createSwapchain(wm.getWidth(), wm.getHeight());
+}
+
+void ABoxApp::mainLoop()
+{
+  int a = 0;
+  int b = 1;
+  while (a < 17000000) {
+    b = a * b;
+    a++;
+=======
   glfwInit();
   if (!glfwVulkanSupported()) {
     throw std::runtime_error("Vulkan Loader or ICD not found !");
+>>>>>>> d260610ad01ba81ad6994c652b021a983349d2ed
   }
   rs.getDeviceHandler()->listPhysicalDevices();
   // wm.createSurface(rs);

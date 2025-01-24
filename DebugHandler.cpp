@@ -1,17 +1,9 @@
 #include "DebugHandler.hpp"
 #include <bitset>
-#include <cstdint>
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
-
-// TODO : move validation to te ressource manage rin the instance side or make a
-// debug handler with the call back
-#ifdef NDEBUG
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
-#endif
+#include <vulkan/vulkan_core.h>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT           messageSeverity,
@@ -80,13 +72,8 @@ VkDebugUtilsMessengerCreateInfoEXT DebugHandler::populateDebugMessenger()
   };
 }
 
-void DebugHandler::setupDebugMessenger(
-    VkInstance instance
-)
+void DebugHandler::setupDebugMessenger()
 {
-  if (!enableValidationLayers) {
-    return;
-  }
 
   VkDebugUtilsMessengerCreateInfoEXT createInfo = populateDebugMessenger();
   // TODO : to remove here just for compilation
@@ -98,10 +85,37 @@ void DebugHandler::setupDebugMessenger(
       &debugMessenger
   );
   if (result != VK_SUCCESS) {
-    std::cout << "Result value : " << result << '\n';
+    std::cout << "Error setting up Debug Messenger - result value : " << result
+              << '\n';
     throw std::runtime_error("failed to set up debug messenger!");
   }
   else {
     std::cout << "Validation Layers Enabled !" << '\n';
+  }
+}
+
+DebugHandler::DebugHandler(
+    VkInstance instance
+)
+    : instance(instance)
+{
+}
+
+DebugHandler::~DebugHandler()
+{
+  std::cout << "DebugHandler destructor entry " << (instance == VK_NULL_HANDLE)
+            << std::endl;
+  if (instance != VK_NULL_HANDLE) {
+    std::cout << "Destroying debug dependencies" << std::endl;
+    auto func = (PFN_vkDestroyDebugUtilsMessengerEXT
+    )vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
+    if (func != nullptr) {
+      func(instance, debugMessenger, nullptr);
+    }
+    instance = VK_NULL_HANDLE;
+    std::cout << "Debughandler external ressources freeing Done " << std::endl;
+  }
+  else {
+    std::cout << "Debug handler : no external ressources to free" << std::endl;
   }
 }

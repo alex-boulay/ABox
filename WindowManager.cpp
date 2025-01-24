@@ -8,18 +8,17 @@
 #include <vulkan/vulkan_core.h>
 
 WindowManager::WindowManager(
-    uint32_t w,
-    uint32_t h
+    VkExtent2D ext
 )
-    : width(w)
-    , height(h)
+    : ext(ext)
 {
   if (!glfwInit()) {
     throw std::runtime_error("Failed to initialize GLFW");
   }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+  window =
+      glfwCreateWindow(ext.width, ext.height, title.c_str(), nullptr, nullptr);
   if (!window) {
     throw std::runtime_error("Failed to create GLFW window");
   }
@@ -31,11 +30,7 @@ WindowManager::WindowManager(
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
-WindowManager::~WindowManager()
-{
-  glfwDestroyWindow(window);
-  // glfwTerminate();
-}
+WindowManager::~WindowManager() { glfwDestroyWindow(window); }
 
 void WindowManager::framebufferResizeCallback(
     [[maybe_unused]] GLFWwindow *window,
@@ -64,11 +59,11 @@ VkResult WindowManager::createSurface(
   }
   return res;
 }
-/**
+
 VkResult WindowManager::createSwapchain(
     ResourcesManager &rm,
     uint_fast8_t      devIndex
 ) const
 {
-  return rm.createSwapchain(width, height, devIndex);
-}*/
+  return rm.createSwapchain(ext.width, ext.height, devIndex);
+}

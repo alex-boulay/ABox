@@ -1,24 +1,29 @@
 #pragma once
 
-#include <cstdint>
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
-#include "ShaderHandler.hpp"
+#include "ResourcesManager.hpp"
+#include "WindowManager.hpp"
 #include <GLFW/glfw3.h>
+
+// #include "ShaderHandler.hpp"
 /**
  * @class ABoxApp
  * @brief Vulkan Loader application
  *
  */
 class ABoxApp {
-  static const uint_fast16_t width  = 800;
-  static const uint_fast16_t height = 600;
+  static constexpr VkExtent2D baseWindowDimention = {
+      .width  = 800u,
+      .height = 600u
+  };
 
-  ShaderHandler shaderHandler;
-
-  void mainLoop();
+  ResourcesManager rs;
+  WindowManager    wm{baseWindowDimention};
+  // ShaderHandler shaderHandler;
 
    public:
   ABoxApp();
+  ~ABoxApp();
   void run();
 };

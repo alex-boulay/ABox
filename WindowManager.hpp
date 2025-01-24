@@ -13,22 +13,21 @@
  */
 class WindowManager {
   GLFWwindow *window;
-  uint32_t    width, height;
+  VkExtent2D  ext;
   std::string title              = "ABox";
   bool        framebufferResized = false;
 
    public:
-  WindowManager(uint32_t w, uint32_t h);
+  WindowManager(VkExtent2D ext);
   ~WindowManager();
 
   VkResult createSurface(ResourcesManager &rm) const;
-  /**VkResult
+  VkResult
        createSwapchain(ResourcesManager &rm, uint_fast8_t devIndex = 0) const;
-  */
-  void     destroySurface();
+  void destroySurface();
 
-  uint32_t getWidth() const { return width; }
-  uint32_t getHeight() const { return height; }
+  uint32_t getWidth() const { return ext.width; }
+  uint32_t getHeight() const { return ext.height; }
 
   GLFWwindow *getWindow() const { return window; }
 

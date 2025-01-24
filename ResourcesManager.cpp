@@ -1,24 +1,14 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
 #include <functional>
+#define GLFW_INCLUDE_VULKAN
+#include <GLFW/glfw3.h>
 #include <iostream>
-#include <set>
 #include <sstream>
 #include <stdexcept>
-#include <vulkan/vulkan_core.h>
 
-static std::set<const char *> InstanceLayers = {
-#ifdef VK_ABOX_VALIDATION_LAYERS
-    "VK_LAYER_KHRONOS_validation",
+#ifdef DEBUG_VK_ABOX
 #endif
-#ifdef VK_ABOX_PROFILING
-    "VK_LAYER_KHRONOS_profiles",
-#endif
-};
-
-static std::set<const char *> InstanceExtensions = {
-    VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-}; // getExtensions was added to fetch necessary functions for glfw.
 
 std::vector<const char *> ResourcesManager::getLayerNames()
 {
@@ -31,7 +21,7 @@ std::vector<const char *> ResourcesManager::getLayerNames()
 
 ResourcesManager::ResourcesManager()
 {
-
+  std::cout << "before app Info " << std::endl;
   VkApplicationInfo appInfo{
       .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
       .pNext              = nullptr,
@@ -41,6 +31,7 @@ ResourcesManager::ResourcesManager()
       .engineVersion      = 10000,
       .apiVersion         = VK_API_VERSION_1_3
   };
+  std::cout << "after app info " << &appInfo << std::endl;
 
   std::vector<const char *> extBuffer   = getExtensions();
   std::vector<const char *> layerBuffer = getLayerNames();
@@ -52,9 +43,15 @@ ResourcesManager::ResourcesManager()
   for (auto a : layerBuffer) {
     std::cout << "Layer : " << a << '\n';
   }
+
+  std::cout << "before debug Create info " << std::endl;
+  VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
+      debugHandler.populateDebugMessenger();
+
+  std::cout << "after debug Create info " << std::endl;
   VkInstanceCreateInfo instanceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
-      .pNext = nullptr,
+      .pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo,
       .flags = 0, // VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR,
       .pApplicationInfo        = &appInfo,
       .enabledLayerCount       = static_cast<uint32_t>(layerBuffer.size()),
@@ -63,6 +60,8 @@ ResourcesManager::ResourcesManager()
       .ppEnabledExtensionNames = extBuffer.data()
   };
 
+  std::cout << "after create instance info " << &instanceCreateInfo
+            << std::endl;
   VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
   if (res != VK_SUCCESS) {
     std::stringstream ss;
@@ -70,25 +69,10 @@ ResourcesManager::ResourcesManager()
        << res << std::endl;
     throw std::runtime_error(ss.str());
   }
-  // devices = ABox_Utils::DeviceHandler(instance);
-}
 
-std::vector<const char *> getExtensions()
-{
-  uint32_t     glfwExtensionCount = 0;
-  const char **glfwExtensions;
-  glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-  for (uint32_t i = 0; i < glfwExtensionCount; i++) {
-    InstanceExtensions.insert(glfwExtensions[i]);
-  }
-
-  glfwExtensionCount = InstanceExtensions.size();
-
-  return std::vector<const char *>(
-      InstanceExtensions.begin(),
-      InstanceExtensions.end()
-  );
+  debugHandler = DebugHandler(instance);
+  debugHandler.setupDebugMessenger();
+  devices = ABox_Utils::DeviceHandler(instance);
 }
 
 std::vector<const char *> ResourcesManager::getExtensions()
@@ -97,15 +81,11 @@ std::vector<const char *> ResourcesManager::getExtensions()
   const char **glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 
-  std::cout << "Instances Extensions Size : " << InstanceExtensions.size()
-            << std::endl;
   for (uint32_t i = 0; i < glfwExtensionCount; i++) {
     InstanceExtensions.insert(glfwExtensions[i]);
   }
 
   glfwExtensionCount = InstanceExtensions.size();
-  std::cout << "Instances Extensions Size : " << InstanceExtensions.size()
-            << std::endl;
 
   return std::vector<const char *>(
       InstanceExtensions.begin(),
@@ -117,32 +97,35 @@ ResourcesManager::~ResourcesManager()
 {
   std::cout << "Delete Call to ressourceManager" << std::endl;
   // devices.removeBindings();
-  std::cout << "Deleting Surface : " << surface << " && Instance : " << instance
-            << std::endl;
+  std::cout << "Deleting Surface : " << surface << std::endl;
   if (instance != VK_NULL_HANDLE) {
+
+    std::cout << "Deleting DebugHandler " << std::endl;
+    debugHandler.~DebugHandler();
     if (surface != VK_NULL_HANDLE) {
       vkDestroySurfaceKHR(instance, surface, nullptr);
       surface = VK_NULL_HANDLE;
     }
     // leak here :
     // add the vulkan debug layers to the instance
+    std::cout << "Deleting instance : " << &instance << std::endl;
     vkDestroyInstance(instance, nullptr);
     instance = VK_NULL_HANDLE;
   }
 }
 
-/**VkResult ResourcesManager::addLogicalDevice()
+VkResult ResourcesManager::addLogicalDevice()
 {
-return devices.addLogicalDevice(surface);
+  return devices.addLogicalDevice(surface);
 }
 VkResult ResourcesManager::addLogicalDevice(
-  uint32_t physicalDeviceIndex
+    uint32_t physicalDeviceIndex
 )
 {
-return devices.addLogicalDevice(physicalDeviceIndex, surface);
-}*/
+  return devices.addLogicalDevice(physicalDeviceIndex, surface);
+}
 
-/**VkResult ResourcesManager::createSwapchain(
+VkResult ResourcesManager::createSwapchain(
     uint32_t width,
     uint32_t height,
     uint32_t devIndex
@@ -154,4 +137,4 @@ return devices.addLogicalDevice(physicalDeviceIndex, surface);
       std::function([&]() { return &(this->surface); }),
       devIndex
   );
-}*/
+}

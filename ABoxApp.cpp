@@ -13,7 +13,7 @@ ABoxApp::ABoxApp()
     throw std::runtime_error("Vulkan Loader or ICD not found !");
   }
   rs.getDeviceHandler()->listPhysicalDevices();
-  // wm.createSurface(rs);
+  wm.createSurface(rs);
   // rs.addLogicalDevice();
   // rs.createSwapchain(wm.getWidth(), wm.getHeight());
 }

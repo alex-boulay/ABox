@@ -1,5 +1,6 @@
 #include "ResourcesManager.hpp"
 #include <cstdint>
+#include <sstream>
 #define GLFW_INCLUDE_VULKAN
 #include "WindowManager.hpp"
 #include <GLFW/glfw3.h>
@@ -55,7 +56,11 @@ VkResult WindowManager::createSurface(
       rm.getSurfacePtr()
   );
   if (res != VK_SUCCESS) {
-    throw std::runtime_error("Failed to create Vulkan surface!");
+    std::stringstream ss;
+    std::cout << "getInstance value " << rm.getInstance() << std::endl;
+    ss << "Failed to create Vulkan surface! res value : " << (int32_t)res
+       << std::endl;
+    throw std::runtime_error(ss.str().c_str());
   }
   return res;
 }

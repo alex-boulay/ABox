@@ -9,7 +9,7 @@ void ABoxApp::run() {}
 ABoxApp::ABoxApp()
 {
   rs.getDeviceHandler()->listPhysicalDevices();
-  // wm.createSurface(rs);
+  wm.createSurface(rs);
   // rs.addLogicalDevice();
   // rs.createSwapchain(wm.getWidth(), wm.getHeight());
 }

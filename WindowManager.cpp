@@ -15,6 +15,9 @@ WindowManager::WindowManager(
   if (!glfwInit()) {
     throw std::runtime_error("Failed to initialize GLFW");
   }
+  if (!glfwVulkanSupported()) {
+    throw std::runtime_error("Vulkan Loader or ICD not found !");
+  }
 
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
   window =

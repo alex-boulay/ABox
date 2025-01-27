@@ -8,10 +8,6 @@ void ABoxApp::run() {}
 
 ABoxApp::ABoxApp()
 {
-  glfwInit();
-  if (!glfwVulkanSupported()) {
-    throw std::runtime_error("Vulkan Loader or ICD not found !");
-  }
   rs.getDeviceHandler()->listPhysicalDevices();
   // wm.createSurface(rs);
   // rs.addLogicalDevice();

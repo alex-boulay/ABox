@@ -24,7 +24,7 @@ class ResourcesManager {
 #ifdef VK_ABOX_VALIDATION_LAYERS
       "VK_LAYER_KHRONOS_validation",
 #endif
-#ifdef VK_ABOX_PROFILING__
+#ifdef VK_ABOX_PROFILING
       "VK_LAYER_KHRONOS_profiles",
 #endif
   };

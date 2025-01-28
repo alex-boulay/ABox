@@ -56,7 +56,7 @@ class DeviceHandler {
           .fIndices  = a.second.fIndices,
           .swapchain = std::move(a.second.swapchain)
       };
-      a.second.swapchain = SwapchainManager();
+      a.second.swapchain.reset();
     }
   }
   DeviceHandler &operator=(
@@ -77,7 +77,7 @@ class DeviceHandler {
             .swapchain = std::move(a.second.swapchain)
         };
 
-        a.second.swapchain = SwapchainManager();
+        a.second.swapchain.reset();
       }
     }
     return *this;

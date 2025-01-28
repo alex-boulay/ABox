@@ -154,6 +154,7 @@ void DeviceHandler::removeBindings()
     if (dev != VK_NULL_HANDLE) {
       std::cout << "Destroying device :" << (void *)dev << std::endl;
       vkDestroyDevice(dev, nullptr);
+
       std::cout << "Device destroyed : " << (dev == VK_NULL_HANDLE);
     }
   }

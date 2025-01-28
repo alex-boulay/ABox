@@ -9,10 +9,11 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
+/**
 SwapchainManager::SwapchainManager()
     : swapChain(VK_NULL_HANDLE)
     , device(VK_NULL_HANDLE) {};
-
+*/
 SwapchainManager::SwapchainManager(
     VkPhysicalDevice                phyDev,
     std::function<VkSurfaceKHR *()> surfaceC,

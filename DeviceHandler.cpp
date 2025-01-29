@@ -375,7 +375,7 @@ VkResult DeviceHandler::addSwapchain(
     return VK_ERROR_DEVICE_LOST;
   }
   std::cout << "DBE maping " << std::endl;
-  deviceMap[devIndex].swapchain = SwapchainManager(
+  deviceMap[devIndex].swapchain.emplace(
       deviceMap[devIndex].physical,
       getSurface,
       devices[devIndex],

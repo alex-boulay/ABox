@@ -65,7 +65,7 @@ class SwapchainManager {
       , presentMode(other.presentMode)
       , extent(other.extent)
   {
-    std::cout << "Move constructor " << std::endl;
+    std::cout << "SwapchainManager Move constructor " << std::endl;
     // Null out the source object to indicate ownership transfer
     other.swapChain            = VK_NULL_HANDLE;
     other.swapChainImageFormat = VK_FORMAT_UNDEFINED;
@@ -78,7 +78,7 @@ class SwapchainManager {
       SwapchainManager &&other
   ) noexcept
   {
-    std::cout << "Move assignment operator " << std::endl;
+    std::cout << "SwapchainManager Move assignment operator " << std::endl;
     if (this != &other) {
       // Free current resources if necessary (e.g., destroy swapchain)
 

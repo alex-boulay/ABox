@@ -251,6 +251,7 @@ SwapchainManager::~SwapchainManager()
           std::cout << "Image View Not destroyed" << std::endl;
         }
       }
+      std::cout << "Destroying SwapchainKHR " << std::endl;
 
       vkDestroySwapchainKHR(device, swapChain, nullptr);
       swapChain = VK_NULL_HANDLE;

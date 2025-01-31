@@ -5,6 +5,7 @@
 #include <ios>
 #include <iostream>
 #include <limits>
+#include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
@@ -111,7 +112,7 @@ SwapchainManager::SwapchainManager(
     throw std::runtime_error("failed to create swap chain !");
   }
   else {
-    std::cout << "Swapchain created : " << (void *)&swapChain << "\n";
+    std::cout << "Swapchain created : " << (void *)swapChain << "\n";
   }
 
   vkGetSwapchainImagesKHR(
@@ -252,7 +253,7 @@ SwapchainManager::~SwapchainManager()
         }
       }
       std::cout << "Destroying SwapchainKHR " << std::endl;
-
+      std::cout << swapChain << " : " << &swapChain << std::endl;
       vkDestroySwapchainKHR(device, swapChain, nullptr);
       swapChain = VK_NULL_HANDLE;
     }

@@ -34,7 +34,12 @@ WindowManager::WindowManager(
   glfwSetFramebufferSizeCallback(window, framebufferResizeCallback);
 }
 
-WindowManager::~WindowManager() { glfwDestroyWindow(window); }
+WindowManager::~WindowManager()
+{
+  std::cout << "destroying window manager" << std::endl;
+  glfwDestroyWindow(window);
+  glfwTerminate();
+}
 
 void WindowManager::framebufferResizeCallback(
     [[maybe_unused]] GLFWwindow *window,

@@ -96,6 +96,7 @@ std::vector<const char *> ResourcesManager::getExtensions()
 ResourcesManager::~ResourcesManager()
 {
   std::cout << "Delete Call to ressourceManager" << std::endl;
+  std::cout << "removing bindings" << std::endl;
   devices.removeBindings();
   std::cout << "Deleting Surface : " << surface << std::endl;
   if (instance != VK_NULL_HANDLE) {

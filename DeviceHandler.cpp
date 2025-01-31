@@ -149,6 +149,7 @@ VkResult DeviceHandler::DeviceExtensionSupport(
 
 void DeviceHandler::removeBindings()
 {
+  std::cout << "Clearing device map" << std::endl;
   deviceMap.clear();
   for (auto &dev : devices) {
     if (dev != VK_NULL_HANDLE) {

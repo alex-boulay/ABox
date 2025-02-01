@@ -254,8 +254,9 @@ SwapchainManager::~SwapchainManager()
       }
       std::cout << "Destroying SwapchainKHR " << std::endl;
       std::cout << swapChain << " : " << &swapChain << std::endl;
-      vkDestroySwapchainKHR(device, swapChain, nullptr);
-      swapChain = VK_NULL_HANDLE;
+      VkSwapchainKHR oldSwapchain = swapChain;
+      swapChain                   = VK_NULL_HANDLE;
+      vkDestroySwapchainKHR(device, oldSwapchain, nullptr);
     }
   }
 }

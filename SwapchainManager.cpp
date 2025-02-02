@@ -16,27 +16,26 @@ SwapchainManager::SwapchainManager()
     , device(VK_NULL_HANDLE) {};
 */
 SwapchainManager::SwapchainManager(
-    VkPhysicalDevice                phyDev,
-    std::function<VkSurfaceKHR *()> surfaceC,
-    VkDevice                        logicalDevice,
-    uint32_t                        rQDI,
-    uint32_t                        gQDI,
-    uint32_t                        width,
-    uint32_t                        height
+    VkPhysicalDevice phyDev,
+    VkSurfaceKHR    *surface,
+    VkDevice         logicalDevice,
+    uint32_t         rQDI,
+    uint32_t         gQDI,
+    uint32_t         width,
+    uint32_t         height
 )
     : device(logicalDevice)
 {
-  VkSurfaceKHR surface = *surfaceC();
   // query part can be a standalone function
-  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, surface, &capabilities);
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, *surface, &capabilities);
   uint32_t formatCount;
-  vkGetPhysicalDeviceSurfaceFormatsKHR(phyDev, surface, &formatCount, nullptr);
+  vkGetPhysicalDeviceSurfaceFormatsKHR(phyDev, *surface, &formatCount, nullptr);
 
   if (formatCount != 0) {
     formats.resize(formatCount);
     vkGetPhysicalDeviceSurfaceFormatsKHR(
         phyDev,
-        surface,
+        *surface,
         &formatCount,
         formats.data()
     );
@@ -44,7 +43,7 @@ SwapchainManager::SwapchainManager(
   uint32_t presentModeCount;
   vkGetPhysicalDeviceSurfacePresentModesKHR(
       phyDev,
-      surface,
+      *surface,
       &presentModeCount,
       nullptr
   );
@@ -53,7 +52,7 @@ SwapchainManager::SwapchainManager(
     presentModes.resize(presentModeCount);
     vkGetPhysicalDeviceSurfacePresentModesKHR(
         phyDev,
-        surface,
+        *surface,
         &presentModeCount,
         presentModes.data()
     );
@@ -82,7 +81,7 @@ SwapchainManager::SwapchainManager(
       .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
       .pNext            = nullptr,
       .flags            = 0,
-      .surface          = surface,
+      .surface          = *surface,
       .minImageCount    = SCSC_MinC,
       .imageFormat      = surfaceFormat.format,
       .imageColorSpace  = surfaceFormat.colorSpace,

@@ -3,7 +3,6 @@
 #include <bitset>
 #include <climits>
 #include <cstdint>
-#include <functional>
 #include <ios>
 #include <iostream>
 #include <map>
@@ -150,6 +149,12 @@ VkResult DeviceHandler::DeviceExtensionSupport(
 void DeviceHandler::removeBindings()
 {
   std::cout << "Clearing device map" << std::endl;
+  for (auto &a : deviceMap) {
+    if (a.second.swapchain.has_value()) {
+      std::cout << "Removing swapchainandler from device." << std::endl;
+      a.second.swapchain.reset();
+    }
+  }
   deviceMap.clear();
   for (auto &dev : devices) {
     if (dev != VK_NULL_HANDLE) {
@@ -366,10 +371,10 @@ VkDevice *DeviceHandler::getDevice(
 }
 
 VkResult DeviceHandler::addSwapchain(
-    uint32_t                        width,
-    uint32_t                        height,
-    std::function<VkSurfaceKHR *()> getSurface,
-    uint_fast8_t                    devIndex
+    uint32_t      width,
+    uint32_t      height,
+    VkSurfaceKHR *surface,
+    uint_fast8_t  devIndex
 )
 {
   if (devices.size() <= devIndex) {
@@ -378,7 +383,7 @@ VkResult DeviceHandler::addSwapchain(
   std::cout << "DBE maping " << std::endl;
   deviceMap[devIndex].swapchain.emplace(
       deviceMap[devIndex].physical,
-      getSurface,
+      surface,
       devices[devIndex],
       deviceMap[devIndex].fIndices.presentQueueIndex.value(),
       deviceMap[devIndex].fIndices.graphicQueueIndex.value(),

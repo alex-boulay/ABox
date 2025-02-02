@@ -1,6 +1,5 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
-#include <functional>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -101,12 +100,13 @@ ResourcesManager::~ResourcesManager()
   std::cout << "Deleting Surface : " << surface << std::endl;
   if (instance != VK_NULL_HANDLE) {
 
-    std::cout << "Deleting DebugHandler " << std::endl;
-    debugHandler.~DebugHandler();
     if (surface != VK_NULL_HANDLE) {
       vkDestroySurfaceKHR(instance, surface, nullptr);
       surface = VK_NULL_HANDLE;
     }
+
+    std::cout << "Deleting DebugHandler " << std::endl;
+    debugHandler.~DebugHandler();
     // leak here :
     // add the vulkan debug layers to the instance
     std::cout << "Deleting instance : " << &instance << std::endl;
@@ -132,10 +132,5 @@ VkResult ResourcesManager::createSwapchain(
     uint32_t devIndex
 )
 {
-  return devices.addSwapchain(
-      width,
-      height,
-      std::function([&]() { return &(this->surface); }),
-      devIndex
-  );
+  return devices.addSwapchain(width, height, &this->surface, devIndex);
 }

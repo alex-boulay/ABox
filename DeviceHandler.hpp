@@ -119,10 +119,10 @@ class DeviceHandler {
   VkDevice *getDevice(uint32_t index);
   // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
   VkResult  addSwapchain(
-       uint32_t                        width,
-       uint32_t                        height,
-       std::function<VkSurfaceKHR *()> getSurface,
-       uint_fast8_t                    devIndex
+       uint32_t      width,
+       uint32_t      height,
+       VkSurfaceKHR *surface,
+       uint_fast8_t  devIndex
    );
 
   // No copy

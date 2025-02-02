@@ -37,13 +37,13 @@ class SwapchainManager {
 
    public:
   SwapchainManager(
-      VkPhysicalDevice                phyDev,
-      std::function<VkSurfaceKHR *()> surface,
-      VkDevice                        logicalDevice,
-      uint32_t                        rQDI,
-      uint32_t                        gQDI,
-      uint32_t                        width,
-      uint32_t                        height
+      VkPhysicalDevice phyDev,
+      VkSurfaceKHR    *surface,
+      VkDevice         logicalDevice,
+      uint32_t         rQDI,
+      uint32_t         gQDI,
+      uint32_t         width,
+      uint32_t         height
   );
   ~SwapchainManager();
 
@@ -57,7 +57,7 @@ class SwapchainManager {
       , swapChainExtent(other.swapChainExtent)
       , swapChainImageViews(std::move(other.swapChainImageViews))
       , device(other.device)
-      , surfaceCallback(std::move(other.surfaceCallback))
+      , surfaceCallback(other.surfaceCallback)
       , capabilities(other.capabilities)
       , formats(std::move(other.formats))
       , presentModes(std::move(other.presentModes))
@@ -84,15 +84,15 @@ class SwapchainManager {
 
       // Transfer resources from 'other' to 'this'
       swapChain            = other.swapChain;
-      swapChainImages      = std::move(other.swapChainImages);
+      swapChainImages      = other.swapChainImages;
       swapChainImageFormat = other.swapChainImageFormat;
       swapChainExtent      = other.swapChainExtent;
-      swapChainImageViews  = std::move(other.swapChainImageViews);
+      swapChainImageViews  = other.swapChainImageViews;
       device               = other.device;
-      surfaceCallback      = std::move(other.surfaceCallback);
+      surfaceCallback      = other.surfaceCallback;
       capabilities         = other.capabilities;
-      formats              = std::move(other.formats);
-      presentModes         = std::move(other.presentModes);
+      formats              = other.formats;
+      presentModes         = other.presentModes;
       surfaceFormat        = other.surfaceFormat;
       presentMode          = other.presentMode;
       extent               = other.extent;

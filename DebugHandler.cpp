@@ -103,8 +103,8 @@ DebugHandler::DebugHandler(
 
 DebugHandler::~DebugHandler()
 {
-  std::cout << "DebugHandler destructor entry " << (instance == VK_NULL_HANDLE)
-            << std::endl;
+  std::cout << "DebugHandler destructor entry : "
+            << (instance != VK_NULL_HANDLE) << std::endl;
   if (instance != VK_NULL_HANDLE) {
     std::cout << "Destroying debug dependencies" << std::endl;
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT

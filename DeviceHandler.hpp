@@ -124,6 +124,11 @@ class DeviceHandler {
        VkSurfaceKHR *surface,
        uint_fast8_t  devIndex
    );
+  /**
+   * @brief add a GraphicsPipeline to a LogicalDevice which must have a
+   * swapchain
+   */
+  VkResult addGraphicsPipeline(uint32_t deviceIndex);
 
   // No copy
   DELETE_COPY(

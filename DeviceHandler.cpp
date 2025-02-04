@@ -394,6 +394,21 @@ VkResult DeviceHandler::addSwapchain(
   return VK_SUCCESS;
 }
 
+VkResult DeviceHandler::addGraphicsPipeline(
+    uint32_t deviceIndex
+)
+{
+  if (devices.size() <= deviceIndex) {
+    return VK_ERROR_DEVICE_LOST;
+  }
+  if (deviceMap.at(deviceIndex).swapchain.has_value()) {
+  }
+  else {
+    return VK_ERROR_FEATURE_NOT_PRESENT;
+  }
+  return VK_SUCCESS;
+};
+
 //------DISPLAY FUNCTIONS --- Maybe Need to opacity----//
 OSTREAM_OP(
     const VkPhysicalDeviceType &phyT
@@ -473,4 +488,5 @@ OSTREAM_OP(
      << ",\n\t queueFlags : " << vkQueueFlagSS(prop.queueFlags).str() << "\n};";
   return os;
 }
+
 } // namespace ABox_Utils

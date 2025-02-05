@@ -30,8 +30,17 @@ class GraphicsPipeline {
 
    public:
   GraphicsPipeline(const SwapchainManager &sm, const VkDevice &device);
-
   ~GraphicsPipeline();
+
+  // Move Constructor
+  GraphicsPipeline(GraphicsPipeline &&other) noexcept;
+
+  // Move Assignment Operator
+  GraphicsPipeline &operator=(GraphicsPipeline &&other) noexcept;
+
+  DELETE_COPY(
+      GraphicsPipeline
+  )
 };
 
 #endif

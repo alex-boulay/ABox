@@ -238,3 +238,41 @@ GraphicsPipeline::~GraphicsPipeline()
     std::cout << "Vk Device allready freed (nullhandle)" << std::endl;
   }
 }
+
+// Move Constructor
+GraphicsPipeline::GraphicsPipeline(
+    GraphicsPipeline &&other
+) noexcept
+    : device(other.device)
+    , // Reference must stay the same
+    viewport(std::move(other.viewport))
+    , scissor(std::move(other.scissor))
+    , renderPass(other.renderPass)
+    , pipelineLayout(other.pipelineLayout)
+    , graphicsPipeline(other.graphicsPipeline)
+{
+  other.renderPass       = VK_NULL_HANDLE;
+  other.pipelineLayout   = VK_NULL_HANDLE;
+  other.graphicsPipeline = VK_NULL_HANDLE;
+}
+
+// Move Assignment Operator
+GraphicsPipeline &GraphicsPipeline::operator=(
+    GraphicsPipeline &&other
+) noexcept
+{
+  if (this != &other) {
+    // Ensure we don't destroy Vulkan resources on move
+    viewport         = std::move(other.viewport);
+    scissor          = std::move(other.scissor);
+    renderPass       = other.renderPass;
+    pipelineLayout   = other.pipelineLayout;
+    graphicsPipeline = other.graphicsPipeline;
+
+    // Nullify moved-from object
+    other.renderPass       = VK_NULL_HANDLE;
+    other.pipelineLayout   = VK_NULL_HANDLE;
+    other.graphicsPipeline = VK_NULL_HANDLE;
+  }
+  return *this;
+}

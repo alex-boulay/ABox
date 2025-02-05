@@ -1,6 +1,7 @@
 #ifndef DEVICE_HANDLER_HPP
 #define DEVICE_HANDLER_HPP
 
+#include "GraphicsPipeline.hpp"
 #include "PreProcUtils.hpp"
 #include "SwapchainManager.hpp"
 #include <cstdint>
@@ -29,6 +30,7 @@ struct DeviceBoundElements {
   VkPhysicalDevice                physical;
   QueueFamilyIndices              fIndices;
   std::optional<SwapchainManager> swapchain;
+  std::optional<GraphicsPipeline> graphicsppl;
 };
 
 /**
@@ -52,10 +54,12 @@ class DeviceHandler {
   {
     for (auto &a : other.deviceMap) {
       deviceMap[a.first] = {
-          .physical  = a.second.physical,
-          .fIndices  = a.second.fIndices,
-          .swapchain = std::move(a.second.swapchain)
+          .physical         = a.second.physical,
+          .fIndices         = a.second.fIndices,
+          .swapchain        = std::move(a.second.swapchain),
+          .graphicsPipeline = std::move(a.second.graphicsppl)
       };
+      a.second.graphicsppl.reset();
       a.second.swapchain.reset();
     }
   }
@@ -72,11 +76,12 @@ class DeviceHandler {
       other.devices.clear();
       for (auto &a : other.deviceMap) {
         deviceMap[a.first] = {
-            .physical  = a.second.physical,
-            .fIndices  = a.second.fIndices,
-            .swapchain = std::move(a.second.swapchain)
+            .physical    = a.second.physical,
+            .fIndices    = a.second.fIndices,
+            .swapchain   = std::move(a.second.swapchain),
+            .graphicsppl = std::move(a.second.graphicsppl)
         };
-
+        a.second.graphicsppl.reset();
         a.second.swapchain.reset();
       }
     }

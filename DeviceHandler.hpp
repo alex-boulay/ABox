@@ -54,10 +54,10 @@ class DeviceHandler {
   {
     for (auto &a : other.deviceMap) {
       deviceMap[a.first] = {
-          .physical         = a.second.physical,
-          .fIndices         = a.second.fIndices,
-          .swapchain        = std::move(a.second.swapchain),
-          .graphicsPipeline = std::move(a.second.graphicsppl)
+          .physical    = a.second.physical,
+          .fIndices    = a.second.fIndices,
+          .swapchain   = std::move(a.second.swapchain),
+          .graphicsppl = std::move(a.second.graphicsppl)
       };
       a.second.graphicsppl.reset();
       a.second.swapchain.reset();

@@ -402,10 +402,10 @@ VkResult DeviceHandler::addGraphicsPipeline(
     return VK_ERROR_DEVICE_LOST;
   }
   if (deviceMap.at(deviceIndex).swapchain.has_value()) {
-    deviceMap.at(deviceIndex)
-        .GraphicsPipeline.emplace(
-
-        )
+    deviceMap[deviceIndex].graphicsppl.emplace(
+        deviceMap.at(deviceIndex).swapchain.value(),
+        devices.at(deviceIndex)
+    );
   }
   else {
     return VK_ERROR_FEATURE_NOT_PRESENT;

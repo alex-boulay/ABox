@@ -84,15 +84,16 @@ GraphicsPipeline::GraphicsPipeline(
       .alphaToOneEnable      = VK_FALSE
   };
   VkPipelineColorBlendAttachmentState colorBlendAttachment{
-      .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
-                        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
       .blendEnable         = VK_FALSE,
       .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
       .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
       .colorBlendOp        = VK_BLEND_OP_ADD,
       .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
       .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
-      .alphaBlendOp        = VK_BLEND_OP_ADD
+      .alphaBlendOp        = VK_BLEND_OP_ADD,
+      .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                        VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+
   };
 
   VkPipelineColorBlendStateCreateInfo colorBlending{
@@ -131,7 +132,7 @@ GraphicsPipeline::GraphicsPipeline(
       .pNext               = nullptr,
       .flags               = 0u,
       .stageCount          = 2u,
-      .pStages             = shaderStages,
+      .pStages             = shaderStages, // Extract from Shader Handler class
       .pVertexInputState   = &vertexInputInfo,
       .pInputAssemblyState = &inputAssembly,
       .pTessellationState  = nullptr,
@@ -163,6 +164,7 @@ GraphicsPipeline::GraphicsPipeline(
     throw std::runtime_error(ss.str().c_str());
   }
 }
+
 VkResult GraphicsPipeline::CreateRenderPass(
     const SwapchainManager &sm
 )

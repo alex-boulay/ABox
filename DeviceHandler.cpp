@@ -1,5 +1,4 @@
 #include "DeviceHandler.hpp"
-#include "SwapchainManager.hpp"
 #include <bitset>
 #include <climits>
 #include <cstdint>

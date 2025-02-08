@@ -12,6 +12,7 @@
 #include <optional>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -111,6 +112,18 @@ typedef enum VkFileResult {
   VK_FILE_NOT_A_SHADER    = 6
 } VkFileResult;
 
+// Maybe not the best implementation ? modules and devices shall be set
+// elsewhere ?
+struct shaderBind {
+  const VkDevice *device;
+  VkShaderModule  module;
+};
+/**class ShaderBindMap {
+  std::vector<shaderBind>      sBinds; // map a Shader to a Device
+  [[nodiscard]] bool           contains(const VkDevice &device) const noexcept;
+  [[nodiscard]] VkShaderModule at(const VkDevice &device) const noexcept;
+  [[nodiscard]]
+};*/
 /**
  * @brief class used to represent a Shader data file
  * @member data contains the file data as a vector of chars
@@ -122,13 +135,7 @@ class ShaderDataFile {
   const stageExtention *const stage;    // Pipeline stage for the shader
   const SourcePlatform        platform; // in case of recompilation ?
 
-  // Maybe not the best implementation ? modules and devices shall be set
-  // elsewhere ?
-  struct shaderBind {
-    const VkDevice *device;
-    VkShaderModule  module;
-  };
-  std::vector<shaderBind> sBinds; // map a Shader to a Device
+  std::unordered_map<VkDevice, VkShaderModule> sBinds;
 
    public:
   ShaderDataFile(
@@ -149,18 +156,18 @@ class ShaderDataFile {
    * @param the targetted device
    * @return true if it allocated one
    */
-  [[nodiscard]] VkResult load(const VkDevice *&device_);
+  [[nodiscard]] VkResult load(const VkDevice &device_);
 
   /** @brief unload Shader Module it has an instance
    * loaded on the given device and free module memory
    * @return true if it destroyed false otherwise
    * */
-  [[nodiscard]] VkResult unload(const VkDevice *&device);
+  [[nodiscard]] VkResult unload(const VkDevice &device);
 
   ~ShaderDataFile()
   {
     for (auto bind : sBinds) {
-      (void)unload(bind.device);
+      (void)unload(bind.first);
     }
   }
 
@@ -188,10 +195,28 @@ class ShaderDataFile {
   }
 
   std::string getName() const { return name; }
+  inline std::optional<VkPipelineShaderStageCreateInfo> getPplStageCI(
+      VkDevice device
+  ) const
+  {
+    return (sBinds.contains(device) && device != VK_NULL_HANDLE)
+               ? std::make_optional(VkPipelineShaderStageCreateInfo{
+                     .sType =
+                         VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                     .pNext  = nullptr,
+                     .flags  = 0u,
+                     .stage  = std::get<VkShaderStageFlagBits>(*stage),
+                     .module = sBinds.at(device),
+                     .pName  = name.c_str(),
+                     .pSpecializationInfo = nullptr
+                 })
+               : std::nullopt;
+  }
 };
 
 /**
- * @brief Shader Handler is a class that will load all shaders from a given path
+ * @brief Shader Handler is a class that will load all shaders from a given
+ * path
  * @member sDatas vector of Shaders datas
  */
 class ShaderHandler {
@@ -199,8 +224,9 @@ class ShaderHandler {
   std::vector<ShaderDataFile> sDatas;
   // Devices are used to bind shader to a device when loading so unloading can
   // be done automaticly;
-  std::vector<VkDevice *>
-      devices; // Usualy one, only exist if shaders are loaded
+  //
+  // Should be handled by the DeviceHandler to have a binding to a shader
+  std::vector<VkDevice> devices; // Usualy one, only exist if shaders are loaded
 
   /**
    * @brief function to initialize gls
@@ -272,7 +298,8 @@ class ShaderHandler {
 
   /**
    * @brief Compile a GLSL Shader to Spriv
-   * @return a vector of compiled binary data representing the Spriv executable
+   * @return a vector of compiled binary data representing the Spriv
+   * executable
    */
   const std::vector<uint32_t> compileGLSLToSPIRV(
       const std::string &shaderCode,
@@ -287,7 +314,7 @@ class ShaderHandler {
    * @brief loads all shaders to the given device
    * @return the number of shader loaded to the given device
    */
-  uint32_t loadAllShaders(const VkDevice *device);
+  uint32_t loadAllShaders(const VkDevice &device);
 };
 
 #endif // SHADER_HANDLER_HPP

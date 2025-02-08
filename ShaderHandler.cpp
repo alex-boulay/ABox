@@ -92,13 +92,10 @@ struct ExtensionFileResult {
 //----------------ShaderDataFile::Functions---------------
 
 VkResult ShaderDataFile::load(
-    const VkDevice *&device
+    const VkDevice &device
 )
 {
-  if (sBinds.end() !=
-      std::find_if(sBinds.begin(), sBinds.end(), [device](shaderBind a) {
-        return a.device == device;
-      })) {
+  if (sBinds.contains(device)) {
     return VK_INCOMPLETE;
   }
 
@@ -112,38 +109,29 @@ VkResult ShaderDataFile::load(
       .pCode    = code.data()
   };
 
-  shaderBind payload = {
-      .device = device,
-      .module = {},
-  };
+  VkShaderModule module;
 
   FILE_DEBUG_PRINT(
       "Creating shader module from file %s to device %p",
       name.c_str(),
       device
   );
-  VkResult result =
-      vkCreateShaderModule(*device, &createInfo, nullptr, &payload.module);
+  VkResult result = vkCreateShaderModule(device, &createInfo, nullptr, &module);
   FILE_DEBUG_PRINT("Loading Success if 0 == %d !", result);
 
   if (result == VK_SUCCESS) {
-    sBinds.push_back(payload);
+    sBinds[device] = module;
   }
   return result;
 }
 
 VkResult ShaderDataFile::unload(
-    const VkDevice *&device
+    const VkDevice &device
 )
 {
-  std::vector<shaderBind>::iterator target =
-      std::find_if(sBinds.begin(), sBinds.end(), [device](shaderBind a) {
-        return a.device == device;
-      });
-  if (target != sBinds.end()) {
-    shaderBind sb = *target;
-    vkDestroyShaderModule(*(sb.device), sb.module, nullptr);
-    sBinds.erase(target);
+  if (sBinds.contains(device) && device != VK_NULL_HANDLE) {
+    vkDestroyShaderModule(device, sBinds.at(device), nullptr);
+    sBinds.erase(device);
     return VK_SUCCESS;
   }
   return VK_INCOMPLETE;
@@ -298,7 +286,7 @@ ShaderDataFile *ShaderHandler::getShader(
 }
 
 uint32_t ShaderHandler::loadAllShaders(
-    const VkDevice *device
+    const VkDevice &device
 )
 {
   return std::accumulate(

@@ -29,7 +29,11 @@ class GraphicsPipeline {
   VkResult CreateRenderPass(const SwapchainManager &sm);
 
    public:
-  GraphicsPipeline(const SwapchainManager &sm, const VkDevice &device);
+  GraphicsPipeline(
+      const SwapchainManager                      &sm,
+      const VkDevice                              &device,
+      std::vector<VkPipelineShaderStageCreateInfo> shaderStages
+  );
   ~GraphicsPipeline();
 
   // Move Constructor

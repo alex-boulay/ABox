@@ -71,9 +71,9 @@ class StageExtentionHandler {
     return map.end() != at(key);
   }
 
-  [[nodiscard]] inline static constexpr std::optional<EShLanguage> getStageExt(
+  [[nodiscard]] inline std::optional<EShLanguage> getStageExt(
       std::string stageExt
-  )
+  ) noexcept
   {
     return StageExtentionHandler::contains(stageExt)
                ? std::optional<EShLanguage>{std::get<EShLanguage>(
@@ -195,6 +195,7 @@ class ShaderDataFile {
   }
 
   std::string getName() const { return name; }
+
   inline std::optional<VkPipelineShaderStageCreateInfo> getPplStageCI(
       VkDevice device
   ) const

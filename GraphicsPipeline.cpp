@@ -4,8 +4,9 @@
 #include <stdexcept>
 
 GraphicsPipeline::GraphicsPipeline(
-    const SwapchainManager &sm,
-    const VkDevice         &device
+    const SwapchainManager                      &sm,
+    const VkDevice                              &device,
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages
 )
     : device(device)
 {
@@ -128,11 +129,11 @@ GraphicsPipeline::GraphicsPipeline(
   }
 
   VkGraphicsPipelineCreateInfo pipelineInfo{
-      .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-      .pNext               = nullptr,
-      .flags               = 0u,
-      .stageCount          = 2u,
-      .pStages             = shaderStages, // Extract from Shader Handler class
+      .sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+      .pNext      = nullptr,
+      .flags      = 0u,
+      .stageCount = 2u,
+      .pStages    = shaderStages.data(), // Extract from Shader Handler class
       .pVertexInputState   = &vertexInputInfo,
       .pInputAssemblyState = &inputAssembly,
       .pTessellationState  = nullptr,

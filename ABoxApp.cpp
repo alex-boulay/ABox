@@ -3,7 +3,13 @@
 #include <GLFW/glfw3.h>
 #include <cstring>
 
-void ABoxApp::run() {}
+void ABoxApp::run()
+{
+  bool app_running = true;
+  while (app_running) {
+    app_running = false;
+  }
+}
 
 ABoxApp::ABoxApp()
 {

@@ -394,23 +394,21 @@ VkResult DeviceHandler::addSwapchain(
 }
 
 VkResult DeviceHandler::addGraphicsPipeline(
-    uint32_t deviceIndex
+    uint32_t                                     deviceIndex,
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages
 )
 {
-  if (devices.size() <= deviceIndex) {
-    return VK_ERROR_DEVICE_LOST;
-  }
-  if (deviceMap.at(deviceIndex).swapchain.has_value()) {
-    deviceMap[deviceIndex].graphicsppl = {
+  if (deviceMap.contains(deviceIndex) &&
+      deviceMap.at(deviceIndex).swapchain.has_value()) {
+    deviceMap.at(deviceIndex).graphicsppl = GraphicsPipeline(
         deviceMap.at(deviceIndex).swapchain.value(),
         devices.at(deviceIndex),
-        {}
-    };
+        shaderStages
+    );
+
+    return VK_SUCCESS;
   }
-  else {
-    return VK_ERROR_FEATURE_NOT_PRESENT;
-  }
-  return VK_SUCCESS;
+  return VK_ERROR_INITIALIZATION_FAILED;
 };
 
 //------DISPLAY FUNCTIONS --- Maybe Need to opacity----//

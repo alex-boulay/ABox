@@ -134,13 +134,16 @@ class DeviceHandler {
    * swapchain
    */
   VkResult addGraphicsPipeline(
+      uint32_t                                     deviceIndex,
+      std::vector<VkPipelineShaderStageCreateInfo> shaderStages
+  );
+
+  inline VkResult addGraphicsPipeline(
       uint32_t deviceIndex
   )
   {
-    // TODO : Finish function and load Shader Modules
-    deviceMap.at(devices[deviceIndex]).graphicsppl = {};
-    return VK_SUCCESS;
-  };
+    return addGraphicsPipeline(deviceIndex, {});
+  }
 
   // No copy
   DELETE_COPY(

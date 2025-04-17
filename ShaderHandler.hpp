@@ -194,6 +194,8 @@ class ShaderDataFile {
     return *this;
   }
 
+  [[nodiscard]] inline explicit operator VkShaderModuleCreateInfo() const;
+
   std::string getName() const { return name; }
 
   inline std::optional<VkPipelineShaderStageCreateInfo> getPplStageCI(
@@ -316,6 +318,8 @@ class ShaderHandler {
    * @return the number of shader loaded to the given device
    */
   uint32_t loadAllShaders(const VkDevice &device);
+
+  inline explicit operator std::vector<VkShaderModuleCreateInfo>() const;
 };
 
 #endif // SHADER_HANDLER_HPP

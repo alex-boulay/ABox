@@ -91,6 +91,18 @@ struct ExtensionFileResult {
 }; // namespace
 //----------------ShaderDataFile::Functions---------------
 
+ShaderDataFile::operator VkShaderModuleCreateInfo() const
+{
+  return {
+      .sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+      .pNext    = nullptr,
+      .flags    = std::get<VkShaderStageFlagBits>(*stage
+      ), // maybe more than one in the future ? to overload with
+            // Shader creation.
+      .codeSize = code.size(),
+      .pCode    = code.data()
+  };
+}
 VkResult ShaderDataFile::load(
     const VkDevice &device
 )
@@ -298,3 +310,13 @@ uint32_t ShaderHandler::loadAllShaders(
       }
   );
 }
+ShaderHandler::operator std::vector<VkShaderModuleCreateInfo>() const
+{
+  std::vector<VkShaderModuleCreateInfo> result;
+  result.reserve(sDatas.size());
+  for (const auto &a : sDatas) {
+    result.push_back(static_cast<VkShaderModuleCreateInfo>(a));
+  }
+  return result;
+}
+

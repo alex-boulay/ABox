@@ -1,5 +1,6 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
+#include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <iostream>
@@ -132,5 +133,17 @@ VkResult ResourcesManager::createSwapchain(
     uint32_t devIndex
 )
 {
-  return devices.addSwapchain(width, height, &this->surface, devIndex);
+  return devices.hasDevice(devIndex)
+             ? devices.addSwapchain(width, height, &this->surface, devIndex)
+             : VK_ERROR_DEVICE_LOST;
+}
+
+VkResult ResourcesManager::addGraphicsPipeline(
+    std::vector<VkShaderModuleCreateInfo> smcis,
+    uint32_t                              deviceIndex = 0u
+)
+{
+  return devices.hasDevice(deviceIndex)
+             ? devices.addGraphicsPipeline(deviceIndex, smcis)
+             : VK_ERROR_DEVICE_LOST;
 }

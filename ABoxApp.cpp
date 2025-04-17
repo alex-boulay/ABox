@@ -1,4 +1,5 @@
 #include "ABoxApp.hpp"
+#include "ShaderHandler.hpp"
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <cstring>
@@ -17,6 +18,7 @@ ABoxApp::ABoxApp()
   wm.createSurface(rs);
   rs.addLogicalDevice();
   rs.createSwapchain(wm.getWidth(), wm.getHeight());
+  // rs.addPipeline(shaderHandler);
 }
 
 ABoxApp::~ABoxApp() { glfwTerminate(); };

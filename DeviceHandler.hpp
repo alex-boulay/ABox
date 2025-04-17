@@ -122,13 +122,20 @@ class DeviceHandler {
   void removeBindings();
 
   VkDevice *getDevice(uint32_t index);
+
+  inline bool hasDevice(
+      uint32_t index
+  ) const
+  {
+    return devices.size() > index;
+  }
   // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
-  VkResult  addSwapchain(
-       uint32_t      width,
-       uint32_t      height,
-       VkSurfaceKHR *surface,
-       uint_fast8_t  devIndex
-   );
+  VkResult addSwapchain(
+      uint32_t      width,
+      uint32_t      height,
+      VkSurfaceKHR *surface,
+      uint_fast8_t  devIndex
+  );
   /**
    * @brief add a GraphicsPipeline to a LogicalDevice which must have a
    * swapchain

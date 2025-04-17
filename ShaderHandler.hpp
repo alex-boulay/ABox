@@ -194,7 +194,7 @@ class ShaderDataFile {
     return *this;
   }
 
-  [[nodiscard]] inline explicit operator VkShaderModuleCreateInfo() const;
+  [[nodiscard]] inline operator VkShaderModuleCreateInfo() const;
 
   std::string getName() const { return name; }
 
@@ -319,7 +319,13 @@ class ShaderHandler {
    */
   uint32_t loadAllShaders(const VkDevice &device);
 
-  inline explicit operator std::vector<VkShaderModuleCreateInfo>() const;
+  [[nodiscard]] explicit operator std::vector<VkShaderModuleCreateInfo>() const;
+
+  inline std::vector<VkShaderModuleCreateInfo> getAllShaderModulesCI() const
+  {
+    return static_cast<std::vector<VkShaderModuleCreateInfo>>(*this);
+    ;
+  }
 };
 
 #endif // SHADER_HANDLER_HPP

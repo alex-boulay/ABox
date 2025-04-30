@@ -109,19 +109,6 @@ typedef enum VkFileResult {
   VK_FILE_NOT_A_SHADER    = 6
 } VkFileResult;
 
-// Maybe not the best implementation ? modules and devices shall be set
-// elsewhere ?
-struct shaderBind {
-  const VkDevice *device;
-  VkShaderModule  module;
-};
-
-/**class ShaderBindMap {
-  std::vector<shaderBind>      sBinds; // map a Shader to a Device
-  [[nodiscard]] bool           contains(const VkDevice &device) const noexcept;
-  [[nodiscard]] VkShaderModule at(const VkDevice &device) const noexcept;
-  [[nodiscard]]
-};*/
 /**
  * @brief class used to represent a Shader data file
  * @member data contains the file data as a vector of chars
@@ -184,11 +171,6 @@ class ShaderDataFile {
 class ShaderHandler {
   bool                        isGlsInit = false;
   std::vector<ShaderDataFile> sDatas;
-  // Devices are used to bind shader to a device when loading so unloading can
-  // be done automaticly;
-  //
-  // Should be handled by the DeviceHandler to have a binding to a shader
-  std::vector<VkDevice> devices; // Usualy one, only exist if shaders are loaded
 
   /**
    * @brief function to initialize gls

@@ -1,5 +1,6 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
+#include "ShaderHandler.hpp"
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -139,8 +140,8 @@ VkResult ResourcesManager::createSwapchain(
 }
 
 VkResult ResourcesManager::addGraphicsPipeline(
-    std::vector<VkShaderModuleCreateInfo> smcis,
-    uint32_t                              deviceIndex = 0u
+    const std::vector<ShaderDataFile> &smcis,
+    uint32_t                           deviceIndex = 0u
 )
 {
   return devices.hasDevice(deviceIndex)

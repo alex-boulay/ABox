@@ -1,4 +1,5 @@
 #include "DeviceHandler.hpp"
+#include "ShaderHandler.hpp"
 #include <bitset>
 #include <climits>
 #include <cstdint>
@@ -394,8 +395,8 @@ VkResult DeviceHandler::addSwapchain(
 }
 
 VkResult DeviceHandler::addGraphicsPipeline(
-    uint32_t                                     deviceIndex,
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages
+    uint32_t                    deviceIndex,
+    std::vector<ShaderDataFile> shaderFiles
 )
 {
   if (deviceMap.contains(deviceIndex) &&

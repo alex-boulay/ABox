@@ -3,6 +3,7 @@
 
 #include "GraphicsPipeline.hpp"
 #include "PreProcUtils.hpp"
+#include "ShaderHandler.hpp"
 #include "SwapchainManager.hpp"
 #include <cstdint>
 #include <optional>
@@ -141,16 +142,9 @@ class DeviceHandler {
    * swapchain
    */
   VkResult addGraphicsPipeline(
-      uint32_t                                     deviceIndex,
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages
+      uint32_t                    deviceIndex,
+      std::vector<ShaderDataFile> shaderFiles
   );
-
-  inline VkResult addGraphicsPipeline(
-      uint32_t deviceIndex
-  )
-  {
-    return addGraphicsPipeline(deviceIndex, {});
-  }
 
   // No copy
   DELETE_COPY(

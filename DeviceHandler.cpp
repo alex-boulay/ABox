@@ -1,5 +1,6 @@
 #include "DeviceHandler.hpp"
 #include "ShaderHandler.hpp"
+#include "utils/vectorUtils.hpp"
 #include <bitset>
 #include <climits>
 #include <cstdint>
@@ -9,7 +10,6 @@
 #include <ostream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
-
 namespace ABox_Utils {
 
 std::set<const char *> deviceExtensions{
@@ -394,19 +394,58 @@ VkResult DeviceHandler::addSwapchain(
   return VK_SUCCESS;
 }
 
+std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
+    uint_fast16_t  deviceIndex,
+    ShaderDataFile sdf
+)
+{
+  VkShaderModule sm     = {0};
+  VkResult       result = VK_ERROR_INITIALIZATION_FAILED;
+  if (deviceMap.contains(deviceIndex)) {
+    if (!deviceMap.at(deviceIndex).loadedShaders.contains(sdf.getName())) {
+      // TODO check if the shaderModule is loaded inside the map
+      const VkShaderModuleCreateInfo sdm =
+          static_cast<VkShaderModuleCreateInfo>(sdf);
+      result =
+          vkCreateShaderModule(deviceMap.at(deviceIndex), &sdm, nullptr, &sm);
+      if (result != VK_SUCCESS) {
+        std::cout << "error allocating the shader Module \n\t VK_ERROR CODE : "
+                  << result << std::endl;
+      }
+      else {
+        deviceMap.at(deviceIndex).loadedShaders[sdf.getName()] = sm;
+      }
+    }
+    sm = deviceMap.at(deviceIndex).loadedShaders.at(sdf.getName());
+  }
+  std::cout << "Error : Device couldn't be found !! check device Index "
+            << std::endl;
+  return {result, sm};
+}
+
 VkResult DeviceHandler::addGraphicsPipeline(
     uint32_t                    deviceIndex,
     std::vector<ShaderDataFile> shaderFiles
 )
 {
+  std::vector<VkPipelineShaderStageCreateInfo> PSSCIs;
+  shaderFiles.reserve(shaderFiles.size());
+  for (auto sf : shaderFiles) {
+    auto sm = loadShader(deviceIndex, sf);
+    if (sm.first != VK_SUCCESS) {
+      return sm.first;
+    }
+    else {
+      PSSCIs.push_back(sf.getPSSCI(sm.second));
+    }
+  }
   if (deviceMap.contains(deviceIndex) &&
       deviceMap.at(deviceIndex).swapchain.has_value()) {
     deviceMap.at(deviceIndex).graphicsppl = GraphicsPipeline(
         deviceMap.at(deviceIndex).swapchain.value(),
         devices.at(deviceIndex),
-        shaderStages
+        PSSCIs
     );
-
     return VK_SUCCESS;
   }
   return VK_ERROR_INITIALIZATION_FAILED;

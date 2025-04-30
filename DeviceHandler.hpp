@@ -28,10 +28,11 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 struct DeviceBoundElements {
-  VkPhysicalDevice                physical;
-  QueueFamilyIndices              fIndices;
-  std::optional<SwapchainManager> swapchain;
-  std::optional<GraphicsPipeline> graphicsppl;
+  VkPhysicalDevice                                physical;
+  QueueFamilyIndices                              fIndices;
+  std::optional<SwapchainManager>                 swapchain;
+  std::optional<GraphicsPipeline>                 graphicsppl;
+  std::unordered_map<std::string, VkShaderModule> loadedShaders;
 };
 
 /**
@@ -55,10 +56,11 @@ class DeviceHandler {
   {
     for (auto &a : other.deviceMap) {
       deviceMap[a.first] = {
-          .physical    = a.second.physical,
-          .fIndices    = a.second.fIndices,
-          .swapchain   = std::move(a.second.swapchain),
-          .graphicsppl = std::move(a.second.graphicsppl)
+          .physical      = a.second.physical,
+          .fIndices      = a.second.fIndices,
+          .swapchain     = std::move(a.second.swapchain),
+          .graphicsppl   = std::move(a.second.graphicsppl),
+          .loadedShaders = std::move(a.second.loadedShaders)
       };
       a.second.graphicsppl.reset();
       a.second.swapchain.reset();
@@ -77,10 +79,11 @@ class DeviceHandler {
       other.devices.clear();
       for (auto &a : other.deviceMap) {
         deviceMap[a.first] = {
-            .physical    = a.second.physical,
-            .fIndices    = a.second.fIndices,
-            .swapchain   = std::move(a.second.swapchain),
-            .graphicsppl = std::move(a.second.graphicsppl)
+            .physical      = a.second.physical,
+            .fIndices      = a.second.fIndices,
+            .swapchain     = std::move(a.second.swapchain),
+            .graphicsppl   = std::move(a.second.graphicsppl),
+            .loadedShaders = std::move(a.second.loadedShaders)
         };
         a.second.graphicsppl.reset();
         a.second.swapchain.reset();
@@ -137,6 +140,10 @@ class DeviceHandler {
       VkSurfaceKHR *surface,
       uint_fast8_t  devIndex
   );
+
+  std::pair<VkResult, VkShaderModule>
+      loadShader(uint_fast16_t deviceIndex, ShaderDataFile sdf);
+
   /**
    * @brief add a GraphicsPipeline to a LogicalDevice which must have a
    * swapchain

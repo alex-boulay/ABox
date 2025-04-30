@@ -58,6 +58,11 @@ class ResourcesManager {
   DELETE_MOVE(
       ResourcesManager
   )
+
+  VkResult addGraphicsPipeline(
+      std::vector<ShaderDataFile> smcis,
+      uint32_t                    deviceIndex = 0u
+  );
 };
 
 #endif // RESSOURCES_MANAGER_HPP

@@ -143,7 +143,7 @@ class ShaderDataFile {
   ShaderDataFile &operator=(ShaderDataFile &&other
   ) noexcept = delete; // stage connot be modified
 
-  [[nodiscard]] inline operator VkShaderModuleCreateInfo() const;
+  operator VkShaderModuleCreateInfo() const;
 
   std::string getName() const { return name; }
 

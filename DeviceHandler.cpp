@@ -407,7 +407,7 @@ std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
       const VkShaderModuleCreateInfo sdm =
           static_cast<VkShaderModuleCreateInfo>(sdf);
       result =
-          vkCreateShaderModule(deviceMap.at(deviceIndex), &sdm, nullptr, &sm);
+          vkCreateShaderModule(devices.at(deviceIndex), &sdm, nullptr, &sm);
       if (result != VK_SUCCESS) {
         std::cout << "error allocating the shader Module \n\t VK_ERROR CODE : "
                   << result << std::endl;

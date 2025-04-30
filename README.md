@@ -17,6 +17,11 @@ glslang-dev glslang-tools spirv-tools GLFW
 - ResourcesManager Instance Loading :
   - Finalising Layers
   - Finalising extensions
+- Shader ressources handling 
+  - need to manage/free them
+- add tracy :
+  - mem tracking 
+  - performance
 
 ### Do I do ?
 

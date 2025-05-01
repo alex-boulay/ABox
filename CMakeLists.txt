@@ -9,8 +9,23 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   # no C here    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror
   # -gdwarf-4 -fsanitize=address -fno-omit-frame-pointer -static-libasan")
+
+  include(FetchContent)
+
+  FetchContent_Declare(
+    tracy
+    GIT_REPOSITORY "https://github.com/wolfpld/tracy.git"
+    GIT_TAG master
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE)
+
+  option(TRACY_ENABLE "Enable Tracy Profiler" ON)
+  option(TRACY_ON_DEMAND "Enable Tracy on-demand profiling" ON)
+
+  FetchContent_MakeAvailable(tracy)
+
   set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -gdwarf-5 -fsanitize=address -O0 -fno-omit-frame-pointer -static-libasan "
+      "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -gdwarf-5  -fsanitize=address -O0 -fno-omit-frame-pointer -static-libasan "
   )
   set(CMAKE_LINKER_FLAGS
       "${CMAKE_LINKER_FLAGS} -fsanitize=address -static-libasan")
@@ -41,6 +56,11 @@ target_link_libraries(
     Vulkan::Vulkan
     glslang::glslang
     glslang::SPIRV)
+
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  target_link_libraries(ABox PUBLIC TracyClient)
+endif()
+
 set_target_properties(ABox PROPERTIES INSTALL_RPATH "$VULKAN_SDK/lib")
 # Specify the install directory for the executable
 install(TARGETS ABox RUNTIME DESTINATION bin)

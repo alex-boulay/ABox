@@ -60,10 +60,21 @@ class DeviceHandler {
           .fIndices      = a.second.fIndices,
           .swapchain     = std::move(a.second.swapchain),
           .graphicsppl   = std::move(a.second.graphicsppl),
-          .loadedShaders = std::move(a.second.loadedShaders)
+          .loadedShaders = std::move(a.second.loadedShaders
+          ) // Wrap ShaderModules into own class ?
       };
       a.second.graphicsppl.reset();
       a.second.swapchain.reset();
+    }
+  }
+
+  ~DeviceHandler()
+  {
+    for (auto &a : deviceMap) {
+      for (auto &pair : a.second.loadedShaders) {
+        vkDestroyShaderModule(devices[a.first], pair.second, nullptr);
+      }
+      a.second.loadedShaders.clear();
     }
   }
   DeviceHandler &operator=(

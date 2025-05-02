@@ -25,7 +25,7 @@ if(CMAKE_BUILD_TYPE MATCHES Debug)
   FetchContent_MakeAvailable(tracy)
 
   set(CMAKE_CXX_FLAGS
-      "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -gdwarf-5  -fsanitize=address -O0 -fno-omit-frame-pointer -static-libasan "
+      "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -gdwarf-5  -fsanitize=address -Og -fno-omit-frame-pointer -static-libasan "
   )
   set(CMAKE_LINKER_FLAGS
       "${CMAKE_LINKER_FLAGS} -fsanitize=address -static-libasan")
@@ -41,6 +41,11 @@ find_package(Threads REQUIRED)
 find_package(glslang REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(SPIRV-Tools REQUIRED)
+
+# Print environment variables to verify
+message(STATUS "VULKAN_SDK: $ENV{VULKAN_SDK}")
+message(STATUS "Vulkan_INCLUDE_DIR: $ENV{Vulkan_INCLUDE_DIR}")
+message(STATUS "Vulkan_LIBRARY: $ENV{Vulkan_LIBRARY}")
 
 file(GLOB SOURCE_FILES "*.cpp")
 file(GLOB HEADER_FILES "*.hpp")

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.25)
 # Cpp standards
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
+set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
 
 # Enable AddressSanitizer in debug mode
 if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -41,11 +41,13 @@ find_package(Threads REQUIRED)
 find_package(glslang REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(SPIRV-Tools REQUIRED)
+find_package(glfw3 REQUIRED)
 
 # Print environment variables to verify
 message(STATUS "VULKAN_SDK: $ENV{VULKAN_SDK}")
 message(STATUS "Vulkan_INCLUDE_DIR: $ENV{Vulkan_INCLUDE_DIR}")
 message(STATUS "Vulkan_LIBRARY: $ENV{Vulkan_LIBRARY}")
+message(STATUS "GLFW found at: ${GLFW_INCLUDE_DIRS}")
 
 file(GLOB SOURCE_FILES "*.cpp")
 file(GLOB HEADER_FILES "*.hpp")
@@ -56,11 +58,15 @@ add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 # Linker flags (adjust based on your target platform)
 target_link_libraries(
   ABox
-  PRIVATE
-    "-lglfw -lvulkan -ldl -lpthread -lXrandr -lXi -lglslang-default-resource-limits"
-    Vulkan::Vulkan
-    glslang::glslang
-    glslang::SPIRV)
+  PRIVATE Vulkan::Vulkan
+          glslang::glslang
+          glslang::SPIRV
+          glfw3
+          dl
+          pthread
+          Xrandr
+          Xi
+          glslang-default-resource-limits)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   target_link_libraries(ABox PUBLIC TracyClient)

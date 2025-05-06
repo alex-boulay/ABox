@@ -2,6 +2,7 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 GraphicsPipeline::GraphicsPipeline(const SwapchainManager                      &sm,
                                    const VkDevice                              &device,
@@ -41,7 +42,7 @@ GraphicsPipeline::GraphicsPipeline(const SwapchainManager                      &
                 .height   = float(scissor.extent.width),
                 .minDepth = 0.0f,
                 .maxDepth = 1.0f};
-    VkPipelineViewportStateCreateInfo viewportState{.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+    VkPipelineViewportStateCreateInfo viewportState{.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
                                                     .pNext = nullptr,
                                                     .flags = 0u,
                                                     .viewportCount = 1u,
@@ -153,7 +154,7 @@ VkResult GraphicsPipeline::CreateRenderPass(const SwapchainManager &sm)
                                             .stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE,
                                             .initialLayout  = VK_IMAGE_LAYOUT_UNDEFINED,
                                             .finalLayout    = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR};
-    VkAttachmentReference   colorAttachmentRef{.attachment = 0, .layout = VK_IMAGE_LAYOUT_ATTACHMENT_OPTIMAL};
+    VkAttachmentReference   colorAttachmentRef{.attachment = 0, .layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
     VkSubpassDescription    subpass{.flags                   = 0u,
                                     .pipelineBindPoint       = VK_PIPELINE_BIND_POINT_GRAPHICS,
                                     .inputAttachmentCount    = 0u,

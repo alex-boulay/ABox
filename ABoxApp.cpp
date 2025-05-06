@@ -6,19 +6,23 @@
 
 void ABoxApp::run()
 {
-  bool app_running = true;
-  while (app_running) {
-    app_running = false;
-  }
+    bool app_running = true;
+    while (app_running)
+    {
+        app_running = false;
+    }
 }
 
 ABoxApp::ABoxApp()
 {
-  rs.getDeviceHandler()->listPhysicalDevices();
-  wm.createSurface(rs);
-  rs.addLogicalDevice();
-  rs.createSwapchain(wm.getWidth(), wm.getHeight());
-  // rs.addPipeline(shaderHandler);
+    rs.getDeviceHandler()->listPhysicalDevices();
+    wm.createSurface(rs);
+    rs.addLogicalDevice();
+    rs.createSwapchain(wm.getWidth(), wm.getHeight());
+    rs.addGraphicsPipeline(shaderHandler.getShaderHandlers());
 }
 
-ABoxApp::~ABoxApp() { glfwTerminate(); };
+ABoxApp::~ABoxApp()
+{
+    glfwTerminate();
+};

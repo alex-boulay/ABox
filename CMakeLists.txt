@@ -5,10 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
 
-# Enable AddressSanitizer in debug mode
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-  # no C here    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Werror
-  # -gdwarf-4 -fsanitize=address -fno-omit-frame-pointer -static-libasan")
 
   include(FetchContent)
 
@@ -37,17 +34,28 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 # Project configuration
 project(ABox)
 
+find_package(glfw3 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(glslang REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(SPIRV-Tools REQUIRED)
-find_package(glfw3 REQUIRED)
 
 # Print environment variables to verify
 message(STATUS "VULKAN_SDK: $ENV{VULKAN_SDK}")
 message(STATUS "Vulkan_INCLUDE_DIR: $ENV{Vulkan_INCLUDE_DIR}")
 message(STATUS "Vulkan_LIBRARY: $ENV{Vulkan_LIBRARY}")
-message(STATUS "GLFW found at: ${GLFW_INCLUDE_DIRS}")
+
+message(STATUS "GLFW3 libraries: ${GLFW3_LIBRARIES}")
+message(STATUS "GLFW3 library: ${GLFW3_LIBRARY}")
+message(STATUS "glfw3 libraries: ${glfw3_LIBRARIES}")
+message(STATUS "glfw3 library: ${glfw3_LIBRARY}")
+message(STATUS "GLFW_LIBRARIES: ${GLFW_LIBRARIES}")
+message(STATUS "GLFW_LIBRARY: ${GLFW_LIBRARY}")
+message(STATUS "GLFW3 include dirs: ${GLFW3_INCLUDE_DIRS}")
+message(STATUS "GLFW3 include dir: ${GLFW3_INCLUDE_DIR}")
+message(STATUS "glfw3 include dirs: ${glfw3_INCLUDE_DIRS}")
+message(STATUS "GLFW_INCLUDE_DIRS: ${GLFW_INCLUDE_DIRS}")
+
 
 file(GLOB SOURCE_FILES "*.cpp")
 file(GLOB HEADER_FILES "*.hpp")
@@ -58,7 +66,7 @@ add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 # Linker flags (adjust based on your target platform)
 target_link_libraries(
   ABox
-  PRIVATE Vulkan::Vulkan
+  PUBLIC Vulkan::Vulkan
           glslang::glslang
           glslang::SPIRV
           glfw3

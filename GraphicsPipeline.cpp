@@ -111,12 +111,17 @@ GraphicsPipeline::GraphicsPipeline(const SwapchainManager                      &
         std::cout << "Vulkan Error value : " << res << std::endl;
         throw std::runtime_error("failed to create pipeline layout !");
     }
+    std::cout << "Shader Stages loading into Pipeline Info " << std::endl;
+    for (auto a : shaderStages)
+    {
+        std::cout << "\tShader Stage" << a.pName << std::endl;
+    }
 
     VkGraphicsPipelineCreateInfo pipelineInfo{
         .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
         .pNext               = nullptr,
         .flags               = 0u,
-        .stageCount          = 2u,
+        .stageCount          = static_cast<uint32_t>(shaderStages.size()),
         .pStages             = shaderStages.data(),    // Extract from Shader Handler class
         .pVertexInputState   = &vertexInputInfo,
         .pInputAssemblyState = &inputAssembly,

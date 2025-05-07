@@ -5,6 +5,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
 
+set(SHADER_DIR "${CMAKE_SOURCE_DIR}/shaders")
+add_compile_definitions(SHADER_DIR="${SHADER_DIR}")
+
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 
   include(FetchContent)
@@ -56,7 +59,6 @@ message(STATUS "GLFW3 include dir: ${GLFW3_INCLUDE_DIR}")
 message(STATUS "glfw3 include dirs: ${glfw3_INCLUDE_DIRS}")
 message(STATUS "GLFW_INCLUDE_DIRS: ${GLFW_INCLUDE_DIRS}")
 
-
 file(GLOB SOURCE_FILES "*.cpp")
 file(GLOB HEADER_FILES "*.hpp")
 
@@ -67,14 +69,14 @@ add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(
   ABox
   PUBLIC Vulkan::Vulkan
-          glslang::glslang
-          glslang::SPIRV
-          glfw3
-          dl
-          pthread
-          Xrandr
-          Xi
-          glslang-default-resource-limits)
+         glslang::glslang
+         glslang::SPIRV
+         glfw3
+         dl
+         pthread
+         Xrandr
+         Xi
+         glslang-default-resource-limits)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
   target_link_libraries(ABox PUBLIC TracyClient)

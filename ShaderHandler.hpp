@@ -135,18 +135,6 @@ class ShaderDataFile {
   {
   }
 
-  ~ShaderDataFile()
-  {
-    std::cout << "\t Shader data file destruction : " << name << std::endl;
-  };
-  /**
-    ShaderDataFile(const ShaderDataFile &other) = default;
-    ShaderDataFile &operator=(const ShaderDataFile &other
-    ) = default; // stage cannot be modified
-    ShaderDataFile(ShaderDataFile &&other) noexcept = default;
-    ShaderDataFile &operator=(ShaderDataFile &&other
-    ) noexcept = delete; // stage connot be modified
-  */
   inline operator VkShaderModuleCreateInfo() const
   {
     return {
@@ -205,7 +193,7 @@ class ShaderHandler {
 
    public:
   ShaderHandler()
-      : ShaderHandler("../shaders/")
+      : ShaderHandler(SHADER_DIR)
   {
   }
   ShaderHandler(

@@ -128,8 +128,8 @@ GraphicsPipeline::GraphicsPipeline(
     throw std::runtime_error("failed to create pipeline layout !");
   }
   std::cout << "Shader Stages loading into Pipeline Info " << std::endl;
-  for (auto a : shaderStages) {
-    std::cout << "\tShader Stage" << a.pName << std::endl;
+  for (const VkPipelineShaderStageCreateInfo &a : shaderStages) {
+    std::cout << "\tShader Stage" << std::string(a.pName) << std::endl;
   }
 
   VkGraphicsPipelineCreateInfo pipelineInfo{

@@ -22,6 +22,8 @@
   glslang::EShTargetVulkan_1_3 // need to bind it to current API number
 #define SPIRV_CHOSEN_VERSION glslang::EShTargetSpv_1_5
 
+const char MAIN_ENTRY_POINT[5] = "main";
+
 typedef std::tuple<std::string, EShLanguage, VkShaderStageFlagBits>
     stageExtention;
 
@@ -149,6 +151,7 @@ class ShaderDataFile {
   }
 
   DELETE_COPY(ShaderDataFile);
+  DELETE_MOVE(ShaderDataFile);
 
   std::string getName() const { return name; }
 
@@ -162,7 +165,7 @@ class ShaderDataFile {
         .flags  = 0u,
         .stage  = std::get<VkShaderStageFlagBits>(*stage),
         .module = shm,
-        .pName  = name.c_str(),
+        .pName  = MAIN_ENTRY_POINT,
         .pSpecializationInfo = nullptr
     };
   }

@@ -157,12 +157,12 @@ VkResult ShaderDataFile::unload(
       std::vector<uint32_t> code =
           compileGLSLToSPIRV(shaderF, get<EShLanguage>(*extFileResult.stage));
       FILE_DEBUG_PRINT("Compiled total number of uint32_t : %lu", code.size());
-      sDatas.push_back(ShaderDataFile(
+      sDatas.emplace_back(ShaderDataFile{
           filePath.filename(),
           code,
           extFileResult.stage,
           extFileResult.platform
-      ));
+      });
       FILE_DEBUG_PRINT("ShaderData added");
       return VK_FILE_SUCCESS;
     }
@@ -281,7 +281,7 @@ const ShaderDataFile *ShaderHandler::getShader(
     std::string name
 ) const
 {
-  std::vector<ShaderDataFile>::const_iterator result = std::find_if(
+  std::list<ShaderDataFile>::const_iterator result = std::find_if(
       sDatas.cbegin(),
       sDatas.cend(),
       [&name](const ShaderDataFile &a) -> bool { return a.getName() == name; }

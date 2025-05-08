@@ -412,8 +412,8 @@ VkResult DeviceHandler::addSwapchain(
 }
 
 std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
-    uint_fast16_t  deviceIndex,
-    ShaderDataFile sdf
+    uint_fast16_t         deviceIndex,
+    const ShaderDataFile &sdf
 )
 {
   VkShaderModule sm     = {0};
@@ -447,13 +447,13 @@ std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
 }
 
 VkResult DeviceHandler::addGraphicsPipeline(
-    uint32_t                    deviceIndex,
-    std::vector<ShaderDataFile> shaderFiles
+    uint32_t                         deviceIndex,
+    const std::list<ShaderDataFile> &shaderFiles
 )
 {
   std::vector<VkPipelineShaderStageCreateInfo> PSSCIs;
-  shaderFiles.reserve(shaderFiles.size());
-  for (auto sf : shaderFiles) {
+  PSSCIs.reserve(shaderFiles.size());
+  for (const auto &sf : shaderFiles) {
     auto sm = loadShader(deviceIndex, sf);
     if (sm.first != VK_SUCCESS) {
       std::cerr << "couldn't load shader !!" << std::endl;

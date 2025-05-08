@@ -140,8 +140,8 @@ VkResult ResourcesManager::createSwapchain(
 }
 
 VkResult ResourcesManager::addGraphicsPipeline(
-    std::vector<ShaderDataFile> smcis,
-    uint32_t                    devIndex
+    const std::list<ShaderDataFile> &smcis,
+    uint32_t                         devIndex
 )
 {
   std::cout << " devIndex : " << devIndex << " - device exists  "

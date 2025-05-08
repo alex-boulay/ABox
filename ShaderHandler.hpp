@@ -10,6 +10,7 @@
 #include <glslang/MachineIndependent/Versions.h>
 #include <glslang/Public/ShaderLang.h>
 #include <iostream>
+#include <list>
 #include <optional>
 #include <string>
 #include <tuple>
@@ -147,6 +148,8 @@ class ShaderDataFile {
     };
   }
 
+  DELETE_COPY(ShaderDataFile);
+
   std::string getName() const { return name; }
 
   [[nodiscard]] inline VkPipelineShaderStageCreateInfo getPSSCI(
@@ -171,8 +174,8 @@ class ShaderDataFile {
  * @member sDatas vector of Shaders datas
  */
 class ShaderHandler {
-  bool                        isGlsInit = false;
-  std::vector<ShaderDataFile> sDatas;
+  bool                      isGlsInit = false;
+  std::list<ShaderDataFile> sDatas;
 
   /**
    * @brief function to initialize gls
@@ -263,7 +266,7 @@ class ShaderHandler {
 
   [[nodiscard]] explicit operator std::vector<VkShaderModuleCreateInfo>() const;
 
-  inline std::vector<ShaderDataFile> getShaderHandlers() const
+  inline const std::list<ShaderDataFile> &getShaderHandlers() const
   {
     std::cout << " Loading sDatas - Size :" << sDatas.size() << std::endl;
     return sDatas;

@@ -1,6 +1,7 @@
 #ifndef SHADER_HANDLER_HPP
 #define SHADER_HANDLER_HPP
 
+#include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
 #include <algorithm>
 #include <array>
@@ -112,6 +113,21 @@ typedef enum VkFileResult {
   VK_NO_FILE_FOUND        = 5,
   VK_FILE_NOT_A_SHADER    = 6
 } VkFileResult;
+
+class ShaderModuleWrapper : public MemoryWrapper<VkShaderModule> {
+   public:
+  ShaderModuleWrapper(
+      VkDevice                     dev,
+      VkShaderModule               sm,
+      const VkAllocationCallbacks *Allocator = nullptr
+  )
+      : MemoryWrapper<VkShaderModule>(
+            sm,
+            std::function([&]() { vkDestroyShaderModule(dev, sm, Allocator); })
+        )
+  {
+  }
+};
 
 /**
  * @brief class used to represent a Shader data file

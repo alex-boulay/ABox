@@ -227,7 +227,9 @@ VkResult GraphicsPipeline::CreateRenderPass(
 
 GraphicsPipeline::~GraphicsPipeline()
 {
+  std::cout << "String Graphics Pipeline Destruction" << std::endl;
   if (device != VK_NULL_HANDLE) {
+    std::cout << "Pipeline Device still alive" << std::endl;
     if (pipelineLayout != VK_NULL_HANDLE) {
       vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
     }

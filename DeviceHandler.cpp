@@ -367,6 +367,7 @@ VkResult DeviceHandler::addGraphicsPipeline(uint32_t deviceIndex, const std::lis
 {
     std::vector<VkPipelineShaderStageCreateInfo> PSSCIs;
     PSSCIs.reserve(shaderFiles.size());
+    std::cout << "Looping over ShaderDataFiles :" << std::endl;
     for (const auto &sf : shaderFiles)
     {
         auto sm = loadShader(deviceIndex, sf);

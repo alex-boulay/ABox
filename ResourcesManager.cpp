@@ -73,7 +73,7 @@ ResourcesManager::ResourcesManager()
 
   debugHandler = DebugHandler(instance);
   debugHandler.setupDebugMessenger();
-  devices = ABox_Utils::DeviceHandler(instance);
+  deviceHandler.emplace(instance);
 }
 
 std::vector<const char *> ResourcesManager::getExtensions()
@@ -97,7 +97,7 @@ ResourcesManager::~ResourcesManager()
 {
   std::cout << "Delete Call to ressourceManager" << std::endl;
   std::cout << "ressourceManager Deleting Device Handler" << std::endl;
-  devices.~DeviceHandler();
+  deviceHandler.value().~DeviceHandler();
   std::cout << "Deleting Surface : " << surface << std::endl;
   if (instance != VK_NULL_HANDLE) {
     if (surface != VK_NULL_HANDLE) {
@@ -116,14 +116,14 @@ ResourcesManager::~ResourcesManager()
 
 VkResult ResourcesManager::addLogicalDevice()
 {
-  return devices.addLogicalDevice(surface);
+  return deviceHandler.value().addLogicalDevice(surface);
 }
 
 VkResult ResourcesManager::addLogicalDevice(
     uint32_t physicalDeviceIndex
 )
 {
-  return devices.addLogicalDevice(physicalDeviceIndex, surface);
+  return deviceHandler.value().addLogicalDevice(physicalDeviceIndex, surface);
 }
 
 VkResult ResourcesManager::createSwapchain(
@@ -132,8 +132,9 @@ VkResult ResourcesManager::createSwapchain(
     uint32_t devIndex
 )
 {
-  return devices.hasDevice(devIndex)
-             ? devices.addSwapchain(width, height, &this->surface, devIndex)
+  return deviceHandler.value().hasDevice(devIndex)
+             ? deviceHandler.value()
+                   .addSwapchain(width, height, &this->surface, devIndex)
              : VK_ERROR_DEVICE_LOST;
 }
 
@@ -142,10 +143,11 @@ VkResult ResourcesManager::addGraphicsPipeline(
     uint32_t                         devIndex
 )
 {
-  std::cout << " devIndex : " << devIndex << " - device exists  "
-            << devices.hasDevice(devIndex) << std::endl;
+  std::cout << " devIndex : " << devIndex << " Instance Loaded DeviceHandler ? "
+            << deviceHandler.has_value() << " - device exists  "
+            << deviceHandler.value().hasDevice(devIndex) << std::endl;
   std::cout << "ShaderDataFiles size : " << smcis.size() << std::endl;
-  return devices.hasDevice(devIndex)
-             ? devices.addGraphicsPipeline(devIndex, smcis)
+  return deviceHandler.value().hasDevice(devIndex)
+             ? deviceHandler.value().addGraphicsPipeline(devIndex, smcis)
              : VK_ERROR_DEVICE_LOST;
 }

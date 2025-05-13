@@ -10,8 +10,8 @@
 #endif
 
 class ResourcesManager {
-  VkInstance                instance = VK_NULL_HANDLE;
-  ABox_Utils::DeviceHandler devices;
+  VkInstance                               instance = VK_NULL_HANDLE;
+  std::optional<ABox_Utils::DeviceHandler> deviceHandler;
 
   // Display chain
   VkSurfaceKHR surface = VK_NULL_HANDLE;
@@ -40,8 +40,12 @@ class ResourcesManager {
 
   ~ResourcesManager();
 
-  ABox_Utils::DeviceHandler *getDeviceHandler() { return &devices; }
-  VkInstance                 getInstance() const { return instance; }
+  inline ABox_Utils::DeviceHandler *getDeviceHandler()
+  {
+    return &deviceHandler.value();
+  }
+
+  VkInstance getInstance() const { return instance; }
 
   VkSurfaceKHR *getSurfacePtr() { return &surface; }
   VkResult      addLogicalDevice();

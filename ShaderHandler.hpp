@@ -119,11 +119,11 @@ class ShaderModuleWrapper : public MemoryWrapper<VkShaderModule> {
   ShaderModuleWrapper(
       VkDevice                     dev,
       VkShaderModule               sm,
-      const VkAllocationCallbacks *Allocator = nullptr
+      const VkAllocationCallbacks *pAllocator = nullptr
   )
       : MemoryWrapper<VkShaderModule>(
             sm,
-            std::function([&]() { vkDestroyShaderModule(dev, sm, Allocator); })
+            std::function([&]() { vkDestroyShaderModule(dev, sm, pAllocator); })
         )
   {
   }

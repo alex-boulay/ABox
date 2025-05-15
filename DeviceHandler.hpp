@@ -18,10 +18,10 @@ class DeviceWrapper : public MemoryWrapper<VkDevice> {
    public:
   DeviceWrapper(
       VkDevice                     dev,
-      const VkAllocationCallbacks *Allocator = nullptr
+      const VkAllocationCallbacks *pAllocator = nullptr
   )
       : MemoryWrapper<VkDevice>(dev, std::function([&]() {
-                                  vkDestroyDevice(dev, Allocator);
+                                  vkDestroyDevice(dev, pAllocator);
                                 }))
   {
   }

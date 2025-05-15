@@ -3,11 +3,43 @@
 
 #include "DeviceHandler.hpp"
 #include "PreProcUtils.hpp"
+#include "ShaderHandler.hpp"
 #include <unordered_set>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 #ifdef DEBUG_VK_ABOX
   #include "DebugHandler.hpp"
 #endif
+
+class InstanceWrapper : public MemoryWrapper<VkInstance> {
+   public:
+  InstanceWrapper(
+      VkInstance                   instance,
+      const VkAllocationCallbacks *pAllocator = nullptr
+  )
+      : MemoryWrapper<VkInstance>(instance, std::function([&]() {
+                                    vkDestroyInstance(instance, pAllocator);
+                                  }))
+  {
+  }
+};
+class SurfaceWrapper : public MemoryWrapper<VkSurfaceKHR> {
+   public:
+  SurfaceWrapper(
+      VkSurfaceKHR                 surface,
+      VkInstance                   instance,
+      const VkAllocationCallbacks *pAllocator = nullptr
+
+  )
+      : MemoryWrapper<VkSurfaceKHR>(
+            surface,
+            std::function([&]() {
+              vkDestroySurfaceKHR(instance, surface, pAllocator);
+            })
+        )
+  {
+  }
+};
 
 class ResourcesManager {
   VkInstance                               instance = VK_NULL_HANDLE;

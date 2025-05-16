@@ -63,7 +63,8 @@ ResourcesManager::ResourcesManager()
 
   std::cout << "after create instance info " << &instanceCreateInfo
             << std::endl;
-  VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, &instance);
+  VkResult res =
+      vkCreateInstance(&instanceCreateInfo, nullptr, &instance.value().get());
   if (res != VK_SUCCESS) {
     std::stringstream ss;
     ss << "Resources Manager Error : failed to create instance! VkResult = "
@@ -71,9 +72,9 @@ ResourcesManager::ResourcesManager()
     throw std::runtime_error(ss.str());
   }
 
-  debugHandler = DebugHandler(instance);
+  debugHandler = DebugHandler(instance.value().get());
   debugHandler.setupDebugMessenger();
-  deviceHandler.emplace(instance);
+  deviceHandler.emplace(instance.value().get());
 }
 
 std::vector<const char *> ResourcesManager::getExtensions()
@@ -93,37 +94,19 @@ std::vector<const char *> ResourcesManager::getExtensions()
   );
 }
 
-ResourcesManager::~ResourcesManager()
-{
-  std::cout << "Delete Call to ressourceManager" << std::endl;
-  std::cout << "ressourceManager Deleting Device Handler" << std::endl;
-  deviceHandler.value().~DeviceHandler();
-  std::cout << "Deleting Surface : " << surface << std::endl;
-  if (instance != VK_NULL_HANDLE) {
-    if (surface != VK_NULL_HANDLE) {
-      vkDestroySurfaceKHR(instance, surface, nullptr);
-      surface = VK_NULL_HANDLE;
-    }
-    std::cout << "Deleting DebugHandler " << std::endl;
-    debugHandler.~DebugHandler();
-    // leak here :
-    // add the vulkan debug layers to the instance
-    std::cout << "Deleting instance : " << &instance << std::endl;
-    vkDestroyInstance(instance, nullptr);
-    instance = VK_NULL_HANDLE;
-  }
-}
-
 VkResult ResourcesManager::addLogicalDevice()
 {
-  return deviceHandler.value().addLogicalDevice(surface);
+  return deviceHandler.value().addLogicalDevice(surface.value());
 }
 
 VkResult ResourcesManager::addLogicalDevice(
     uint32_t physicalDeviceIndex
 )
 {
-  return deviceHandler.value().addLogicalDevice(physicalDeviceIndex, surface);
+  return deviceHandler.value().addLogicalDevice(
+      physicalDeviceIndex,
+      surface.value()
+  );
 }
 
 VkResult ResourcesManager::createSwapchain(
@@ -133,8 +116,12 @@ VkResult ResourcesManager::createSwapchain(
 )
 {
   return deviceHandler.value().hasDevice(devIndex)
-             ? deviceHandler.value()
-                   .addSwapchain(width, height, &this->surface, devIndex)
+             ? deviceHandler.value().addSwapchain(
+                   width,
+                   height,
+                   &(this->surface.value().get()),
+                   devIndex
+               )
              : VK_ERROR_DEVICE_LOST;
 }
 

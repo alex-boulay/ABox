@@ -42,15 +42,16 @@ class SurfaceWrapper : public MemoryWrapper<VkSurfaceKHR> {
 };
 
 class ResourcesManager {
-  VkInstance                               instance = VK_NULL_HANDLE;
-  std::optional<ABox_Utils::DeviceHandler> deviceHandler;
-
-  // Display chain
-  VkSurfaceKHR surface = VK_NULL_HANDLE;
+  std::optional<InstanceWrapper> instance;
 
 #ifdef DEBUG_VK_ABOX
   DebugHandler debugHandler;
 #endif
+
+  std::optional<ABox_Utils::DeviceHandler> deviceHandler;
+
+  // Display chain
+  std::optional<SurfaceWrapper> surface;
 
   std::unordered_set<const char *> InstanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS
@@ -70,18 +71,23 @@ class ResourcesManager {
 
   std::vector<const char *> getExtensions();
 
-  ~ResourcesManager();
-
   inline ABox_Utils::DeviceHandler *getDeviceHandler()
   {
     return &deviceHandler.value();
   }
 
-  VkInstance getInstance() const { return instance; }
+  //---------------------------------------------------------------
+  VkInstance    getInstance() { return instance.value().get(); }
+  VkInstance   *getInstancePtr() { return instance.value().ptr(); }
+  //---------------------------------------------------------------
+  VkSurfaceKHR  getSurface() { return surface.value().get(); }
+  VkSurfaceKHR *getSurfacePtr() { return surface.value().ptr(); }
+  //---------------------------------------------------------------
 
-  VkSurfaceKHR *getSurfacePtr() { return &surface; }
-  VkResult      addLogicalDevice();
-  VkResult      addLogicalDevice(uint32_t physicalDeviceIndex);
+  VkResult addLogicalDevice();
+  VkResult addLogicalDevice(uint32_t physicalDeviceIndex);
+
+  VkResult VkResuladdLogicalDevice(uint32_t physicalDeviceIndex);
 
   VkResult
       createSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0u);

@@ -1,24 +1,26 @@
-#include <functional>
 #include "PreProcUtils.hpp"
+#include <functional>
 
-template<typename T> class MemoryWrapper
-{
-    std::function<void()> destroy;
-    T                     container;
+template <typename T> class MemoryWrapper {
+  std::function<void()> destroy;
+  T                     container;
 
-public:
-    MemoryWrapper(T item, std::function<void()> destroy)
-        : destroy(destroy)
-        , container(item)
-    {
-    }
+   public:
+  MemoryWrapper(
+      T                     item,
+      std::function<void()> destroy
+  )
+      : destroy(destroy)
+      , container(item)
+  {
+  }
 
-    T      get() const { return container; }
+  T     &get() { return container; }
+  T     *ptr() { return &container; }
+  inline operator T() const { return container; }
 
-    inline operator T() { return container; }
+  ~MemoryWrapper() { destroy(); }
 
-    ~MemoryWrapper() { destroy(); }
-
-    DELETE_COPY(MemoryWrapper);
-    DELETE_MOVE(MemoryWrapper);
+  DELETE_COPY(MemoryWrapper);
+  DELETE_MOVE(MemoryWrapper);
 };

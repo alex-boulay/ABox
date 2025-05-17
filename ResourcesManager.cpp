@@ -64,7 +64,7 @@ ResourcesManager::ResourcesManager()
   std::cout << "after create instance info " << &instanceCreateInfo
             << std::endl;
   VkResult res =
-      vkCreateInstance(&instanceCreateInfo, nullptr, &instance.value().get());
+      vkCreateInstance(&instanceCreateInfo, nullptr, &instance.get());
   if (res != VK_SUCCESS) {
     std::stringstream ss;
     ss << "Resources Manager Error : failed to create instance! VkResult = "
@@ -72,9 +72,9 @@ ResourcesManager::ResourcesManager()
     throw std::runtime_error(ss.str());
   }
 
-  debugHandler = DebugHandler(instance.value().get());
+  debugHandler = DebugHandler(instance.get());
   debugHandler.setupDebugMessenger();
-  deviceHandler.emplace(instance.value().get());
+  deviceHandler.emplace(instance.get());
 }
 
 std::vector<const char *> ResourcesManager::getExtensions()
@@ -96,17 +96,14 @@ std::vector<const char *> ResourcesManager::getExtensions()
 
 VkResult ResourcesManager::addLogicalDevice()
 {
-  return deviceHandler.value().addLogicalDevice(surface.value());
+  return deviceHandler.value().addLogicalDevice(surface);
 }
 
 VkResult ResourcesManager::addLogicalDevice(
     uint32_t physicalDeviceIndex
 )
 {
-  return deviceHandler.value().addLogicalDevice(
-      physicalDeviceIndex,
-      surface.value()
-  );
+  return deviceHandler.value().addLogicalDevice(physicalDeviceIndex, surface);
 }
 
 VkResult ResourcesManager::createSwapchain(
@@ -116,12 +113,8 @@ VkResult ResourcesManager::createSwapchain(
 )
 {
   return deviceHandler.value().hasDevice(devIndex)
-             ? deviceHandler.value().addSwapchain(
-                   width,
-                   height,
-                   &(this->surface.value().get()),
-                   devIndex
-               )
+             ? deviceHandler.value()
+                   .addSwapchain(width, height, this->surface.ptr(), devIndex)
              : VK_ERROR_DEVICE_LOST;
 }
 

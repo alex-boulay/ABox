@@ -14,27 +14,34 @@
 class InstanceWrapper : public MemoryWrapper<VkInstance> {
    public:
   InstanceWrapper(
-      VkInstance                   instance,
+      VkInstance instance                     = VK_NULL_HANDLE,
       const VkAllocationCallbacks *pAllocator = nullptr
   )
-      : MemoryWrapper<VkInstance>(instance, std::function([&]() {
-                                    vkDestroyInstance(instance, pAllocator);
-                                  }))
+      : MemoryWrapper<VkInstance>(
+            instance,
+            std::function([this, pAllocator]() {
+              if (this->get() != VK_NULL_HANDLE) {
+                vkDestroyInstance(this->get(), pAllocator);
+              }
+            })
+        )
   {
   }
 };
 class SurfaceWrapper : public MemoryWrapper<VkSurfaceKHR> {
    public:
   SurfaceWrapper(
-      VkSurfaceKHR                 surface,
-      VkInstance                   instance,
+      VkInstance instance                     = VK_NULL_HANDLE,
+      VkSurfaceKHR surface                    = VK_NULL_HANDLE,
       const VkAllocationCallbacks *pAllocator = nullptr
 
   )
       : MemoryWrapper<VkSurfaceKHR>(
             surface,
-            std::function([&]() {
-              vkDestroySurfaceKHR(instance, surface, pAllocator);
+            std::function([this, instance, pAllocator]() {
+              if (this->get() != VK_NULL_HANDLE && instance != VK_NULL_HANDLE) {
+                vkDestroySurfaceKHR(instance, this->get(), pAllocator);
+              }
             })
         )
   {
@@ -42,16 +49,14 @@ class SurfaceWrapper : public MemoryWrapper<VkSurfaceKHR> {
 };
 
 class ResourcesManager {
-  std::optional<InstanceWrapper> instance;
+  InstanceWrapper instance{};
 
 #ifdef DEBUG_VK_ABOX
   DebugHandler debugHandler;
 #endif
 
   std::optional<ABox_Utils::DeviceHandler> deviceHandler;
-
-  // Display chain
-  std::optional<SurfaceWrapper> surface;
+  SurfaceWrapper                           surface;
 
   std::unordered_set<const char *> InstanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS
@@ -77,11 +82,11 @@ class ResourcesManager {
   }
 
   //---------------------------------------------------------------
-  VkInstance    getInstance() { return instance.value().get(); }
-  VkInstance   *getInstancePtr() { return instance.value().ptr(); }
+  VkInstance    getInstance() { return instance.get(); }
+  VkInstance   *getInstancePtr() { return instance.ptr(); }
   //---------------------------------------------------------------
-  VkSurfaceKHR  getSurface() { return surface.value().get(); }
-  VkSurfaceKHR *getSurfacePtr() { return surface.value().ptr(); }
+  VkSurfaceKHR  getSurface() { return surface.get(); }
+  VkSurfaceKHR *getSurfacePtr() { return surface.ptr(); }
   //---------------------------------------------------------------
 
   VkResult addLogicalDevice();

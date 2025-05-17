@@ -123,7 +123,9 @@ class ShaderModuleWrapper : public MemoryWrapper<VkShaderModule> {
   )
       : MemoryWrapper<VkShaderModule>(
             sm,
-            std::function([&]() { vkDestroyShaderModule(dev, sm, pAllocator); })
+            std::function([this, dev, pAllocator]() {
+              vkDestroyShaderModule(dev, this->get(), pAllocator);
+            })
         )
   {
   }

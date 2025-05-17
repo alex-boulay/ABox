@@ -20,8 +20,8 @@ class DeviceWrapper : public MemoryWrapper<VkDevice> {
       VkDevice                     dev,
       const VkAllocationCallbacks *pAllocator = nullptr
   )
-      : MemoryWrapper<VkDevice>(dev, std::function([&]() {
-                                  vkDestroyDevice(dev, pAllocator);
+      : MemoryWrapper<VkDevice>(dev, std::function([this, pAllocator]() {
+                                  vkDestroyDevice(this->get(), pAllocator);
                                 }))
   {
   }

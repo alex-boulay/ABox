@@ -6,24 +6,23 @@
 #include "ShaderHandler.hpp"
 #include "WindowManager.hpp"
 #include <GLFW/glfw3.h>
+
 // #include "ShaderHandler.hpp"
 /**
  * @class ABoxApp
  * @brief Vulkan Loader application
  *
  */
-class ABoxApp {
-  static constexpr VkExtent2D baseWindowDimention = {
-      .width  = 800u,
-      .height = 600u
-  };
+class ABoxApp
+{
+    static constexpr VkExtent2D baseWindowDimention = {.width = 800u, .height = 600u};
 
-  WindowManager    wm{baseWindowDimention};
-  ResourcesManager rs;
-  ShaderHandler    shaderHandler;
+    WindowManager               wm{baseWindowDimention};
+    ResourcesManager            rs;
+    ShaderHandler               shaderHandler;
 
-   public:
-  ABoxApp();
-  ~ABoxApp();
-  void run();
+public:
+    ABoxApp();
+    ~ABoxApp();
+    void run();
 };

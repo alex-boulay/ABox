@@ -75,7 +75,7 @@ ResourcesManager::ResourcesManager()
   debugHandler = DebugHandler(instance.get());
   debugHandler.setupDebugMessenger();
   deviceHandler.emplace(instance.get());
-  surfaces.emplace(instance, VK_NULL_HANDLE);
+  surfaces.emplace_back(instance, VK_NULL_HANDLE);
 }
 
 std::vector<const char *> ResourcesManager::getExtensions()
@@ -97,14 +97,17 @@ std::vector<const char *> ResourcesManager::getExtensions()
 
 VkResult ResourcesManager::addLogicalDevice()
 {
-  return deviceHandler.value().addLogicalDevice(surface);
+  return deviceHandler.value().addLogicalDevice(getWindowSurface());
 }
 
 VkResult ResourcesManager::addLogicalDevice(
     uint32_t physicalDeviceIndex
 )
 {
-  return deviceHandler.value().addLogicalDevice(physicalDeviceIndex, surface);
+  return deviceHandler.value().addLogicalDevice(
+      physicalDeviceIndex,
+      getWindowSurface()
+  );
 }
 
 VkResult ResourcesManager::createSwapchain(
@@ -115,7 +118,7 @@ VkResult ResourcesManager::createSwapchain(
 {
   return deviceHandler.value().hasDevice(devIndex)
              ? deviceHandler.value()
-                   .addSwapchain(width, height, this->surface.ptr(), devIndex)
+                   .addSwapchain(width, height, getWindowSurfacePtr(), devIndex)
              : VK_ERROR_DEVICE_LOST;
 }
 

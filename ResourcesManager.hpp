@@ -60,8 +60,8 @@ class ResourcesManager {
   DebugHandler debugHandler;
 #endif
 
-  std::optional<ABox_Utils::DeviceHandler> deviceHandler;
   std::list<SurfaceWrapper>                surfaces;
+  std::optional<ABox_Utils::DeviceHandler> deviceHandler;
 
   std::unordered_set<const char *> InstanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS
@@ -96,9 +96,9 @@ class ResourcesManager {
   VkInstance *getInstancePtr() { return instance.ptr(); }
 
   //---------------------------------------------------------------
-  // VkSurfaceKHR getSurface() { return surface.get(); }
 
-  VkSurfaceKHR *getSurfacePtr() { return surface.ptr(); }
+  VkSurfaceKHR  getWindowSurface() { return surfaces.front().get(); }
+  VkSurfaceKHR *getWindowSurfacePtr() { return surfaces.front().ptr(); }
 
   //---------------------------------------------------------------
 

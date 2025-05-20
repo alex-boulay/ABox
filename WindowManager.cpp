@@ -61,7 +61,7 @@ VkResult WindowManager::createSurface(
       rm.getInstance(),
       window,
       nullptr,
-      rm.getSurfacePtr()
+      rm.getWindowSurfacePtr()
   );
   if (res != VK_SUCCESS) {
     std::stringstream ss;

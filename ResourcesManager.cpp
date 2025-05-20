@@ -75,6 +75,7 @@ ResourcesManager::ResourcesManager()
   debugHandler = DebugHandler(instance.get());
   debugHandler.setupDebugMessenger();
   deviceHandler.emplace(instance.get());
+  surfaces.emplace(instance, VK_NULL_HANDLE);
 }
 
 std::vector<const char *> ResourcesManager::getExtensions()

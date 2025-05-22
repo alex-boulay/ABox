@@ -1,3 +1,6 @@
+#ifndef WINDOW_MANAGER_HPP
+#define WINDOW_MANAGER_HPP
+
 #include "ResourcesManager.hpp"
 #include <GLFW/glfw3.h>
 #include <cstdint>
@@ -11,26 +14,29 @@
  * used inside the window, it also manage to keep trace
  * of te width and height of the window and associated swapchain
  */
-class WindowManager
-{
-    GLFWwindow *window;
-    VkExtent2D  ext;
-    std::string title              = "ABox";
-    bool        framebufferResized = false;
+class WindowManager {
+  GLFWwindow *window;
+  VkExtent2D  ext;
+  std::string title              = "ABox";
+  bool        framebufferResized = false;
 
-public:
-    WindowManager(VkExtent2D ext);
-    ~WindowManager();
+   public:
+  WindowManager(VkExtent2D ext);
+  ~WindowManager();
 
-    VkResult    createSurface(ResourcesManager &rm) const;
-    VkResult    createSwapchain(ResourcesManager &rm, uint_fast8_t devIndex = 0) const;
-    void        destroySurface();
+  VkResult createSurface(ResourcesManager &rm) const;
+  VkResult
+       createSwapchain(ResourcesManager &rm, uint_fast8_t devIndex = 0) const;
+  void destroySurface();
 
-    uint32_t    getWidth() const { return ext.width; }
+  uint32_t getWidth() const { return ext.width; }
 
-    uint32_t    getHeight() const { return ext.height; }
+  uint32_t getHeight() const { return ext.height; }
 
-    GLFWwindow *getWindow() const { return window; }
+  GLFWwindow *getWindow() const { return window; }
 
-    static void framebufferResizeCallback(GLFWwindow *window, int width_, int height_);
+  static void
+      framebufferResizeCallback(GLFWwindow *window, int width_, int height_);
 };
+
+#endif

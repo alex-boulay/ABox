@@ -1,12 +1,54 @@
 #ifndef SWAPCHAIN_MANAGER_HPP
 #define SWAPCHAIN_MANAGER_HPP
 
+#include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
 #include <cstdint>
 #include <functional>
 #include <iostream>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+
+class ImageViewWrapper : public MemoryWrapper<VkImageView> {
+   public:
+  ImageViewWrapper(
+      VkImageView imageView                   = VK_NULL_HANDLE,
+      VkDevice dev                            = VK_NULL_HANDLE,
+      const VkAllocationCallbacks *pAllocator = nullptr
+  )
+      : MemoryWrapper<VkImageView>(
+            imageView,
+            std::function([this, dev, pAllocator]() {
+              if (dev != VK_NULL_HANDLE && this->get() != VK_NULL_HANDLE) {
+                vkDestroyImageView(dev, this->get(), pAllocator);
+              }
+            })
+        )
+  {
+  }
+};
+
+class SwapchainWrapper : public MemoryWrapper<VkSwapchainKHR> {
+   public:
+  SwapchainWrapper(
+      VkDevice                     dev,
+      VkSwapchainKHR               sc,
+      const VkAllocationCallbacks *pAllocator = nullptr
+  )
+      : MemoryWrapper<VkSwapchainKHR>(
+            sc,
+            std::function([this, dev, pAllocator]() -> void {
+              vkDestroySwapchainKHR(dev, this->get(), pAllocator);
+            })
+        )
+  {
+  }
+};
+
+struct SwapchainImage {
+  VkImage          image;
+  ImageViewWrapper imageView;
+};
 
 class SwapchainManager {
 

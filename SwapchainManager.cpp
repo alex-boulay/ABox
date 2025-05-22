@@ -24,6 +24,7 @@ SwapchainManager::SwapchainManager(
     uint32_t         height
 )
     : device(logicalDevice)
+    , swapChain(logicalDevice)
 {
   // query part can be a standalone function
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, *surface, &capabilities);
@@ -104,8 +105,7 @@ SwapchainManager::SwapchainManager(
 #undef SCSC_Ma
 #undef SCSC_Mi
 #undef SCSC_MinC
-
-  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain) !=
+  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, swapChain.ptr()) !=
       VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain !");
   }
@@ -119,18 +119,48 @@ SwapchainManager::SwapchainManager(
       &createInfo.minImageCount,
       nullptr
   );
-  swapChainImages.resize(createInfo.minImageCount);
+  std::vector<VkImage> _images(createInfo.minImageCount);
   vkGetSwapchainImagesKHR(
       device,
       swapChain,
       &createInfo.minImageCount,
-      swapChainImages.data()
+      _images.data()
   );
 
   swapChainImageFormat = surfaceFormat.format;
   swapChainExtent      = extent;
 
-  createImageViews();
+  VkResult return_value = VK_INCOMPLETE;
+
+  constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+  for (size_t i = 0; i < swapChainImages.size(); i++) {
+    VkImageViewCreateInfo createInfo = {
+        .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext      = nullptr,
+        .flags      = 0,
+        .image      = _images.at(i),
+        .viewType   = VK_IMAGE_VIEW_TYPE_2D,
+        .format     = swapChainImageFormat,
+        .components = {sid, sid, sid, sid},
+        .subresourceRange =
+            {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                       .baseMipLevel   = 0,
+                       .levelCount     = 1,
+                       .baseArrayLayer = 0,
+                       .layerCount     = 1}
+    };
+    VkImageView _imageView;
+    VkResult    return_value =
+        vkCreateImageView(device, &createInfo, nullptr, &_imageView);
+    swapChainImages.emplace_back(_images.at(i), _imageView, device);
+    if (return_value != VK_SUCCESS) {
+      throw std::runtime_error("failed to create image views!");
+    }
+    else {
+      std::cout << "Image Views created \n" << std::endl;
+    }
+  }
 };
 
 VkResult SwapchainManager::chooseSwapSurfaceFormat()
@@ -193,45 +223,7 @@ VkResult SwapchainManager::chooseSwapExtent(
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::createImageViews()
-{
-  VkResult return_value = VK_INCOMPLETE;
-
-  swapChainImageViews.resize(swapChainImages.size());
-  constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-  for (size_t i = 0; i < swapChainImages.size(); i++) {
-    VkImageViewCreateInfo createInfo = {
-        .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext      = nullptr,
-        .flags      = 0,
-        .image      = swapChainImages.at(i),
-        .viewType   = VK_IMAGE_VIEW_TYPE_2D,
-        .format     = swapChainImageFormat,
-        .components = {sid, sid, sid, sid},
-        .subresourceRange =
-            {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                       .baseMipLevel   = 0,
-                       .levelCount     = 1,
-                       .baseArrayLayer = 0,
-                       .layerCount     = 1}
-    };
-    return_value = vkCreateImageView(
-        device,
-        &createInfo,
-        nullptr,
-        &swapChainImageViews[i]
-    );
-    if (return_value != VK_SUCCESS) {
-      throw std::runtime_error("failed to create image views!");
-    }
-    else {
-      std::cout << "Image Views created \n" << std::endl;
-    }
-  }
-  return return_value;
-}
-
+/** TODO : Full Destruction check
 SwapchainManager::~SwapchainManager()
 {
   std::cout << "Swapchain Destruction Start" << std::endl;
@@ -257,3 +249,5 @@ SwapchainManager::~SwapchainManager()
     }
   }
 }
+*/
+

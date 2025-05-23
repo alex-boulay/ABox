@@ -23,8 +23,7 @@ SwapchainManager::SwapchainManager(
     uint32_t         width,
     uint32_t         height
 )
-    : device(logicalDevice)
-    , swapChain(logicalDevice)
+    : swapChain(logicalDevice)
 {
   // query part can be a standalone function
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, *surface, &capabilities);
@@ -105,8 +104,12 @@ SwapchainManager::SwapchainManager(
 #undef SCSC_Ma
 #undef SCSC_Mi
 #undef SCSC_MinC
-  if (vkCreateSwapchainKHR(device, &createInfo, nullptr, swapChain.ptr()) !=
-      VK_SUCCESS) {
+  if (vkCreateSwapchainKHR(
+          logicalDevice,
+          &createInfo,
+          nullptr,
+          swapChain.ptr()
+      ) != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain !");
   }
   else {
@@ -114,14 +117,14 @@ SwapchainManager::SwapchainManager(
   }
 
   vkGetSwapchainImagesKHR(
-      device,
+      logicalDevice,
       swapChain,
       &createInfo.minImageCount,
       nullptr
   );
   std::vector<VkImage> _images(createInfo.minImageCount);
   vkGetSwapchainImagesKHR(
-      device,
+      logicalDevice,
       swapChain,
       &createInfo.minImageCount,
       _images.data()
@@ -152,8 +155,8 @@ SwapchainManager::SwapchainManager(
     };
     VkImageView _imageView;
     VkResult    return_value =
-        vkCreateImageView(device, &createInfo, nullptr, &_imageView);
-    swapChainImages.emplace_back(_images.at(i), _imageView, device);
+        vkCreateImageView(logicalDevice, &createInfo, nullptr, &_imageView);
+    swapChainImages.emplace_back(_images.at(i), _imageView, logicalDevice);
     if (return_value != VK_SUCCESS) {
       throw std::runtime_error("failed to create image views!");
     }
@@ -222,32 +225,4 @@ VkResult SwapchainManager::chooseSwapExtent(
   }
   return VK_SUCCESS;
 }
-
-/** TODO : Full Destruction check
-SwapchainManager::~SwapchainManager()
-{
-  std::cout << "Swapchain Destruction Start" << std::endl;
-  if (device != VK_NULL_HANDLE) {
-    std::cout << "swapchain handle : " << swapChain
-              << " - device handle : " << device << std::endl;
-    if (swapChain != VK_NULL_HANDLE && device != VK_NULL_HANDLE) {
-      std::cout << "Image views size : " << swapChainImageViews.size() << '\n';
-      for (auto imageView : swapChainImageViews) {
-        if (imageView != VK_NULL_HANDLE) {
-          vkDestroyImageView(device, imageView, nullptr);
-          std::cout << "ImageView Destroyed" << std::endl;
-        }
-        else {
-          std::cout << "Image View Not destroyed" << std::endl;
-        }
-      }
-      std::cout << "Destroying SwapchainKHR " << std::endl;
-      std::cout << swapChain << " : " << &swapChain << std::endl;
-      VkSwapchainKHR oldSwapchain = swapChain;
-      swapChain                   = VK_NULL_HANDLE;
-      vkDestroySwapchainKHR(device, oldSwapchain, nullptr);
-    }
-  }
-}
-*/
 

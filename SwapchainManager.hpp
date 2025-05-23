@@ -67,8 +67,6 @@ class SwapchainManager {
   VkFormat                  swapChainImageFormat;
   VkExtent2D                swapChainExtent;
 
-  VkDevice                        device;
-  std::function<VkSurfaceKHR *()> surfaceCallback;
   // Listings
   VkSurfaceCapabilitiesKHR        capabilities;
   std::vector<VkSurfaceFormatKHR> formats;

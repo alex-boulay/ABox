@@ -45,12 +45,32 @@ struct QueueFamilyIndices {
  * @struct DeviceBoundElements
  * @brief Represents elements bounded to the Logical Device
  */
-struct DeviceBoundElements {
+class DeviceBoundElements {
+  DeviceWrapper                                        device;
   VkPhysicalDevice                                     physical;
   QueueFamilyIndices                                   fIndices;
   std::optional<SwapchainManager>                      swapchain;
   std::optional<GraphicsPipeline>                      graphicsppl;
   std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
+
+   public:
+  DeviceBoundElements(
+      VkDevice           logDevice,
+      VkPhysicalDevice   phyDev,
+      QueueFamilyIndices familyIndices
+  )
+      : device(logDevice)
+      , physical(phyDev)
+      , fIndices(familyIndices)
+  {
+  }
+  DELETE_MOVE(DeviceBoundElements);
+  DELETE_COPY(DeviceBoundElements);
+  ~DeviceBoundElements() = default;
+
+  const DeviceWrapper &getDevice() const { return device; }
+  DeviceWrapper       *getDevicePtr() { return &device; }
+  VkPhysicalDevice     getPhysicalDevice() { return physical; }
 };
 
 /**
@@ -58,9 +78,8 @@ struct DeviceBoundElements {
  * @brief Handle specifics to logical devices and their different bindings
  */
 class DeviceHandler {
-  std::vector<VkPhysicalDevice>                          phyDevices;
-  std::list<DeviceWrapper>                               devices;
-  std::unordered_map<uint_fast16_t, DeviceBoundElements> deviceMap;
+  std::vector<VkPhysicalDevice>  phyDevices;
+  std::list<DeviceBoundElements> devices;
 
   std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
   std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);

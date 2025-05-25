@@ -46,14 +46,15 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper                                        device;
-  VkPhysicalDevice                                     physical;
-  QueueFamilyIndices                                   fIndices;
+  DeviceWrapper      device;
+  VkPhysicalDevice   physical;
+  QueueFamilyIndices fIndices;
+
+   public:
   std::optional<SwapchainManager>                      swapchain;
   std::optional<GraphicsPipeline>                      graphicsppl;
   std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
 
-   public:
   DeviceBoundElements(
       VkDevice           logDevice,
       VkPhysicalDevice   phyDev,
@@ -71,6 +72,7 @@ class DeviceBoundElements {
   const DeviceWrapper &getDevice() const { return device; }
   DeviceWrapper       *getDevicePtr() { return &device; }
   VkPhysicalDevice     getPhysicalDevice() { return physical; }
+  QueueFamilyIndices   getFamilyQueueIndices() { return fIndices; }
 };
 
 /**
@@ -121,7 +123,8 @@ class DeviceHandler {
   DeviceHandler() {};
   DeviceHandler(VkInstance instance);
 
-  VkDevice getDevice(uint32_t index);
+  DeviceBoundElements *getDBE(uint32_t index);
+  VkDevice             getDevice(uint32_t index);
 
   inline bool hasDevice(
       uint32_t index

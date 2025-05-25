@@ -347,19 +347,24 @@ VkResult DeviceHandler::addLogicalDevice(
   return addLogicalDevice(findBestPhysicalDevice(), surface);
 }
 
+DeviceBoundElements *DeviceHandler::getDBE(
+    uint32_t index
+)
+{
+  if (index >= devices.size()) {
+    return nullptr;
+  }
+
+  auto it = devices.begin();
+  std::advance(it, index);
+  return &(*it);
+}
+
 VkDevice DeviceHandler::getDevice(
     uint32_t index
 )
 {
-  std::cout << "index : " << index << " list size : " << devices.size()
-            << std::endl;
-  if (index >= devices.size()) {
-    throw std::out_of_range("list_at(): index out of range");
-  }
-
-  auto it = devices.begin();
-  std::advance(it, index); // O(n)
-  return it->getDevicePtr()->get();
+  return getDBE(index)->getDevicePtr()->get();
 }
 
 VkResult DeviceHandler::addSwapchain(
@@ -373,23 +378,25 @@ VkResult DeviceHandler::addSwapchain(
     return VK_ERROR_DEVICE_LOST;
   }
 
+  DeviceBoundElements *devicePtr = getDBE(devIndex);
   std::cout << "DBE maping " << '\n';
-  std::cout << "DBE Physical " << (void *)devices.at(devIndex).physical << '\n';
+  std::cout << "DBE Physical " << (void *)devicePtr->getPhysicalDevice()
+            << '\n';
   std::cout << "DBE logical " << (void *)getDevice(devIndex) << '\n';
   std::cout << "DBE surface " << (void *)surface << '\n';
   std::cout << "DBE rQDI " << std::boolalpha
-            << deviceMap.at(devIndex).fIndices.presentQueueIndex.has_value()
+            << devicePtr->getFamilyQueueIndices().presentQueueIndex.has_value()
             << '\n';
   std::cout << "DBE gQDI " << std::boolalpha
-            << deviceMap.at(devIndex).fIndices.graphicQueueIndex.has_value()
+            << devicePtr->getFamilyQueueIndices().graphicQueueIndex.has_value()
             << '\n';
 
-  deviceMap.at(devIndex).swapchain.emplace(
-      deviceMap.at(devIndex).physical,
+  getDBE(devIndex)->swapchain.emplace(
+      devicePtr->getPhysicalDevice(),
       surface,
       getDevice(devIndex),
-      deviceMap.at(devIndex).fIndices.presentQueueIndex.value(),
-      deviceMap.at(devIndex).fIndices.graphicQueueIndex.value(),
+      devicePtr->getFamilyQueueIndices().presentQueueIndex.value(),
+      devicePtr->getFamilyQueueIndices().graphicQueueIndex.value(),
       width,
       height
   );
@@ -402,10 +409,11 @@ std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
     const ShaderDataFile &sdf
 )
 {
-  VkShaderModule sm     = {0};
-  VkResult       result = VK_ERROR_INITIALIZATION_FAILED;
-  if (deviceMap.contains(deviceIndex)) {
-    if (!deviceMap.at(deviceIndex).loadedShaders.contains(sdf.getName())) {
+  VkShaderModule       sm        = {0};
+  VkResult             result    = VK_ERROR_INITIALIZATION_FAILED;
+  DeviceBoundElements *devicePtr = getDBE(deviceIndex);
+  if (devicePtr) {
+    if (!devicePtr->loadedShaders.contains(sdf.getName())) {
       // TODO check if the shaderModule is loaded inside the map
       VkShaderModuleCreateInfo sdm = static_cast<VkShaderModuleCreateInfo>(sdf);
       result = vkCreateShaderModule(getDevice(deviceIndex), &sdm, nullptr, &sm);
@@ -414,19 +422,18 @@ std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
                   << result << std::endl;
       }
       else {
-        deviceMap.at(deviceIndex)
-            .loadedShaders.emplace(
-                std::piecewise_construct,
-                std::forward_as_tuple(sdf.getName()),
-                std::forward_as_tuple(getDevice(deviceIndex), sm)
-            );
+        devicePtr->loadedShaders.emplace(
+            std::piecewise_construct,
+            std::forward_as_tuple(sdf.getName()),
+            std::forward_as_tuple(getDevice(deviceIndex), sm)
+        );
         std::cout << "Allocated Shader Module " << (void *)sm << std::endl;
       }
     }
     else {
       std::cout << "Shader Module allready allocated" << std::endl;
     }
-    sm = deviceMap.at(deviceIndex).loadedShaders.at(sdf.getName()).get();
+    sm = devicePtr->loadedShaders.at(sdf.getName()).get();
     std::cout << "Shader Modules value : " << (void *)sm << std::endl;
   }
   else {
@@ -455,11 +462,11 @@ VkResult DeviceHandler::addGraphicsPipeline(
       PSSCIs.push_back(sf.getPSSCI(sm.second));
     }
   }
-  if (deviceMap.contains(deviceIndex) &&
-      deviceMap.at(deviceIndex).swapchain.has_value()) {
+  DeviceBoundElements *dbe = getDBE(deviceIndex);
+  if (dbe && dbe->swapchain.has_value()) {
     std::cout << "Loading Graphics Pipeline " << std::endl;
-    deviceMap.at(deviceIndex).graphicsppl = GraphicsPipeline(
-        deviceMap.at(deviceIndex).swapchain.value(),
+    dbe->graphicsppl = GraphicsPipeline(
+        dbe->swapchain.value(),
         getDevice(deviceIndex),
         PSSCIs
     );

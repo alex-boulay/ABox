@@ -133,8 +133,6 @@ SwapchainManager::SwapchainManager(
   swapChainImageFormat = surfaceFormat.format;
   swapChainExtent      = extent;
 
-  VkResult return_value = VK_INCOMPLETE;
-
   constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
 
   for (size_t i = 0; i < swapChainImages.size(); i++) {
@@ -164,7 +162,7 @@ SwapchainManager::SwapchainManager(
       std::cout << "Image Views created \n" << std::endl;
     }
   }
-};
+}
 
 VkResult SwapchainManager::chooseSwapSurfaceFormat()
 {

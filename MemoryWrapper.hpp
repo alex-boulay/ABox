@@ -32,8 +32,8 @@ template <typename T> class MemoryWrapper {
   class Name##Wrapper : public MemoryWrapper<Type> {                           \
      public:                                                                   \
     Name##Wrapper(                                                             \
-        Type object                             = VK_NULL_HANDLE,              \
         VkDevice dev                            = VK_NULL_HANDLE,              \
+        Type object                             = VK_NULL_HANDLE,              \
         const VkAllocationCallbacks *pAllocator = nullptr                      \
     )                                                                          \
         : MemoryWrapper<Type>(                                                 \

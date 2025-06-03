@@ -4,11 +4,17 @@
 #include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
 #include <cstdint>
-#include <functional>
 #include <list>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+DEFINE_VK_MEMORY_WRAPPER(
+    VkImageView,
+    ImageView,
+    vkDestroyImageView
+)
+
+/**
 class ImageViewWrapper : public MemoryWrapper<VkImageView> {
    public:
   ImageViewWrapper(
@@ -26,8 +32,14 @@ class ImageViewWrapper : public MemoryWrapper<VkImageView> {
         )
   {
   }
-};
+};*/
+DEFINE_VK_MEMORY_WRAPPER(
+    VkSwapchainKHR,
+    Swapchain,
+    vkDestroySwapchainKHR
+)
 
+/**
 class SwapchainWrapper : public MemoryWrapper<VkSwapchainKHR> {
    public:
   SwapchainWrapper(
@@ -43,7 +55,13 @@ class SwapchainWrapper : public MemoryWrapper<VkSwapchainKHR> {
         )
   {
   }
-};
+};*/
+
+DEFINE_VK_MEMORY_WRAPPER(
+    VkFramebuffer,
+    Framebuffer,
+    vkDestroyFramebuffer
+)
 
 struct SwapchainImage {
   VkImage          image;
@@ -54,7 +72,7 @@ struct SwapchainImage {
       VkDevice    device
   )
       : image(image)
-      , imageViewWrapper(imageView, device)
+      , imageViewWrapper(device, imageView)
   {
   }
 };

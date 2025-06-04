@@ -4,6 +4,7 @@
 #include "DeviceHandler.hpp"
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
+#include <stdexcept>
 #include <unordered_set>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -123,6 +124,19 @@ class ResourcesManager {
       const std::list<ShaderDataFile> &smcis,
       uint32_t                         deviceIndex = 0u
   );
+  VkResult createFramebuffers(
+      uint32_t devIndex = 0u
+  )
+  {
+    if (deviceHandler.has_value()) {
+      return deviceHandler.value().createFramebuffers(devIndex);
+    }
+    else {
+      throw std::runtime_error(
+          "No DeviceHandler allocated - impossible to create a framebuffer !"
+      );
+    }
+  }
 };
 
 #endif // RESSOURCES_MANAGER_HPP

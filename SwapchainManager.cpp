@@ -9,11 +9,6 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
-/**
-SwapchainManager::SwapchainManager()
-    : swapChain(VK_NULL_HANDLE)
-    , device(VK_NULL_HANDLE) {};
-*/
 SwapchainManager::SwapchainManager(
     VkPhysicalDevice phyDev,
     VkSurfaceKHR    *surface,
@@ -162,35 +157,7 @@ SwapchainManager::SwapchainManager(
     else {
       std::cout << "Image Views created \n" << std::endl;
     }
-    // TODO move outside !! should be done only after the GraphicsPipeline
-    VkFramebufferCreateInfo fbi{
-        .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .renderPass      = renderPass,
-        .attachmentCount = 1u,
-        .pAttachments    = attachments,
-        .width           = swapChainExtent.width,
-        .heigth          = swapChainExtent.height,
-        .layers          = 1u
-    };
-    VkFramebuffer _swapchainFramebuffer;
-    return_value = vkCreateFramebuffer(
-        logicalDevice,
-        &fbi,
-        nullptr,
-        &_swapchainFramebuffer
-    );
-    if (return_value != VK_SUCCESS) {
-      throw std::runtime_error("failed to create framebuffer !");
-    }
-    else {
-      std::cout << "FrameBuffer created \n" << std::endl;
-    }
-    swapChainImages.emplace_back(
-        _images.at(i),
-        _imageView,
-        _swapchainFramebuffer,
-        logicalDevice
-    );
+    swapChainImages.emplace_back(_images.at(i), _imageView, logicalDevice);
   }
 }
 
@@ -251,6 +218,43 @@ VkResult SwapchainManager::chooseSwapExtent(
         )
     };
   }
+  return VK_SUCCESS;
+}
+
+VkResult SwapchainManager::createFramebuffers(
+    VkRenderPass renderPass,
+    VkDevice     logicalDevice
+)
+{
+  std::cout << "Creating FrameBuffers " << std::endl;
+  for (auto &a : swapChainImages) {
+    VkFramebufferCreateInfo fbi{
+        .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .pNext           = nullptr,
+        .flags           = 0u,
+        .renderPass      = renderPass,
+        .attachmentCount = 1u,
+        .pAttachments    = a.imageViewWrapper.ptr(),
+        .width           = swapChainExtent.width,
+        .height          = swapChainExtent.height,
+        .layers          = 1u
+    };
+    VkFramebuffer _swapchainFramebuffer;
+    VkResult      creation_return_value = vkCreateFramebuffer(
+        logicalDevice,
+        &fbi,
+        nullptr,
+        &_swapchainFramebuffer
+    );
+    if (creation_return_value != VK_SUCCESS) {
+      throw std::runtime_error("failed to create framebuffer !");
+    }
+    else {
+      framebuffers.emplace_back(logicalDevice, _swapchainFramebuffer);
+      std::cout << "FrameBuffer created \n" << std::endl;
+    }
+  }
+  std::cout << "Done with framebuffers " << std::endl;
   return VK_SUCCESS;
 }
 

@@ -9,6 +9,7 @@
 #include <optional>
 #include <set>
 #include <sstream>
+#include <stdexcept>
 #include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
@@ -152,6 +153,35 @@ class DeviceHandler {
       uint32_t                         deviceIndex,
       const std::list<ShaderDataFile> &shaderFiles
   );
+
+  VkResult createFramebuffers(
+      uint32_t deviceIndex = 0u
+  )
+  {
+    if (devices.size() > deviceIndex) {
+      DeviceBoundElements *dbe = getDBE(deviceIndex);
+      if (dbe->swapchain.has_value() && dbe->graphicsppl.has_value()) {
+        return dbe->swapchain.value().createFramebuffers(
+            dbe->graphicsppl.value().getRenderPass(),
+            dbe->getDevice()
+        );
+      }
+      else if (!dbe->swapchain.has_value()) {
+        throw std::runtime_error(
+            "No Swapchain make Framebuffer creation impossible !"
+        );
+      }
+      else {
+        throw std::runtime_error(
+            "No Graphics Pipeline makes Framebuffer creation impossible !"
+        );
+      }
+    }
+    else {
+      throw std::runtime_error("No Device present at given Index !");
+    }
+    return VK_SUCCESS;
+  }
 };
 
 std::stringstream vkQueueFlagSS(const VkQueueFlags &flag);

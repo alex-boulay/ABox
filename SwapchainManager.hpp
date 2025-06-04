@@ -14,48 +14,11 @@ DEFINE_VK_MEMORY_WRAPPER(
     vkDestroyImageView
 )
 
-/**
-class ImageViewWrapper : public MemoryWrapper<VkImageView> {
-   public:
-  ImageViewWrapper(
-      VkImageView                  imageView,
-      VkDevice                     dev,
-      const VkAllocationCallbacks *pAllocator = nullptr
-  )
-      : MemoryWrapper<VkImageView>(
-            imageView,
-            std::function([this, dev, pAllocator]() {
-              if (dev != VK_NULL_HANDLE && this->get() != VK_NULL_HANDLE) {
-                vkDestroyImageView(dev, this->get(), pAllocator);
-              }
-            })
-        )
-  {
-  }
-};*/
 DEFINE_VK_MEMORY_WRAPPER(
     VkSwapchainKHR,
     Swapchain,
     vkDestroySwapchainKHR
 )
-
-/**
-class SwapchainWrapper : public MemoryWrapper<VkSwapchainKHR> {
-   public:
-  SwapchainWrapper(
-      VkDevice       dev,
-      VkSwapchainKHR sc                       = VK_NULL_HANDLE,
-      const VkAllocationCallbacks *pAllocator = nullptr
-  )
-      : MemoryWrapper<VkSwapchainKHR>(
-            sc,
-            std::function([this, dev, pAllocator]() -> void {
-              vkDestroySwapchainKHR(dev, this->get(), pAllocator);
-            })
-        )
-  {
-  }
-};*/
 
 DEFINE_VK_MEMORY_WRAPPER(
     VkFramebuffer,
@@ -63,20 +26,18 @@ DEFINE_VK_MEMORY_WRAPPER(
     vkDestroyFramebuffer
 )
 
-struct SwapchainImage {
-  VkImage            image;
-  ImageViewWrapper   imageViewWrapper;
-  FramebufferWrapper framebuffer;
+class SwapchainImage {
+   public:
+  VkImage          image;
+  ImageViewWrapper imageViewWrapper;
 
   SwapchainImage(
-      VkImage       image,
-      VkImageView   imageView,
-      VkFramebuffer framebuffer,
-      VkDevice      device
+      VkImage     image,
+      VkImageView imageView,
+      VkDevice    device
   )
       : image(image)
       , imageViewWrapper(device, imageView)
-      , framebuffer(device, framebuffer)
   {
   }
 };
@@ -84,10 +45,12 @@ struct SwapchainImage {
 class SwapchainManager {
 
   // Main Utils
-  SwapchainWrapper          swapChain;
-  std::list<SwapchainImage> swapChainImages;
-  VkFormat                  swapChainImageFormat;
-  VkExtent2D                swapChainExtent;
+  SwapchainWrapper              swapChain;
+  std::list<SwapchainImage>     swapChainImages;
+  std::list<FramebufferWrapper> framebuffers;
+
+  VkFormat   swapChainImageFormat;
+  VkExtent2D swapChainExtent;
 
   // Listings
   VkSurfaceCapabilitiesKHR        capabilities;
@@ -121,6 +84,8 @@ class SwapchainManager {
   DELETE_MOVE(SwapchainManager);
   VkExtent2D getExtent() const noexcept { return extent; }
   VkFormat   getFormat() const noexcept { return swapChainImageFormat; }
+
+  VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 
   // TODO:
   // Latter implementation for windowcallback

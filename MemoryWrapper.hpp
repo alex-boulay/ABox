@@ -3,6 +3,9 @@
 
 #include "PreProcUtils.hpp"
 #include <functional>
+#ifdef DEBUG_VK_ABOX
+  #include <iostream> // Used in MACRO so no direct call but mandatory
+#endif
 
 template <typename T> class MemoryWrapper {
   std::function<void()> destroy;
@@ -28,6 +31,24 @@ template <typename T> class MemoryWrapper {
   DELETE_MOVE(MemoryWrapper);
 };
 
+#ifdef DEBUG_VK_ABOX
+  #define VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)        \
+    [this, dev, pAllocator]() {                                                \
+      std::cout << " ---- Destruction of " << TOSTRING(Name) << " "            \
+                << TOSTRING(DestroyFunc) << std::endl;                         \
+      if (this->get() != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {            \
+        DestroyFunc(dev, this->get(), pAllocator);                             \
+      }                                                                        \
+    }
+#else
+  #define VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)        \
+    [this, dev, pAllocator]() {                                                \
+      if (this->get() != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {            \
+        DestroyFunc(dev, this->get(), pAllocator);                             \
+      }                                                                        \
+    }
+#endif
+
 #define DEFINE_VK_MEMORY_WRAPPER(Type, Name, DestroyFunc)                      \
   class Name##Wrapper : public MemoryWrapper<Type> {                           \
      public:                                                                   \
@@ -38,11 +59,7 @@ template <typename T> class MemoryWrapper {
     )                                                                          \
         : MemoryWrapper<Type>(                                                 \
               object,                                                          \
-              std::function([this, dev, pAllocator]() {                        \
-                if (this->get() != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {  \
-                  DestroyFunc(dev, this->get(), pAllocator);                   \
-                }                                                              \
-              })                                                               \
+              VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)    \
           )                                                                    \
     {                                                                          \
     }                                                                          \

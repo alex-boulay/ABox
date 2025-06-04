@@ -104,12 +104,14 @@ SwapchainManager::SwapchainManager(
 #undef SCSC_Ma
 #undef SCSC_Mi
 #undef SCSC_MinC
-  if (vkCreateSwapchainKHR(
-          logicalDevice,
-          &createInfo,
-          nullptr,
-          swapChain.ptr()
-      ) != VK_SUCCESS) {
+
+  VkResult return_value = vkCreateSwapchainKHR(
+      logicalDevice,
+      &createInfo,
+      nullptr,
+      swapChain.ptr()
+  );
+  if (return_value != VK_SUCCESS) {
     throw std::runtime_error("failed to create swap chain !");
   }
   else {
@@ -152,15 +154,43 @@ SwapchainManager::SwapchainManager(
                        .layerCount     = 1}
     };
     VkImageView _imageView;
-    VkResult    return_value =
+    return_value =
         vkCreateImageView(logicalDevice, &createInfo, nullptr, &_imageView);
-    swapChainImages.emplace_back(_images.at(i), _imageView, logicalDevice);
     if (return_value != VK_SUCCESS) {
       throw std::runtime_error("failed to create image views!");
     }
     else {
       std::cout << "Image Views created \n" << std::endl;
     }
+    // TODO move outside !! should be done only after the GraphicsPipeline
+    VkFramebufferCreateInfo fbi{
+        .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+        .renderPass      = renderPass,
+        .attachmentCount = 1u,
+        .pAttachments    = attachments,
+        .width           = swapChainExtent.width,
+        .heigth          = swapChainExtent.height,
+        .layers          = 1u
+    };
+    VkFramebuffer _swapchainFramebuffer;
+    return_value = vkCreateFramebuffer(
+        logicalDevice,
+        &fbi,
+        nullptr,
+        &_swapchainFramebuffer
+    );
+    if (return_value != VK_SUCCESS) {
+      throw std::runtime_error("failed to create framebuffer !");
+    }
+    else {
+      std::cout << "FrameBuffer created \n" << std::endl;
+    }
+    swapChainImages.emplace_back(
+        _images.at(i),
+        _imageView,
+        _swapchainFramebuffer,
+        logicalDevice
+    );
   }
 }
 

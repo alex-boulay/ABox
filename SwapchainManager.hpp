@@ -64,15 +64,19 @@ DEFINE_VK_MEMORY_WRAPPER(
 )
 
 struct SwapchainImage {
-  VkImage          image;
-  ImageViewWrapper imageViewWrapper;
+  VkImage            image;
+  ImageViewWrapper   imageViewWrapper;
+  FramebufferWrapper framebuffer;
+
   SwapchainImage(
-      VkImage     image,
-      VkImageView imageView,
-      VkDevice    device
+      VkImage       image,
+      VkImageView   imageView,
+      VkFramebuffer framebuffer,
+      VkDevice      device
   )
       : image(image)
       , imageViewWrapper(device, imageView)
+      , framebuffer(device, framebuffer)
   {
   }
 };

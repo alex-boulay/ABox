@@ -110,7 +110,7 @@ SwapchainManager::SwapchainManager(
     throw std::runtime_error("failed to create swap chain !");
   }
   else {
-    std::cout << "Swapchain created : " << (void *)swapChain << "\n";
+    std::cout << "Swapchain created : " << (void *)swapChain.ptr() << "\n";
   }
 
   vkGetSwapchainImagesKHR(

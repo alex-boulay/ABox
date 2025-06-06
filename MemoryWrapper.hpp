@@ -35,7 +35,9 @@ template <typename T> class MemoryWrapper {
   #define VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)        \
     [this, dev, pAllocator]() {                                                \
       std::cout << " ---- Destruction of " << TOSTRING(Name) << " "            \
-                << TOSTRING(DestroyFunc) << std::endl;                         \
+                << TOSTRING(DestroyFunc) << "\n   -> device value"             \
+                << (void *)dev << " -- container " << (void *)this->get()      \
+                << std::endl;                                                  \
       if (this->get() != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {            \
         DestroyFunc(dev, this->get(), pAllocator);                             \
       }                                                                        \
@@ -53,8 +55,8 @@ template <typename T> class MemoryWrapper {
   class Name##Wrapper : public MemoryWrapper<Type> {                           \
      public:                                                                   \
     Name##Wrapper(                                                             \
-        VkDevice dev                            = VK_NULL_HANDLE,              \
-        Type object                             = VK_NULL_HANDLE,              \
+        VkDevice dev,                                                          \
+        Type     object                         = VK_NULL_HANDLE,              \
         const VkAllocationCallbacks *pAllocator = nullptr                      \
     )                                                                          \
         : MemoryWrapper<Type>(                                                 \

@@ -465,11 +465,8 @@ VkResult DeviceHandler::addGraphicsPipeline(
   DeviceBoundElements *dbe = getDBE(deviceIndex);
   if (dbe && dbe->swapchain.has_value()) {
     std::cout << "Loading Graphics Pipeline " << std::endl;
-    dbe->graphicsppl = GraphicsPipeline(
-        dbe->swapchain.value(),
-        getDevice(deviceIndex),
-        PSSCIs
-    );
+    dbe->graphicsppl
+        .emplace(dbe->swapchain.value(), getDevice(deviceIndex), PSSCIs);
     return VK_SUCCESS;
   }
   std::cout << "Failed to initialise Graphics Pipeline in the Device Manager"

@@ -9,10 +9,12 @@ GraphicsPipeline::GraphicsPipeline(
     VkDevice                                     device,
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages
 )
-    : device(device)
+    : graphicsPipeline(device)
+    , renderPass(device)
+    , pipelineLayout(device)
 {
   std::cout << "Device value :" << (void *)device << std::endl;
-  VkResult res = CreateRenderPass(sm);
+  VkResult res = CreateRenderPass(sm, device);
 
   VkPipelineDynamicStateCreateInfo dynamicState{
       .sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
@@ -122,7 +124,7 @@ GraphicsPipeline::GraphicsPipeline(
       device, // TODO: add Device Management to Pipeline
       &pipelineLayoutInfo,
       nullptr,
-      &pipelineLayout
+      pipelineLayout.ptr()
   );
   if (res != VK_SUCCESS) {
     std::cout << "Vulkan Error value : " << res << std::endl;
@@ -162,7 +164,7 @@ GraphicsPipeline::GraphicsPipeline(
       1,
       &pipelineInfo,
       nullptr,
-      &graphicsPipeline
+      graphicsPipeline.ptr()
   );
   if (res != VK_SUCCESS) {
     std::stringstream ss;
@@ -173,7 +175,8 @@ GraphicsPipeline::GraphicsPipeline(
 }
 
 VkResult GraphicsPipeline::CreateRenderPass(
-    const SwapchainManager &sm
+    const SwapchainManager &sm,
+    VkDevice                device
 )
 {
   VkAttachmentDescription colorAttachment{
@@ -215,7 +218,7 @@ VkResult GraphicsPipeline::CreateRenderPass(
       .pDependencies   = nullptr
   };
   VkResult res =
-      vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
+      vkCreateRenderPass(device, &renderPassInfo, nullptr, renderPass.ptr());
 
   if (res != VK_SUCCESS) {
     std::stringstream ss;
@@ -225,74 +228,4 @@ VkResult GraphicsPipeline::CreateRenderPass(
   }
 
   return res;
-}
-
-GraphicsPipeline::~GraphicsPipeline()
-{
-  std::cout << "Device value " << device << std::endl;
-  std::cout << "Graphics Pipeline Destruction : " << std::endl;
-  if (device != VK_NULL_HANDLE) {
-    std::cout << "Pipeline Device still alive" << std::endl;
-    if (pipelineLayout != VK_NULL_HANDLE) {
-      vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
-    }
-    else {
-      std::cout << "Pipeline layout already freed(nullhandle)" << std::endl;
-    }
-    if (renderPass != VK_NULL_HANDLE) {
-      vkDestroyRenderPass(device, renderPass, nullptr);
-      std::cout << "Destroying Graphics Pipeline" << std::endl;
-    }
-    else {
-      std::cout << "Render pass already freed(nullhandle)" << std::endl;
-    }
-    if (graphicsPipeline != VK_NULL_HANDLE) {
-      vkDestroyPipeline(device, graphicsPipeline, nullptr);
-      std::cout << "Destroying Graphics Pipeline" << std::endl;
-    }
-    else {
-      std::cout << "Graphics Pipeline already freed(nullhandle)" << std::endl;
-    }
-  }
-  else {
-    std::cout << "Vk Device allready freed (nullhandle)" << std::endl;
-  }
-}
-
-// Move Constructor
-GraphicsPipeline::GraphicsPipeline(
-    GraphicsPipeline &&other
-) noexcept
-    : device(other.device)
-    , // Reference must stay the same
-    viewport(std::move(other.viewport))
-    , scissor(std::move(other.scissor))
-    , renderPass(other.renderPass)
-    , pipelineLayout(other.pipelineLayout)
-    , graphicsPipeline(other.graphicsPipeline)
-{
-  other.renderPass       = VK_NULL_HANDLE;
-  other.pipelineLayout   = VK_NULL_HANDLE;
-  other.graphicsPipeline = VK_NULL_HANDLE;
-}
-
-// Move Assignment Operator
-GraphicsPipeline &GraphicsPipeline::operator=(
-    GraphicsPipeline &&other
-) noexcept
-{
-  if (this != &other) {
-    // Ensure we don't destroy Vulkan resources on move
-    viewport         = std::move(other.viewport);
-    scissor          = std::move(other.scissor);
-    renderPass       = other.renderPass;
-    pipelineLayout   = other.pipelineLayout;
-    graphicsPipeline = other.graphicsPipeline;
-
-    // Nullify moved-from object
-    other.renderPass       = VK_NULL_HANDLE;
-    other.pipelineLayout   = VK_NULL_HANDLE;
-    other.graphicsPipeline = VK_NULL_HANDLE;
-  }
-  return *this;
 }

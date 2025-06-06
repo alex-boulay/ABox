@@ -132,12 +132,12 @@ SwapchainManager::SwapchainManager(
 
   constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
 
-  for (size_t i = 0; i < swapChainImages.size(); i++) {
+  for (const auto &img : _images) {
     VkImageViewCreateInfo createInfo = {
         .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
         .pNext      = nullptr,
         .flags      = 0,
-        .image      = _images.at(i),
+        .image      = img,
         .viewType   = VK_IMAGE_VIEW_TYPE_2D,
         .format     = swapChainImageFormat,
         .components = {sid, sid, sid, sid},
@@ -155,9 +155,10 @@ SwapchainManager::SwapchainManager(
       throw std::runtime_error("failed to create image views!");
     }
     else {
-      std::cout << "Image Views created \n" << std::endl;
+      std::cout << "Image Views created - n°" << swapChainImages.size() + 1
+                << std::endl;
     }
-    swapChainImages.emplace_back(_images.at(i), _imageView, logicalDevice);
+    swapChainImages.emplace_back(img, _imageView, logicalDevice);
   }
 }
 
@@ -226,8 +227,11 @@ VkResult SwapchainManager::createFramebuffers(
     VkDevice     logicalDevice
 )
 {
-  std::cout << "Creating FrameBuffers " << std::endl;
+  uint32_t i = 0u;
+  std::cout << "Creating FrameBuffers - for size " << swapChainImages.size()
+            << std::endl;
   for (auto &a : swapChainImages) {
+    std::cout << "FrameBuffer n°" << (++i) << std::endl;
     VkFramebufferCreateInfo fbi{
         .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext           = nullptr,
@@ -251,7 +255,7 @@ VkResult SwapchainManager::createFramebuffers(
     }
     else {
       framebuffers.emplace_back(logicalDevice, _swapchainFramebuffer);
-      std::cout << "FrameBuffer created \n" << std::endl;
+      std::cout << "FrameBuffer created" << std::endl;
     }
   }
   std::cout << "Done with framebuffers " << std::endl;

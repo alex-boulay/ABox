@@ -59,13 +59,18 @@ message(STATUS "GLFW3 include dir: ${GLFW3_INCLUDE_DIR}")
 message(STATUS "glfw3 include dirs: ${glfw3_INCLUDE_DIRS}")
 message(STATUS "GLFW_INCLUDE_DIRS: ${GLFW_INCLUDE_DIRS}")
 
-file(GLOB SOURCE_FILES "*.cpp")
-file(GLOB HEADER_FILES "*.hpp")
+# Recursively gather all source and header files from src/
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS src/*.hpp)
 
-# Target executable
 add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 
-# Linker flags (adjust based on your target platform)
+target_include_directories(
+  ABox
+  PRIVATE ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/src/graphics
+          ${CMAKE_SOURCE_DIR}/src/vulkan ${CMAKE_SOURCE_DIR}/src/window
+          ${CMAKE_SOURCE_DIR}/src/memory ${CMAKE_SOURCE_DIR}/src/utils)
+
 target_link_libraries(
   ABox
   PUBLIC Vulkan::Vulkan

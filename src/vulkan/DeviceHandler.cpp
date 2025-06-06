@@ -1,6 +1,6 @@
 #include "DeviceHandler.hpp"
 #include "ShaderHandler.hpp"
-#include "utils/vectorUtils.hpp"
+#include "vectorUtils.hpp"
 #include <bitset>
 #include <climits>
 #include <cstdint>

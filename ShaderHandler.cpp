@@ -89,58 +89,6 @@ struct ExtensionFileResult {
   return result;
 }
 }; // namespace
-
-//----------------ShaderDataFile::Functions---------------
-
-// inline ShaderDataFile::operator VkShaderModuleCreateInfo() const
-
-/** TODO DeviceHandler should load and unload
-VkResult ShaderDataFile::load(
-    const VkDevice &device
-)
-{
-  if (sBinds.contains(device)) {
-    return VK_INCOMPLETE;
-  }
-
-  VkShaderModuleCreateInfo createInfo{
-      .sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-      .pNext    = nullptr,
-      .flags    = std::get<VkShaderStageFlagBits>(*stage
-      ), // maybe more than one in the future ? to overload with
-            // Shader creation.
-      .codeSize = code.size(),
-      .pCode    = code.data()
-  };
-
-  VkShaderModule module;
-
-  FILE_DEBUG_PRINT(
-      "Creating shader module from file %s to device %p",
-      name.c_str(),
-      device
-  );
-  VkResult result = vkCreateShaderModule(device, &createInfo, nullptr, &module);
-  FILE_DEBUG_PRINT("Loading Success if 0 == %d !", result);
-
-  if (result == VK_SUCCESS) {
-    sBinds[device] = module;
-  }
-  return result;
-}
-
-VkResult ShaderDataFile::unload(
-    const VkDevice &device
-)
-{
-  if (sBinds.contains(device) && device != VK_NULL_HANDLE) {
-    vkDestroyShaderModule(device, sBinds.at(device), nullptr);
-    sBinds.erase(device);
-    return VK_SUCCESS;
-  }
-  return VK_INCOMPLETE;
-}
-*/
 //--------------- ShaderHandler -----------------
 
 [[nodiscard]] VkFileResult ShaderHandler::loadShaderDataFile(

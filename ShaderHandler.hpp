@@ -114,22 +114,11 @@ typedef enum VkFileResult {
   VK_FILE_NOT_A_SHADER    = 6
 } VkFileResult;
 
-class ShaderModuleWrapper : public MemoryWrapper<VkShaderModule> {
-   public:
-  ShaderModuleWrapper(
-      VkDevice                     dev,
-      VkShaderModule               sm,
-      const VkAllocationCallbacks *pAllocator = nullptr
-  )
-      : MemoryWrapper<VkShaderModule>(
-            sm,
-            std::function([this, dev, pAllocator]() {
-              vkDestroyShaderModule(dev, this->get(), pAllocator);
-            })
-        )
-  {
-  }
-};
+DEFINE_VK_MEMORY_WRAPPER(
+    VkShaderModule,
+    ShaderModule,
+    vkDestroyShaderModule
+)
 
 /**
  * @brief class used to represent a Shader data file

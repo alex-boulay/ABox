@@ -11,15 +11,23 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 ### TODO
 
-- enhance device picking ?? :
-  - prompt to choose physical device.
-- VkShader Loading and binding
-- ResourcesManager Instance Loading :
-  - Finalising Layers
-  - Finalising extensions
-- Shader ressources handling 
-  - need to manage/free them
-- add tracy :
+#### Development
+
+- Wrapper extra behavior 
+  - Notion of parent -> (device only atm need a template : Device/Instance)
+  - Self Destruction call 
+  - Specific lambda destructions catch with parents callbacks 
+- AutoLoad/Manage DebugHandler
+- CommandPools/ Buffers 
+- Queues 
+- Compute Pipelines
+  - Deploy
+  - Make them abble to leave alongside GraphicsPipeline
+  - QueueFamilies optimisations (maxload)
+
+#### Platform 
+
+- load tracy :
   - mem tracking 
   - performance
 
@@ -28,4 +36,16 @@ glslang-dev glslang-tools spirv-tools GLFW
 - Make a config file ? - Handle external compilation ?
 - inlude ImGui loading interface ?
 - Make everything pickable from a menu ? then save it into a config xml/json ?
-- Do I automanage Malloc/Free Vulkan Structure dependencies  
+
+### Done 
+
+- Automanage Malloc/Free Vulkan Structure dependencies
+- tracy part of the makefile (might have to change the download to local archive for stability and offline purposes)
+- VkShader Loading and binding
+- ResourcesManager Instance Loading
+- Device Manager 
+- GraphicsPipeline
+- Swapchain
+- Shader ressources handling 
+  - need to manage/free them
+

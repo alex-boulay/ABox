@@ -87,6 +87,8 @@ class SwapchainManager {
 
   VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 
+  VkFramebuffer getFrameBuffer(uint32_t index);
+
   // TODO:
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult

@@ -124,6 +124,7 @@ class ResourcesManager {
       const std::list<ShaderDataFile> &smcis,
       uint32_t                         deviceIndex = 0u
   );
+
   VkResult createFramebuffers(
       uint32_t devIndex = 0u
   )

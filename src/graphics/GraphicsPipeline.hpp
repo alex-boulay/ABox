@@ -38,6 +38,14 @@ class GraphicsPipeline {
   VkResult CreateRenderPass(const SwapchainManager &sm, VkDevice device);
 
    public:
+  DELETE_MOVE(
+      GraphicsPipeline
+  )
+
+  DELETE_COPY(
+      GraphicsPipeline
+  )
+
   GraphicsPipeline(
       const SwapchainManager                      &sm,
       VkDevice                                     device,
@@ -46,17 +54,33 @@ class GraphicsPipeline {
 
   ~GraphicsPipeline() = default;
 
+  [[nodiscard]] VkPipeline getPipeline() const noexcept
+  {
+    return graphicsPipeline;
+  }
+
   [[nodiscard]] VkRenderPass getRenderPass() const noexcept
   {
     return renderPass;
   }
-  DELETE_MOVE(
-      GraphicsPipeline
-  )
 
-  DELETE_COPY(
-      GraphicsPipeline
-  )
+  [[nodiscard]] VkPipelineLayout getPipelineLayout() const noexcept
+  {
+    return pipelineLayout;
+  }
+
+  [[nodiscard]] VkViewport getViewport() const noexcept { return viewport; }
+  [[nodiscard]] const VkViewport *getViewportPtr() const noexcept
+  {
+    return &viewport;
+  }
+
+  [[nodiscard]] VkRect2D getScissor() const noexcept { return scissor; }
+
+  [[nodiscard]] const VkRect2D *getScissorPtr() const noexcept
+  {
+    return &scissor;
+  }
 };
 
 #endif

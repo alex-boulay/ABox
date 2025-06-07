@@ -223,7 +223,8 @@ std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices(
 
 VkResult DeviceHandler::addLogicalDevice(
     uint32_t     index,
-    VkSurfaceKHR surface
+    VkSurfaceKHR surface,
+    std::string  name
 )
 {
   if (surface == VK_NULL_HANDLE) {
@@ -272,6 +273,12 @@ VkResult DeviceHandler::addLogicalDevice(
   if (res == VK_SUCCESS) {
     std::cout << "Logical Device Assignment success ! '\n'";
     devices.emplace_back(dev, phydev, fIndices);
+    if (deviceNames.contains(name)) {
+      std::cout << "Overlaping the device name : " << name
+                << " - Device : " << (void *)deviceNames.at(name)->getDevice()
+                << " Might not have been freed" << std::endl;
+    }
+    deviceNames[name] = &devices.back();
   }
   else {
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
@@ -344,7 +351,7 @@ VkResult DeviceHandler::addLogicalDevice(
     VkSurfaceKHR surface
 )
 {
-  return addLogicalDevice(findBestPhysicalDevice(), surface);
+  return addLogicalDevice(findBestPhysicalDevice(), surface, "main");
 }
 
 DeviceBoundElements *DeviceHandler::getDBE(
@@ -358,6 +365,13 @@ DeviceBoundElements *DeviceHandler::getDBE(
   auto it = devices.begin();
   std::advance(it, index);
   return &(*it);
+}
+
+DeviceBoundElements *DeviceHandler::getDBE(
+    std::string name
+)
+{
+  return deviceNames.contains(name) ? deviceNames.at(name) : nullptr;
 }
 
 VkDevice DeviceHandler::getDevice(

@@ -101,13 +101,12 @@ VkResult ResourcesManager::addLogicalDevice()
 }
 
 VkResult ResourcesManager::addLogicalDevice(
-    uint32_t physicalDeviceIndex
+    uint32_t    physicalDeviceIndex,
+    std::string name
 )
 {
-  return deviceHandler.value().addLogicalDevice(
-      physicalDeviceIndex,
-      getWindowSurface()
-  );
+  return deviceHandler.value()
+      .addLogicalDevice(physicalDeviceIndex, getWindowSurface(), name);
 }
 
 VkResult ResourcesManager::createSwapchain(

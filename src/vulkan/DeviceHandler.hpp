@@ -6,6 +6,7 @@
 #include "ShaderHandler.hpp"
 #include "SwapchainManager.hpp"
 #include <cstdint>
+#include <map>
 #include <optional>
 #include <set>
 #include <sstream>
@@ -81,8 +82,9 @@ class DeviceBoundElements {
  * @brief Handle specifics to logical devices and their different bindings
  */
 class DeviceHandler {
-  std::vector<VkPhysicalDevice>  phyDevices;
-  std::list<DeviceBoundElements> devices;
+  std::vector<VkPhysicalDevice>                phyDevices;
+  std::list<DeviceBoundElements>               devices;
+  std::map<std::string, DeviceBoundElements *> deviceNames;
 
   std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
   std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
@@ -111,7 +113,8 @@ class DeviceHandler {
    * @return a VkResult if VK_SUCCESS if succeded else a corresponding error
    * value
    */
-  VkResult addLogicalDevice(uint32_t index, VkSurfaceKHR surface);
+  VkResult
+      addLogicalDevice(uint32_t index, VkSurfaceKHR surface, std::string name);
 
   // TODO : VkResult clear();
   uint32_t listQueueFamilies();
@@ -125,6 +128,7 @@ class DeviceHandler {
   DeviceHandler(VkInstance instance);
 
   DeviceBoundElements *getDBE(uint32_t index);
+  DeviceBoundElements *getDBE(std::string name);
   VkDevice             getDevice(uint32_t index);
 
   inline bool hasDevice(

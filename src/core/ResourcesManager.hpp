@@ -104,7 +104,7 @@ class ResourcesManager {
   //---------------------------------------------------------------
 
   VkResult addLogicalDevice();
-  VkResult addLogicalDevice(uint32_t physicalDeviceIndex);
+  VkResult addLogicalDevice(uint32_t physicalDeviceIndex, std::string name);
 
   VkResult VkResuladdLogicalDevice(uint32_t physicalDeviceIndex);
 

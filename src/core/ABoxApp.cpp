@@ -7,8 +7,8 @@
 void ABoxApp::run()
 {
   bool app_running = true;
-  while (app_running) {
-    app_running = false;
+  while (!wm.shoudlClose()) {
+    rs.drawFrame(); // TODO better management in case of no display or compute.
   }
 }
 

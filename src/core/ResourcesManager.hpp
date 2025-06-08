@@ -138,6 +138,11 @@ class ResourcesManager {
       );
     }
   }
+
+  void drawFrame()
+  { // TODO !!
+    return;
+  }
 };
 
 #endif // RESSOURCES_MANAGER_HPP

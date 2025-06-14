@@ -5,6 +5,7 @@
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
 #include "SwapchainManager.hpp"
+#include "SynchronisationManager.hpp"
 #include <cstdint>
 #include <map>
 #include <optional>
@@ -48,9 +49,10 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper      device;
-  VkPhysicalDevice   physical;
-  QueueFamilyIndices fIndices;
+  DeviceWrapper          device;
+  VkPhysicalDevice       physical;
+  QueueFamilyIndices     fIndices;
+  SynchronisationManager synchroM;
 
    public:
   std::optional<SwapchainManager>                      swapchain;
@@ -71,10 +73,11 @@ class DeviceBoundElements {
   DELETE_COPY(DeviceBoundElements);
   ~DeviceBoundElements() = default;
 
-  const DeviceWrapper &getDevice() const { return device; }
-  DeviceWrapper       *getDevicePtr() { return &device; }
-  VkPhysicalDevice     getPhysicalDevice() { return physical; }
-  QueueFamilyIndices   getFamilyQueueIndices() { return fIndices; }
+  const DeviceWrapper    &getDevice() const { return device; }
+  DeviceWrapper          *getDevicePtr() { return &device; }
+  VkPhysicalDevice        getPhysicalDevice() { return physical; }
+  QueueFamilyIndices      getFamilyQueueIndices() { return fIndices; }
+  SynchronisationManager *getSyncroManagerPtr() { return &synchroM; }
 };
 
 /**

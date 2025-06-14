@@ -139,58 +139,24 @@ class ResourcesManager {
     }
   }
 
-  void drawFrame()
+  void drawFrame(
+      uint32_t devIndex = 0u
+  )
   {
-    // SYNCHRONISTATION --------------
-    vkWaitForFences(device, 1, &inFlightFence, VK_TRUE, UINT64_MAX);
-    vkResetFences(device, 1, &inFlightFence);
+    ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
 
-    uint32_t imageIndex;
-    vkAcquireNextImageKHR(
-        device,
-        swapChain,
-        UINT64_MAX,
-        imageAvailableSemaphore,
-        VK_NULL_HANDLE,
-        &imageIndex
-    );
+    dbe->synchroniseDraw
 
-    vkResetCommandBuffer(commandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
-    recordCommandBuffer(commandBuffer, imageIndex);
-    // SUBMIT -----------
-    VkSemaphore waitSemaphores[]   = {imageAvailableSemaphore};
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
-
-    VkPipelineStageFlags waitStages[] = {
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-    };
-    VkSubmitInfo submitInfo{
-        .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext                = nullptr,
-        .waitSemaphoreCount   = 1u,
-        .pWaitSemaphores      = waitSemaphores,
-        .pWaitDstStageMask    = waitStages,
-        .commandBufferCount   = 1u,
-        .pCommandBuffers      = &commandBuffer,
-        .signalSemaphoreCount = 1,
-        .pSignalSemaphores    = signalSemaphores,
-    };
-    if (vkQueueSubmit(graphicsQueue, 1, &submitInfo, inFlightFence) !=
-        VK_SUCCESS) {
-      throw std::runtime_error("failed to submit draw command buffer!");
-    }
-
-    // PRESENT
-    VkSwapchainKHR   swapChains[] = {swapChain};
-    VkPresentInfoKHR presentInfo{
-        .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-        .pNext              = nullptr,
-        .waitSemaphoreCount = 1u,
-        .pWaitSemaphores    = signalSemaphores,
-        .swapchainCount     = 1u,
-        .pSwapchains        = swapChains,
-        .pImageIndices      = &imageIndex,
-        .pResults           = nullptr
+        VkSwapchainKHR swapChains[] = {};
+    VkPresentInfoKHR   presentInfo{
+          .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+          .pNext              = nullptr,
+          .waitSemaphoreCount = 1u,
+          .pWaitSemaphores    = signalSemaphores,
+          .swapchainCount     = 1u,
+          .pSwapchains        = swapChains,
+          .pImageIndices      = &imageIndex,
+          .pResults           = nullptr
     };
     vkQueuePresentKHR(presentQueue, &presentInfo);
     return;

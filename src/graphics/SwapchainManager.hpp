@@ -89,6 +89,22 @@ class SwapchainManager {
 
   VkFramebuffer getFrameBuffer(uint32_t index);
 
+  uint32_t acquireNextImage(
+      VkDevice    device,
+      VkSemaphore imgSemaphore
+  )
+  {
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(
+        device,
+        swapChain,
+        UINT64_MAX,
+        imgSemaphore,
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
+    return imageIndex;
+  }
   // TODO:
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult

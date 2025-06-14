@@ -22,6 +22,16 @@ ABoxApp::ABoxApp()
   rs.createSwapchain(wm.getWidth(), wm.getHeight());
   rs.addGraphicsPipeline(shaderHandler.getShaderHandlers());
   rs.createFramebuffers();
+  ABox_Utils::DeviceBoundElements *dbe = rs.getMainDevice();
+  dbe->getSyncroManagerPtr()->addFence(dbe->getDevice(), "inFlightFence");
+  dbe->getSyncroManagerPtr()->addSemaphore(
+      dbe->getDevice(),
+      "imageAvailableSemaphore"
+  );
+  dbe->getSyncroManagerPtr()->addSemaphore(
+      dbe->getDevice(),
+      "imageAvailableSemaphore"
+  );
 }
 
 ABoxApp::~ABoxApp() { glfwTerminate(); };

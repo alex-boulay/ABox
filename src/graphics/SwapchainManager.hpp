@@ -87,7 +87,14 @@ class SwapchainManager {
 
   VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 
-  VkFramebuffer getFrameBuffer(uint32_t index);
+  VkFramebuffer getFrameBuffer(
+      uint32_t index
+  )
+  {
+    std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
+    std::advance(it, index);
+    return it->get();
+  }
 
   uint32_t acquireNextImage(
       VkDevice    device,

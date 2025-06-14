@@ -30,7 +30,8 @@ class SynchronisationManager {
   SynchronisationManager() {};
 
   VkResult addFence(
-      VkDevice device
+      VkDevice    device,
+      std::string name = ""
   )
   {
     VkFenceCreateInfo fci{
@@ -38,14 +39,25 @@ class SynchronisationManager {
         .pNext = nullptr,
         .flags = 0u
     };
-    fences.push_back(device);
-    VkResult result = vkCreateFence(device, &fci, nullptr, fences.back().ptr());
+    bool newFence = name == "" || !fenceCues.contains(name);
+    if (newFence) {
+      fences.emplace_back(device);
+    }
+    VkResult result = vkCreateFence(
+        device,
+        &fci,
+        nullptr,
+        newFence ? fences.back().ptr() : fenceCues.at(name)->ptr()
+    );
 
     if (result == VK_SUCCESS) {
-      std::cout << "Fence added !" << std::endl;
+      std::cout << std::boolalpha << "Fence added ! new ? " << newFence
+                << " name : " << name << std::endl;
     }
     else {
-      fences.pop_back();
+      if (newFence) {
+        fences.pop_back();
+      }
       throw std::runtime_error("Couldn't Create Fence !");
     }
 
@@ -53,7 +65,8 @@ class SynchronisationManager {
   }
 
   VkResult addSemaphore(
-      VkDevice device
+      VkDevice    device,
+      std::string name = ""
   )
   {
 
@@ -63,17 +76,34 @@ class SynchronisationManager {
         .flags = 0u
     };
 
-    semaphores.emplace_back(device);
-    VkResult result =
-        vkCreateSemaphore(device, &sci, nullptr, semaphores.back().ptr());
+    bool newSemaphore = name == "" || !semaphoresCues.contains(name);
+    if (newSemaphore) {
+      semaphores.emplace_back(device);
+    }
+    VkResult result = vkCreateSemaphore(
+        device,
+        &sci,
+        nullptr,
+        newSemaphore ? semaphores.back().ptr() : semaphoresCues.at(name)->ptr()
+    );
     if (result == VK_SUCCESS) {
       std::cout << "Semaphore added !" << std::endl;
     }
     else {
-      semaphores.pop_back();
+      if (newSemaphore) {
+        semaphores.pop_back();
+      }
       throw std::runtime_error("Couldn't Create Semaphore !");
     }
     return result;
+  }
+
+  [[nodiscard]] VkFence getFence(
+      std::string name
+  ) const noexcept
+  {
+    return fenceCues.contains(name) ? fenceCues.at(name)->get()
+                                    : VK_NULL_HANDLE;
   }
 
   void synchroniseDraw(

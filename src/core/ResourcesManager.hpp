@@ -106,6 +106,17 @@ class ResourcesManager {
   VkResult addLogicalDevice();
   VkResult addLogicalDevice(uint32_t physicalDeviceIndex, std::string name);
 
+  ABox_Utils::DeviceBoundElements *getMainDevice()
+  {
+    return deviceHandler->getDBE(0u);
+  }
+
+  ABox_Utils::DeviceBoundElements *getDevice(
+      uint32_t device
+  )
+  {
+    return deviceHandler->getDBE(0u);
+  }
   VkResult VkResuladdLogicalDevice(uint32_t physicalDeviceIndex);
 
   VkResult
@@ -145,20 +156,23 @@ class ResourcesManager {
   {
     ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
 
-    dbe->synchroniseDraw
-
-        VkSwapchainKHR swapChains[] = {};
-    VkPresentInfoKHR   presentInfo{
-          .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-          .pNext              = nullptr,
-          .waitSemaphoreCount = 1u,
-          .pWaitSemaphores    = signalSemaphores,
-          .swapchainCount     = 1u,
-          .pSwapchains        = swapChains,
-          .pImageIndices      = &imageIndex,
-          .pResults           = nullptr
-    };
-    vkQueuePresentKHR(presentQueue, &presentInfo);
+    dbe->getSyncroManagerPtr()->synchroniseDraw(
+        dbe->getDevice(),
+        dbe->getSyncroManagerPtr()->getFence("")
+    );
+    /** TODO
+            VkSwapchainKHR swapChains[] = {};
+        VkPresentInfoKHR   presentInfo{
+              .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+              .pNext              = nullptr,
+              .waitSemaphoreCount = 1u,
+              .pWaitSemaphores    = signalSemaphores,
+              .swapchainCount     = 1u,
+              .pSwapchains        = swapChains,
+              .pImageIndices      = &imageIndex,
+              .pResults           = nullptr
+        };
+        vkQueuePresentKHR(presentQueue, &presentInfo);*/
     return;
   }
 };

@@ -52,7 +52,9 @@ class SynchronisationManager {
 
     if (result == VK_SUCCESS) {
       std::cout << std::boolalpha << "Fence added ! new ? " << newFence
-                << " name : " << name << std::endl;
+                << " name : " << name << "Fence value  "
+                << (void *)fences.back().get() << " Device Value "
+                << (void *)device << std::endl;
     }
     else {
       if (newFence) {

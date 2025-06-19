@@ -24,6 +24,7 @@ ABoxApp::ABoxApp()
   rs.createFramebuffers();
   ABox_Utils::DeviceBoundElements *dbe = rs.getMainDevice();
   dbe->getSyncroManagerPtr()->addFence(dbe->getDevice(), "inFlightFence");
+  /**
   dbe->getSyncroManagerPtr()->addSemaphore(
       dbe->getDevice(),
       "imageAvailableSemaphore"
@@ -31,7 +32,7 @@ ABoxApp::ABoxApp()
   dbe->getSyncroManagerPtr()->addSemaphore(
       dbe->getDevice(),
       "imageAvailableSemaphore"
-  );
+  );*/
 }
 
 ABoxApp::~ABoxApp() { glfwTerminate(); };

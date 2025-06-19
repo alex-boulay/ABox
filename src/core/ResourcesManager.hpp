@@ -158,7 +158,7 @@ class ResourcesManager {
 
     dbe->getSyncroManagerPtr()->synchroniseDraw(
         dbe->getDevice(),
-        dbe->getSyncroManagerPtr()->getFence("")
+        dbe->getSyncroManagerPtr()->getFence("inFlightFence")
     );
     /** TODO
             VkSwapchainKHR swapChains[] = {};

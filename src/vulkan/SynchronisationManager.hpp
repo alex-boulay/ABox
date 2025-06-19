@@ -51,10 +51,13 @@ class SynchronisationManager {
     );
 
     if (result == VK_SUCCESS) {
+      if (newFence && !name.empty()) {
+        fenceCues[name] = &fences.back();
+      }
       std::cout << std::boolalpha << "Fence added ! new ? " << newFence
-                << " name : " << name << "Fence value  "
-                << (void *)fences.back().get() << " Device Value "
-                << (void *)device << std::endl;
+                << " name : " << (name.empty() ? "Empty Name" : name)
+                << "Fence value  " << (void *)fences.back().get()
+                << " Device Value " << (void *)device << std::endl;
     }
     else {
       if (newFence) {
@@ -104,6 +107,11 @@ class SynchronisationManager {
       std::string name
   ) const noexcept
   {
+    std::cout << std::boolalpha << "Contains " << name << " : "
+              << fenceCues.contains(name) << " - Value :"
+              << (fenceCues.contains(name) ? fenceCues.at(name)->get()
+                                           : VK_NULL_HANDLE)
+              << std::endl;
     return fenceCues.contains(name) ? fenceCues.at(name)->get()
                                     : VK_NULL_HANDLE;
   }
@@ -113,6 +121,9 @@ class SynchronisationManager {
       VkFence  fence
   )
   {
+    /** In case of frames need to no print every frame
+    std::cout << "Fence " << (void *)fence << "\t Device " << (void *)device
+              << std::endl;*/
     // SYNCHRONISTATION --------------
     vkWaitForFences(device, 1u, &fence, VK_TRUE, UINT64_MAX);
     vkResetFences(device, 1u, &fence);

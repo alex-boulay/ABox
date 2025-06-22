@@ -37,7 +37,7 @@ class SynchronisationManager {
     VkFenceCreateInfo fci{
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .pNext = nullptr,
-        .flags = 0u
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT
     };
     bool newFence = name == "" || !fenceCues.contains(name);
     if (newFence) {
@@ -103,7 +103,7 @@ class SynchronisationManager {
     return result;
   }
 
-  [[nodiscard]] VkFence getFence(
+  [[nodiscard]] VkFence *getFence(
       std::string name
   ) const noexcept
   {
@@ -112,21 +112,27 @@ class SynchronisationManager {
               << (fenceCues.contains(name) ? fenceCues.at(name)->get()
                                            : VK_NULL_HANDLE)
               << std::endl;
-    return fenceCues.contains(name) ? fenceCues.at(name)->get()
-                                    : VK_NULL_HANDLE;
+    return fenceCues.contains(name) ? fenceCues.at(name)->ptr() : nullptr;
   }
 
   void synchroniseDraw(
       VkDevice device,
-      VkFence  fence
+      VkFence *fence
   )
   {
-    /** In case of frames need to no print every frame
+    // In case of frames need to no print every frame
     std::cout << "Fence " << (void *)fence << "\t Device " << (void *)device
-              << std::endl;*/
+              << std::endl;
+
     // SYNCHRONISTATION --------------
-    vkWaitForFences(device, 1u, &fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(device, 1u, &fence);
+
+    vkWaitForFences(device, 1u, fence, VK_TRUE, UINT64_MAX);
+
+    std::cout << "Waiting fence " << std::endl;
+
+    vkResetFences(device, 1u, fence);
+
+    std::cout << "Reset Fence " << std::endl;
   }
   /**
     vkResetCommandBuffer(commandBuffer, 0);

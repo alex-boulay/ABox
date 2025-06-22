@@ -2,6 +2,7 @@
 #define SYNCHRONISATION_MANAGER_HPP
 
 #include "MemoryWrapper.hpp"
+#include <cstddef>
 #include <list>
 #include <map>
 #include <stdexcept>
@@ -19,19 +20,42 @@ DEFINE_VK_MEMORY_WRAPPER(
     vkDestroyFence
 )
 
+class FrameSyncObject {
+  SemaphoreWrapper imageAvailableSemaphore;
+  SemaphoreWrapper renderFinishedSemaphore;
+  VkFence          inFlightFence;
+
+   public:
+  FrameSyncObject // TODO : here
+};
+
+class FrameSyncManager {
+  std::vector<FrameSyncManager> framesSync;
+
+   public:
+  FrameSyncManager(
+      uint32_t size,
+      VkDevice device
+  )
+      framesSync(
+          {device},
+          size
+      )
+  {
+    for (auto a = 0u; a < size; a++) {
+    }
+  }
+};
+
 class SynchronisationManager {
   std::list<SemaphoreWrapper> semaphores;
   std::list<FenceWrapper>     fences;
-
-  std::map<std::string, SemaphoreWrapper *> semaphoresCues;
-  std::map<std::string, FenceWrapper *>     fenceCues;
 
    public:
   SynchronisationManager() {};
 
   VkResult addFence(
-      VkDevice    device,
-      std::string name = ""
+      VkDevice device
   )
   {
     VkFenceCreateInfo fci{
@@ -39,39 +63,22 @@ class SynchronisationManager {
         .pNext = nullptr,
         .flags = VK_FENCE_CREATE_SIGNALED_BIT
     };
-    bool newFence = name == "" || !fenceCues.contains(name);
-    if (newFence) {
-      fences.emplace_back(device);
-    }
-    VkResult result = vkCreateFence(
-        device,
-        &fci,
-        nullptr,
-        newFence ? fences.back().ptr() : fenceCues.at(name)->ptr()
-    );
+    fences.emplace_back(device);
+    VkResult result = vkCreateFence(device, &fci, nullptr, fences.back().ptr());
 
     if (result == VK_SUCCESS) {
-      if (newFence && !name.empty()) {
-        fenceCues[name] = &fences.back();
-      }
-      std::cout << std::boolalpha << "Fence added ! new ? " << newFence
-                << " name : " << (name.empty() ? "Empty Name" : name)
-                << "Fence value  " << (void *)fences.back().get()
-                << " Device Value " << (void *)device << std::endl;
+      std::cout << "Semaphore added !" << std::endl;
     }
     else {
-      if (newFence) {
-        fences.pop_back();
-      }
-      throw std::runtime_error("Couldn't Create Fence !");
+      fences.pop_back();
+      throw std::runtime_error("Couldn't create Fence");
     }
 
     return result;
   }
 
   VkResult addSemaphore(
-      VkDevice    device,
-      std::string name = ""
+      VkDevice device
   )
   {
 
@@ -81,38 +88,16 @@ class SynchronisationManager {
         .flags = 0u
     };
 
-    bool newSemaphore = name == "" || !semaphoresCues.contains(name);
-    if (newSemaphore) {
-      semaphores.emplace_back(device);
-    }
-    VkResult result = vkCreateSemaphore(
-        device,
-        &sci,
-        nullptr,
-        newSemaphore ? semaphores.back().ptr() : semaphoresCues.at(name)->ptr()
-    );
+    VkResult result =
+        vkCreateSemaphore(device, &sci, nullptr, semaphores.back().ptr());
     if (result == VK_SUCCESS) {
       std::cout << "Semaphore added !" << std::endl;
     }
     else {
-      if (newSemaphore) {
-        semaphores.pop_back();
-      }
+      semaphores.pop_back();
       throw std::runtime_error("Couldn't Create Semaphore !");
     }
     return result;
-  }
-
-  [[nodiscard]] VkFence *getFence(
-      std::string name
-  ) const noexcept
-  {
-    std::cout << std::boolalpha << "Contains " << name << " : "
-              << fenceCues.contains(name) << " - Value :"
-              << (fenceCues.contains(name) ? fenceCues.at(name)->get()
-                                           : VK_NULL_HANDLE)
-              << std::endl;
-    return fenceCues.contains(name) ? fenceCues.at(name)->ptr() : nullptr;
   }
 
   void synchroniseDraw(

@@ -2,9 +2,8 @@
 #define SYNCHRONISATION_MANAGER_HPP
 
 #include "MemoryWrapper.hpp"
-#include <cstddef>
+#include <deque>
 #include <list>
-#include <map>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
@@ -21,29 +20,73 @@ DEFINE_VK_MEMORY_WRAPPER(
 )
 
 class FrameSyncObject {
-  SemaphoreWrapper imageAvailableSemaphore;
-  SemaphoreWrapper renderFinishedSemaphore;
-  VkFence          inFlightFence;
+  SemaphoreWrapper imageOk;
+  SemaphoreWrapper renderEnd;
+  FenceWrapper     inFlight;
 
    public:
-  FrameSyncObject // TODO : here
+  FrameSyncObject(
+      VkDevice dev
+  )
+      : imageOk(dev)
+      , renderEnd(dev)
+      , inFlight(dev)
+  {
+    VkSemaphoreCreateInfo sci{
+        .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u
+    };
+
+    VkResult result = vkCreateSemaphore(dev, &sci, nullptr, imageOk.ptr());
+    if (result == VK_SUCCESS) {
+      std::cout << "Semaphore added !" << std::endl;
+    }
+    else {
+      throw std::runtime_error("Couldn't Create Semaphore !");
+    }
+    result = vkCreateSemaphore(dev, &sci, nullptr, renderEnd.ptr());
+
+    if (result == VK_SUCCESS) {
+      std::cout << "Semaphore added !" << std::endl;
+    }
+    else {
+      throw std::runtime_error("Couldn't Create Semaphore !");
+    }
+
+    VkFenceCreateInfo fci{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    };
+    result = vkCreateFence(dev, &fci, nullptr, inFlight.ptr());
+
+    if (result == VK_SUCCESS) {
+      std::cout << "Infight Fence added !" << std::endl;
+    }
+    else {
+      throw std::runtime_error("Couldn't create Fence");
+    }
+  }
 };
 
 class FrameSyncManager {
-  std::vector<FrameSyncManager> framesSync;
+  std::deque<FrameSyncObject> framesSync;
 
    public:
   FrameSyncManager(
-      uint32_t size,
-      VkDevice device
+      VkDevice device,
+      uint32_t size
   )
-      framesSync(
-          {device},
-          size
-      )
+      : framesSync(size, FrameSyncObject(device))
   {
-    for (auto a = 0u; a < size; a++) {
-    }
+  }
+
+  FrameSyncObject *getFrameSyncObject(
+      uint32_t index
+  )
+  {
+    return index < framesSync.size() ? &framesSync.at(index) : nullptr;
   }
 };
 

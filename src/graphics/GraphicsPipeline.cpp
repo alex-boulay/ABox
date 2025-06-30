@@ -121,7 +121,7 @@ GraphicsPipeline::GraphicsPipeline(
       .pPushConstantRanges    = nullptr
   };
   res = vkCreatePipelineLayout(
-      device, // TODO: add Device Management to Pipeline
+      device,
       &pipelineLayoutInfo,
       nullptr,
       pipelineLayout.ptr()

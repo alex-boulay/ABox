@@ -2,10 +2,10 @@
 #define SYNCHRONISATION_MANAGER_HPP
 
 #include "MemoryWrapper.hpp"
-#include <deque>
 #include <list>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
+#define INFLIGHT_NUMBER_OF_ELEMENTS 2
 
 DEFINE_VK_MEMORY_WRAPPER(
     VkSemaphore,
@@ -32,15 +32,29 @@ class FrameSyncObject {
       , renderEnd(dev)
       , inFlight(dev)
   {
+
+    VkFenceCreateInfo fci{
+        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = VK_FENCE_CREATE_SIGNALED_BIT
+    };
+    VkResult result = vkCreateFence(dev, &fci, nullptr, inFlight.ptr());
+
+    if (result == VK_SUCCESS) {
+      std::cout << "Infight Fence added ! " << (void *)inFlight << std::endl;
+    }
+    else {
+      throw std::runtime_error("Couldn't create Fence");
+    }
     VkSemaphoreCreateInfo sci{
         .sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO,
         .pNext = nullptr,
         .flags = 0u
     };
 
-    VkResult result = vkCreateSemaphore(dev, &sci, nullptr, imageOk.ptr());
+    result = vkCreateSemaphore(dev, &sci, nullptr, imageOk.ptr());
     if (result == VK_SUCCESS) {
-      std::cout << "Semaphore added !" << std::endl;
+      std::cout << "Image Ok Semaphore added !" << (void *)imageOk << std::endl;
     }
     else {
       throw std::runtime_error("Couldn't Create Semaphore !");
@@ -48,38 +62,28 @@ class FrameSyncObject {
     result = vkCreateSemaphore(dev, &sci, nullptr, renderEnd.ptr());
 
     if (result == VK_SUCCESS) {
-      std::cout << "Semaphore added !" << std::endl;
+      std::cout << "RenderEnd Semaphore added !" << (void *)renderEnd
+                << std::endl;
     }
     else {
       throw std::runtime_error("Couldn't Create Semaphore !");
     }
-
-    VkFenceCreateInfo fci{
-        .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
-        .pNext = nullptr,
-        .flags = VK_FENCE_CREATE_SIGNALED_BIT
-    };
-    result = vkCreateFence(dev, &fci, nullptr, inFlight.ptr());
-
-    if (result == VK_SUCCESS) {
-      std::cout << "Infight Fence added !" << std::endl;
-    }
-    else {
-      throw std::runtime_error("Couldn't create Fence");
-    }
   }
 };
 
-class FrameSyncManager {
-  std::deque<FrameSyncObject> framesSync;
+class SynchronisationManager {
+  std::list<SemaphoreWrapper>  semaphores;
+  std::list<FenceWrapper>      fences;
+  std::vector<FrameSyncObject> framesSync;
 
    public:
-  FrameSyncManager(
-      VkDevice device,
-      uint32_t size
+  SynchronisationManager(
+      VkDevice device
   )
-      : framesSync(size, FrameSyncObject(device))
   {
+    for (uint32_t a = 0; a < INFLIGHT_NUMBER_OF_ELEMENTS; a++) {
+      framesSync.emplace_back(device);
+    }
   }
 
   FrameSyncObject *getFrameSyncObject(
@@ -88,14 +92,6 @@ class FrameSyncManager {
   {
     return index < framesSync.size() ? &framesSync.at(index) : nullptr;
   }
-};
-
-class SynchronisationManager {
-  std::list<SemaphoreWrapper> semaphores;
-  std::list<FenceWrapper>     fences;
-
-   public:
-  SynchronisationManager() {};
 
   VkResult addFence(
       VkDevice device

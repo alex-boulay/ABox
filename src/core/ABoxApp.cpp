@@ -6,10 +6,10 @@
 
 void ABoxApp::run()
 {
-  bool app_running = true;
-  while (!wm.shoudlClose()) {
+  while (!wm.shouldClose()) {
+    wm.pollEvents();
     rs.drawFrame(); // TODO better management in case of no display or compute.
-    std::cout << "FRAMING " << std::endl;
+    // std::cout << "FRAMING " << std::endl;
   }
 }
 
@@ -24,15 +24,6 @@ ABoxApp::ABoxApp()
   rs.addGraphicsPipeline(shaderHandler.getShaderHandlers());
   rs.createFramebuffers();
   ABox_Utils::DeviceBoundElements *dbe = rs.getMainDevice();
-  dbe->getSyncroManagerPtr()->addFence(dbe->getDevice(), "inFlightFence");
-  dbe->getSyncroManagerPtr()->addSemaphore(
-      dbe->getDevice(),
-      "imageAvailableSemaphore"
-  );
-  dbe->getSyncroManagerPtr()->addSemaphore(
-      dbe->getDevice(),
-      "imageAvailableSemaphore"
-  );
 }
 
 ABoxApp::~ABoxApp() { glfwTerminate(); };

@@ -18,22 +18,11 @@
 
 namespace ABox_Utils {
 
-class DeviceWrapper : public MemoryWrapper<VkDevice> {
-   public:
-  DeviceWrapper(
-      VkDevice                     dev,
-      const VkAllocationCallbacks *pAllocator = nullptr
-  )
-      : MemoryWrapper<VkDevice>(dev, std::function([this, pAllocator]() {
-                                  std::cout << " Device Destruction"
-                                            << (void *)(this->get())
-                                            << std::endl;
-                                  vkDestroyDevice(this->get(), pAllocator);
-                                }))
-  {
-    std::cout << "Device " << (void *)dev << std::endl;
-  }
-};
+DEFINE_VK_MEMORY_WRAPPER_SOLO(
+    VkDevice,
+    Device,
+    vkDestroyDevice
+)
 
 /**
  * @struct QueueFamilyIndices
@@ -49,10 +38,10 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper      device;
-  VkPhysicalDevice   physical;
-  QueueFamilyIndices fIndices;
-  FrameSyncManager   framesSync;
+  DeviceWrapper          device;
+  VkPhysicalDevice       physical;
+  QueueFamilyIndices     fIndices;
+  SynchronisationManager syncM;
 
    public:
   std::optional<SwapchainManager>                      swapchain;
@@ -67,7 +56,7 @@ class DeviceBoundElements {
       : device(logDevice)
       , physical(phyDev)
       , fIndices(familyIndices)
-      , framesSync(logDevice) // TODO size )
+      , syncM(logDevice) // TODO size )
   {
   }
   DELETE_MOVE(DeviceBoundElements);
@@ -78,7 +67,7 @@ class DeviceBoundElements {
   DeviceWrapper          *getDevicePtr() { return &device; }
   VkPhysicalDevice        getPhysicalDevice() { return physical; }
   QueueFamilyIndices      getFamilyQueueIndices() { return fIndices; }
-  SynchronisationManager *getFramesSync() { return &framesSync; }
+  SynchronisationManager *getSyncManager() { return &syncM; }
 };
 
 /**

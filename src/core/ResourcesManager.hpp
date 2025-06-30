@@ -12,47 +12,18 @@
   #include "DebugHandler.hpp"
 #endif
 
-class InstanceWrapper : public MemoryWrapper<VkInstance> {
-   public:
-  InstanceWrapper(
-      VkInstance instance                     = VK_NULL_HANDLE,
-      const VkAllocationCallbacks *pAllocator = nullptr
-  )
-      : MemoryWrapper<VkInstance>(
-            instance,
-            std::function([this, pAllocator]() {
-              std::cout << "Instance Wrapper destructor call" << std::endl;
-              if (this->get() != VK_NULL_HANDLE) {
-                vkDestroyInstance(this->get(), pAllocator);
-              }
-            })
-        )
-  {
-  }
-};
+DEFINE_VK_MEMORY_WRAPPER_SOLO(
+    VkInstance,
+    Instance,
+    vkDestroyInstance
+)
 
-class SurfaceWrapper : public MemoryWrapper<VkSurfaceKHR> {
-   public:
-  SurfaceWrapper(
-      VkInstance instance                     = VK_NULL_HANDLE,
-      VkSurfaceKHR surface                    = VK_NULL_HANDLE,
-      const VkAllocationCallbacks *pAllocator = nullptr
-
-  )
-      : MemoryWrapper<VkSurfaceKHR>(
-            surface,
-            std::function([this, instance, pAllocator]() {
-              if (this->get() != VK_NULL_HANDLE && instance != VK_NULL_HANDLE) {
-                std::cout << "Surface Destroyed " << (void *)this->get()
-                          << std::endl;
-                vkDestroySurfaceKHR(instance, this->get(), pAllocator);
-              }
-            })
-        )
-  {
-    std::cout << "Surface Created : " << (void *)surface << std::endl;
-  }
-};
+DEFINE_VK_MEMORY_WRAPPER_FULL(
+    VkSurfaceKHR,
+    Surface,
+    vkDestroySurfaceKHR,
+    VkInstance
+)
 
 class ResourcesManager {
   InstanceWrapper instance;
@@ -156,10 +127,6 @@ class ResourcesManager {
   {
     ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
 
-    dbe->getSyncroManagerPtr()->synchroniseDraw(
-        dbe->getDevice(),
-        dbe->getSyncroManagerPtr()->getFence("inFlightFence")
-    );
     /** TODO
             VkSwapchainKHR swapChains[] = {};
         VkPresentInfoKHR   presentInfo{

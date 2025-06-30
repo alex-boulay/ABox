@@ -35,7 +35,9 @@ class WindowManager {
 
   GLFWwindow *getWindow() const { return window; }
 
-  inline bool shoudlClose() { return glfwWindowShouldClose(window); }
+  inline void pollEvents() const { glfwPollEvents(); }
+
+  inline bool shouldClose() { return glfwWindowShouldClose(window); }
   static void
       framebufferResizeCallback(GLFWwindow *window, int width_, int height_);
 };

@@ -87,9 +87,10 @@ class MemoryWrapper {
   MemoryWrapper(
       MemoryWrapper &&other
   ) noexcept
-      : vulkanDestructionFunction(vulkanDestructionFunction)
-      , vulkanParent(vulkanParent)
+      : vulkanDestructionFunction(other.vulkanDestructionFunction)
+      , vulkanParent(other.vulkanParent)
       , container(other.container)
+      , pAllocator(other.pAllocator)
   {
     other.container                 = VK_NULL_HANDLE;
     other.vulkanParent              = VK_NULL_HANDLE;
@@ -118,8 +119,10 @@ class MemoryWrapper {
     }
 
     std::cout << "Dangerous -> Memory Moved (assigned)"
-              << "previous allocator value " << (void *)vulkanParent
-              << "previous container value " << (void *)container << std::endl;
+              << "\nprevious allocator value " << (void *)other.vulkanParent
+              << "\nprevious container value " << (void *)other.container
+              << "\nnew allocator value " << (void *)vulkanParent
+              << "\nnew container value " << (void *)container << std::endl;
     return *this;
   }
 

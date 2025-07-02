@@ -38,10 +38,10 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper          device;
-  VkPhysicalDevice       physical;
-  QueueFamilyIndices     fIndices;
-  SynchronisationManager syncM;
+  DeviceWrapper      device;
+  VkPhysicalDevice   physical;
+  QueueFamilyIndices fIndices;
+  FrameSyncArray     syncM;
 
    public:
   std::optional<SwapchainManager>                      swapchain;
@@ -63,11 +63,11 @@ class DeviceBoundElements {
   DELETE_COPY(DeviceBoundElements);
   ~DeviceBoundElements() = default;
 
-  const DeviceWrapper    &getDevice() const { return device; }
-  DeviceWrapper          *getDevicePtr() { return &device; }
-  VkPhysicalDevice        getPhysicalDevice() { return physical; }
-  QueueFamilyIndices      getFamilyQueueIndices() { return fIndices; }
-  SynchronisationManager *getSyncManager() { return &syncM; }
+  const DeviceWrapper &getDevice() const { return device; }
+  DeviceWrapper       *getDevicePtr() { return &device; }
+  VkPhysicalDevice     getPhysicalDevice() { return physical; }
+  QueueFamilyIndices   getFamilyQueueIndices() { return fIndices; }
+  FrameSyncArray      *getFrameSyncArray() { return &syncM; }
 };
 
 /**

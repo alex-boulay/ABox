@@ -64,10 +64,11 @@ class DeviceBoundElements {
   ~DeviceBoundElements() = default;
 
   const DeviceWrapper &getDevice() const { return device; }
-  DeviceWrapper       *getDevicePtr() { return &device; }
-  VkPhysicalDevice     getPhysicalDevice() { return physical; }
-  QueueFamilyIndices   getFamilyQueueIndices() { return fIndices; }
-  FrameSyncArray      *getFrameSyncArray() { return &syncM; }
+
+  DeviceWrapper     *getDevicePtr() { return &device; }
+  VkPhysicalDevice   getPhysicalDevice() { return physical; }
+  QueueFamilyIndices getFamilyQueueIndices() { return fIndices; }
+  FrameSyncArray    *getFrameSyncArray() { return &syncM; }
 };
 
 /**

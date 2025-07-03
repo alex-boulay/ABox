@@ -100,14 +100,14 @@ class FrameSyncArray {
       framesSync.emplace_back(device);
     }
   }
-  const FrameSyncObject *getFrameSyncObject(
+  FrameSyncObject *getFrameSyncObject(
       uint32_t index
-  ) const
+  )
   {
     return index < framesSync.size() ? &framesSync.at(index) : nullptr;
   }
 
-  const FrameSyncObject *getFrameSyncObject() const
+  FrameSyncObject *getFrameSyncObject()
   {
     return getFrameSyncObject(frameIndex);
   }

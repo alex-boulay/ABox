@@ -125,7 +125,18 @@ class ResourcesManager {
       uint32_t devIndex = 0u
   )
   {
+    uint32_t                         imageIndex;
     ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
+    dbe->getFrameSyncArray()->waitAndReset(dbe->getDevice());
+
+    vkAcquireNextImageKHR(
+        dbe->getDevice(),
+        dbe->swapchain.value(),
+        UINT64_MAX,
+        dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.get(),
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
 
     /** TODO
             VkSwapchainKHR swapChains[] = {};

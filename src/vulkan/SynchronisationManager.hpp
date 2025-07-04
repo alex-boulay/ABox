@@ -190,30 +190,6 @@ class SynchronisationManager {
   }
 
   /**
-    vkResetCommandBuffer(commandBuffer, 0);
-    recordCommandBuffer(commandBuffer, imageIndex);
-    // SUBMIT -----------
-    VkSemaphore waitSemaphores[]   = {imageAvailableSemaphore};
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
-
-    VkPipelineStageFlags waitStages[] = {
-        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
-    };
-    VkSubmitInfo submitInfo{
-        .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext                = nullptr,
-        .waitSemaphoreCount   = 1u,
-        .pWaitSemaphores      = waitSemaphores,
-        .pWaitDstStageMask    = waitStages,
-        .commandBufferCount   = 1u,
-        .pCommandBuffers      = &commandBuffer,
-        .signalSemaphoreCount = 1,
-        .pSignalSemaphores    = signalSemaphores,
-    };
-    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence);
-    if (result != VK_SUCCESS) {
-      throw std::runtime_error("failed to submit draw command buffer!");
-    }
     return result;
   }*/
 };

@@ -32,7 +32,8 @@ struct QueueFamilyIndices {
   std::optional<uint32_t> graphicQueueIndex;
   std::optional<uint32_t> presentQueueIndex;
 };
-
+// TODO add Queues during device creation !!
+//
 /**
  * @struct DeviceBoundElements
  * @brief Represents elements bounded to the Logical Device

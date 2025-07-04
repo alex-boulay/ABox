@@ -112,6 +112,7 @@ class SwapchainManager {
     );
     return imageIndex;
   }
+  VkSwapchainKHR getSwapchain() const { return swapChain.get(); }
   // TODO:
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult

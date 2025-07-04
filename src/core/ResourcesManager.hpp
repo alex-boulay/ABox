@@ -131,13 +131,37 @@ class ResourcesManager {
 
     vkAcquireNextImageKHR(
         dbe->getDevice(),
-        dbe->swapchain.value(),
+        dbe->swapchain.value().getSwapchain(),
         UINT64_MAX,
         dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.get(),
         VK_NULL_HANDLE,
         &imageIndex
     );
 
+    // First Do Queues
+    /**
+    // SUBMIT -----------
+    VkSemaphore waitSemaphores[]   = {imageAvailableSemaphore};
+    VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+
+    VkPipelineStageFlags waitStages[] = {
+        VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+    };
+    VkSubmitInfo submitInfo{
+        .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext                = nullptr,
+        .waitSemaphoreCount   = 1u,
+        .pWaitSemaphores      = waitSemaphores,
+        .pWaitDstStageMask    = waitStages,
+        .commandBufferCount   = 1u,
+        .pCommandBuffers      = ,
+        .signalSemaphoreCount = 1,
+        .pSignalSemaphores    = signalSemaphores,
+    };
+    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence);
+    if (result != VK_SUCCESS) {
+      throw std::runtime_error("failed to submit draw command buffer!");
+    }
     /** TODO
             VkSwapchainKHR swapChains[] = {};
         VkPresentInfoKHR   presentInfo{
@@ -151,6 +175,8 @@ class ResourcesManager {
               .pResults           = nullptr
         };
         vkQueuePresentKHR(presentQueue, &presentInfo);*/
+
+    dbe->getFrameSyncArray()->incrementFrameIndex();
     return;
   }
 };

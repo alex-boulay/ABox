@@ -127,7 +127,7 @@ class MemoryWrapper {
     return *this;
   }
 
-  T     &get() { return container; }
+  T     &get() const { return container; }
   T     *ptr() { return &container; }
   inline operator T() const { return container; }
 };

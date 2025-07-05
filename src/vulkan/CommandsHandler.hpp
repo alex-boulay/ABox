@@ -41,6 +41,12 @@ class CommandsHandler {
       uint32_t         imageIndex,
       uint32_t         commandBufferIndex
   );
+  VkCommandBuffer getCommandBuffer(
+      uint32_t index
+  )
+  {
+    return commandBuffers.at(index);
+  }
 };
 
 #endif // COMMANDS_HANDLER_HPP

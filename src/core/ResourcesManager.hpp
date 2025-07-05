@@ -138,27 +138,31 @@ class ResourcesManager {
         &imageIndex
     );
 
-    // First Do Queues
-    /**
     // SUBMIT -----------
-    VkSemaphore waitSemaphores[]   = {imageAvailableSemaphore};
-    VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
+    // VkSemaphore signalSemaphores[] = {renderFinishedSemaphore};
 
     VkPipelineStageFlags waitStages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     };
     VkSubmitInfo submitInfo{
-        .sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO,
-        .pNext                = nullptr,
-        .waitSemaphoreCount   = 1u,
-        .pWaitSemaphores      = waitSemaphores,
+        .sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+        .pNext              = nullptr,
+        .waitSemaphoreCount = 1u,
+        .pWaitSemaphores =
+            dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.ptr(),
         .pWaitDstStageMask    = waitStages,
         .commandBufferCount   = 1u,
-        .pCommandBuffers      = ,
+        .pCommandBuffers      =,
         .signalSemaphoreCount = 1,
-        .pSignalSemaphores    = signalSemaphores,
+        .pSignalSemaphores =
+            dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
     };
-    VkResult result = vkQueueSubmit(graphicsQueue, 1, &submitInfo, fence);
+    VkResult result = vkQueueSubmit(
+        dbe->graphicsQueue,
+        1,
+        &submitInfo,
+        dbe->getFrameSyncArray()->getFrameSyncObject()->inFlight
+    );
     if (result != VK_SUCCESS) {
       throw std::runtime_error("failed to submit draw command buffer!");
     }

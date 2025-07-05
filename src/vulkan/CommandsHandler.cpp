@@ -42,6 +42,8 @@ VkResult CommandsHandler::createCommandBuffer(
   return result;
 }
 
+// TODO : Map it to the device ???
+//  DBE -> ??
 CommandsHandler::CommandsHandler(
     VkDevice                 device,
     uint32_t                 queueFamilyIndex,

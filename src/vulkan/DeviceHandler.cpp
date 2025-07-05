@@ -186,7 +186,7 @@ QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
   );
   for (uint32_t i = 0; i < queueCount; i++) {
     if (hasGraphicQueue(queueFamilies.at(i))) {
-      result.graphicQueueIndex = i;
+      result.graphicsQueueIndex = i;
       break;
     }
   }
@@ -204,8 +204,8 @@ std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
 )
 {
   std::set<uint32_t> indices;
-  if (fi.graphicQueueIndex.has_value()) {
-    indices.insert(fi.graphicQueueIndex.value());
+  if (fi.graphicsQueueIndex.has_value()) {
+    indices.insert(fi.graphicsQueueIndex.value());
   }
   if (fi.presentQueueIndex.has_value()) {
     indices.insert(fi.presentQueueIndex.value());
@@ -284,6 +284,19 @@ VkResult DeviceHandler::addLogicalDevice(
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
               << '\n';
   }
+  vkGetDeviceQueue(
+      dev,
+      fIndices.graphicsQueueIndex.value(),
+      0,
+      &devices.back().graphicsQueue
+  );
+  vkGetDeviceQueue(
+      dev,
+      fIndices.presentQueueIndex.value(),
+      0u,
+      &(devices.back().presentQueue)
+  );
+
   return res;
 } // namespace ABox_Utils
 
@@ -402,7 +415,7 @@ VkResult DeviceHandler::addSwapchain(
             << devicePtr->getFamilyQueueIndices().presentQueueIndex.has_value()
             << '\n';
   std::cout << "DBE gQDI " << std::boolalpha
-            << devicePtr->getFamilyQueueIndices().graphicQueueIndex.has_value()
+            << devicePtr->getFamilyQueueIndices().graphicsQueueIndex.has_value()
             << '\n';
 
   getDBE(devIndex)->swapchain.emplace(
@@ -410,7 +423,7 @@ VkResult DeviceHandler::addSwapchain(
       surface,
       getDevice(devIndex),
       devicePtr->getFamilyQueueIndices().presentQueueIndex.value(),
-      devicePtr->getFamilyQueueIndices().graphicQueueIndex.value(),
+      devicePtr->getFamilyQueueIndices().graphicsQueueIndex.value(),
       width,
       height
   );

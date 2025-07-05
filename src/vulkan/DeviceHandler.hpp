@@ -29,11 +29,10 @@ DEFINE_VK_MEMORY_WRAPPER_SOLO(
  * @brief represent optional queue family indices
  */
 struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicQueueIndex;
+  std::optional<uint32_t> graphicsQueueIndex;
   std::optional<uint32_t> presentQueueIndex;
 };
-// TODO add Queues during device creation !!
-//
+
 /**
  * @struct DeviceBoundElements
  * @brief Represents elements bounded to the Logical Device
@@ -45,6 +44,9 @@ class DeviceBoundElements {
   FrameSyncArray     syncM;
 
    public:
+  VkQueue graphicsQueue = VK_NULL_HANDLE;
+  VkQueue presentQueue  = VK_NULL_HANDLE;
+
   std::optional<SwapchainManager>                      swapchain;
   std::optional<GraphicsPipeline>                      graphicsppl;
   std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;

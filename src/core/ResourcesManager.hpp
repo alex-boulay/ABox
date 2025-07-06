@@ -152,7 +152,7 @@ class ResourcesManager {
             dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.ptr(),
         .pWaitDstStageMask    = waitStages,
         .commandBufferCount   = 1u,
-        .pCommandBuffers      =,
+        .pCommandBuffers      =, // TODO after bound to queue management -
         .signalSemaphoreCount = 1,
         .pSignalSemaphores =
             dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),

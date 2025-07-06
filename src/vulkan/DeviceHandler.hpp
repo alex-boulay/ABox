@@ -1,6 +1,7 @@
 #ifndef DEVICE_HANDLER_HPP
 #define DEVICE_HANDLER_HPP
 
+#include "CommandsHandler.hpp"
 #include "GraphicsPipeline.hpp"
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
@@ -42,9 +43,10 @@ class DeviceBoundElements {
   VkPhysicalDevice   physical;
   QueueFamilyIndices fIndices;
   FrameSyncArray     syncM;
+  CommandsHandler    commands;
 
    public:
-  VkQueue graphicsQueue = VK_NULL_HANDLE;
+  VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
   std::optional<SwapchainManager>                      swapchain;

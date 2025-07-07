@@ -11,18 +11,42 @@
  */
 #include "CommandsHandler.hpp"
 #include <cstdint>
-#include <map>
 #include <optional>
+#include <unordered_map>
 #include <vulkan/vulkan_core.h>
 
+// Bind Queue Roles To Shaders Management too ?
+enum class QueueRole { Graphics, Present, Compute, Transfer };
+
 class QueueManager {
-  std::optional<uint32_t> graphicsQueueIndex;
-  std::optional<uint32_t> presentQueueIndex;
-  std::optional<uint32_t> computeQueueIndex;
 
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
-  std::map<uint32_t, CommandsHandler> commandManagers;
+  CommandsHandler commands;
+
+  std::unordered_map<QueueRole, uint32_t> queueFamilyIndices{
+      {QueueRole::Graphics, graphicsQueueIndex},
+      { QueueRole::Present,  presentQueueIndex},
+      { QueueRole::Compute,  computeQueueIndex}
+  };
+
+   public:
+  std::optional<uint32_t> graphicsQueueIndex;
+  std::optional<uint32_t> presentQueueIndex;
+  std::optional<uint32_t> computeQueueIndex;
+
+  QueueManager(
+      VkDevice dev,
+  )
+      : commands()
+  {
+  }
+
+  bool isGraphicPresentSameQueue() const
+  {
+    return graphicsQueueIndex.has_value() && presentQueueIndex.has_value() &&
+           graphicsQueueIndex.value() == presentQueueIndex.value();
+  }
 };
 #endif

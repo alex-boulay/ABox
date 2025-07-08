@@ -1,7 +1,8 @@
 #include "CommandsHandler.hpp"
 #include <stdexcept>
+#include <unordered_map>
 
-CommandsHandler::CommandsHandler(
+CommandBoundElement::CommandBoundElement(
     VkDevice                device,
     VkCommandPoolCreateInfo poolInfo
 )
@@ -17,7 +18,7 @@ CommandsHandler::CommandsHandler(
   }
 }
 
-VkResult CommandsHandler::createCommandBuffer(
+VkResult CommandBoundElement::createCommandBuffer(
     VkDevice             device,
     VkCommandBufferLevel level,
     uint32_t             bufferCount
@@ -42,14 +43,12 @@ VkResult CommandsHandler::createCommandBuffer(
   return result;
 }
 
-// TODO : Map it to the device ???
-//  DBE -> ??
-CommandsHandler::CommandsHandler(
+CommandBoundElement::CommandBoundElement(
     VkDevice                 device,
     uint32_t                 queueFamilyIndex,
     VkCommandPoolCreateFlags createFlags
 )
-    : CommandsHandler(
+    : CommandBoundElement(
           device,
           {.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
            .pNext            = nullptr,
@@ -59,7 +58,7 @@ CommandsHandler::CommandsHandler(
 {
 }
 
-VkResult CommandsHandler::recordCommandBuffer(
+VkResult CommandBoundElement::recordCommandBuffer(
     GraphicsPipeline gp,
     SwapchainManager sm,
     uint32_t         imageIndex,
@@ -129,4 +128,16 @@ VkResult CommandsHandler::recordCommandBuffer(
   }
 
   return result;
+}
+
+//----------------------------
+//---- CommandHandler --------
+//----------------------------
+
+CommandsHandler::CommandsHandler(
+    VkDevice                                       device,
+    const std::unordered_map<QueueRole, uint32_t> &queueFamilyIndices,
+    VkCommandPoolCreateFlags                       createFlags
+)
+{
 }

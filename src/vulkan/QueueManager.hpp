@@ -15,9 +15,6 @@
 #include <unordered_map>
 #include <vulkan/vulkan_core.h>
 
-// Bind Queue Roles To Shaders Management too ?
-enum class QueueRole { Graphics, Present, Compute, Transfer };
-
 class QueueManager {
 
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??

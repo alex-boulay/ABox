@@ -3,6 +3,7 @@
 
 #include "GraphicsPipeline.hpp"
 #include "MemoryWrapper.hpp"
+#include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -12,15 +13,19 @@ DEFINE_VK_MEMORY_WRAPPER(
     vkDestroyCommandPool
 )
 
-class CommandsHandler {
+// Bind Queue Roles To Shaders Management too ?
+// This enum should be in the queueManager but trough dependencies calls ends
+// here for the moment
+enum class QueueRole { Graphics, Present, Compute, Transfer };
 
+class CommandBoundElement {
+   public:
   CommandPoolWrapper           commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
 
-   public:
-  CommandsHandler(VkDevice device, VkCommandPoolCreateInfo poolInfo);
+  CommandBoundElement(VkDevice device, VkCommandPoolCreateInfo poolInfo);
 
-  CommandsHandler(
+  CommandBoundElement(
       VkDevice                 device,
       uint32_t                 queueFamilyIndex,
       VkCommandPoolCreateFlags createFlags =
@@ -47,6 +52,19 @@ class CommandsHandler {
   {
     return commandBuffers.at(index);
   }
+};
+
+class CommandsHandler {
+  std::list<CommandBoundElement> CBEs; // CommandBoundElements
+  std::unordered_map<QueueRole, CommandBoundElement *> roleBindings;
+
+   public:
+  CommandsHandler(
+      VkDevice                                       device,
+      const std::unordered_map<QueueRole, uint32_t> &queueFamilyIndices,
+      VkCommandPoolCreateFlags                       createFlags =
+          VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
+  );
 };
 
 #endif // COMMANDS_HANDLER_HPP

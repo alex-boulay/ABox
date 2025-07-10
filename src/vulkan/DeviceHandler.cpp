@@ -1,4 +1,5 @@
 #include "DeviceHandler.hpp"
+#include "CommandsHandler.hpp"
 #include "ShaderHandler.hpp"
 #include "vectorUtils.hpp"
 #include <bitset>
@@ -76,8 +77,6 @@ uint32_t queueFamilyQueueCount(
 {
   return std::bitset<sizeof(qfp.queueFlags) * CHAR_BIT>(qfp.queueFlags).count();
 }
-
-std::set<uint32_t> QueueFamilyIndices_ = {};
 
 uint32_t DeviceHandler::listQueueFamilies()
 {
@@ -169,14 +168,15 @@ VkResult DeviceHandler::listPhysicalDevices() const
   return index > 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
 }
 
-QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
-    uint32_t     phyDev,
-    VkSurfaceKHR surface
-)
+std::unordered_map<QueueRole, uint32_t>
+    DeviceHandler::loadNecessaryQueueFamilies(
+        uint32_t     phyDev,
+        VkSurfaceKHR surface
+    )
 {
-  QueueFamilyIndices result;
-  uint32_t           queueCount = 0;
-  VkPhysicalDevice   pPD        = phyDevices.at(phyDev);
+  std::unordered_map<QueueRole, uint32_t> result;
+  uint32_t                                queueCount = 0;
+  VkPhysicalDevice                        pPD        = phyDevices.at(phyDev);
   vkGetPhysicalDeviceQueueFamilyProperties(pPD, &queueCount, nullptr);
   std::vector<VkQueueFamilyProperties> queueFamilies(queueCount);
   vkGetPhysicalDeviceQueueFamilyProperties(
@@ -186,13 +186,13 @@ QueueFamilyIndices DeviceHandler::loadNecessaryQueueFamilies(
   );
   for (uint32_t i = 0; i < queueCount; i++) {
     if (hasGraphicQueue(queueFamilies.at(i))) {
-      result.graphicsQueueIndex = i;
+      result[QueueRole::Graphics] = i;
       break;
     }
   }
   for (uint32_t i = 0; i < queueCount; i++) {
     if (supportsPresentation(pPD, surface, i)) {
-      result.presentQueueIndex = i;
+      result[QueueRole::Present] = i;
       break;
     }
   }
@@ -234,8 +234,8 @@ VkResult DeviceHandler::addLogicalDevice(
   }
   const float queuePriority = 1.0f;
 
-  VkPhysicalDevice   phydev   = phyDevices[findBestPhysicalDevice()];
-  QueueFamilyIndices fIndices = loadNecessaryQueueFamilies(index, surface);
+  VkPhysicalDevice phydev   = phyDevices[findBestPhysicalDevice()];
+  auto             fIndices = loadNecessaryQueueFamilies(index, surface);
 
   std::vector<VkDeviceQueueCreateInfo> qCI;
 

@@ -39,11 +39,11 @@ struct QueueFamilyIndices {
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper      device;
-  VkPhysicalDevice   physical;
-  QueueFamilyIndices fIndices;
-  FrameSyncArray     syncM;
-  CommandsHandler    commands;
+  DeviceWrapper    device;
+  VkPhysicalDevice physical;
+  // QueueFamilyIndices             fIndices;
+  FrameSyncArray   syncM;
+  CommandsHandler  commands;
 
    public:
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
@@ -54,14 +54,14 @@ class DeviceBoundElements {
   std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
 
   DeviceBoundElements(
-      VkDevice           logDevice,
-      VkPhysicalDevice   phyDev,
-      QueueFamilyIndices familyIndices
+      VkDevice                                logDevice,
+      VkPhysicalDevice                        phyDev,
+      std::unordered_map<QueueRole, uint32_t> queueRoleIndices
   )
       : device(logDevice)
       , physical(phyDev)
-      , fIndices(familyIndices)
       , syncM(logDevice) // TODO size )
+      , commands(device, queueRoleIndices)
   {
   }
   DELETE_MOVE(DeviceBoundElements);
@@ -70,10 +70,11 @@ class DeviceBoundElements {
 
   const DeviceWrapper &getDevice() const { return device; }
 
-  DeviceWrapper     *getDevicePtr() { return &device; }
-  VkPhysicalDevice   getPhysicalDevice() { return physical; }
-  QueueFamilyIndices getFamilyQueueIndices() { return fIndices; }
-  FrameSyncArray    *getFrameSyncArray() { return &syncM; }
+  DeviceWrapper   *getDevicePtr() { return &device; }
+  VkPhysicalDevice getPhysicalDevice() { return physical; }
+  // QueueFamilyIndices getFamilyQueueIndices() { return fIndices; }
+  FrameSyncArray  *getFrameSyncArray() { return &syncM; }
+  CommandsHandler *getCommandHandler() { return &commands; }
 };
 
 /**
@@ -118,9 +119,8 @@ class DeviceHandler {
   // TODO : VkResult clear();
   uint32_t listQueueFamilies();
   VkResult DeviceExtensionSupport(VkPhysicalDevice device);
-  QueueFamilyIndices
-      loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
-
+  std::unordered_map<QueueRole, uint32_t>
+           loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
   uint32_t findBestPhysicalDevice();
 
   DeviceHandler() {};

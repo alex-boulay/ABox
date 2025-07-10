@@ -22,11 +22,17 @@ class CommandBoundElement {
    public:
   CommandPoolWrapper           commandPool;
   std::vector<VkCommandBuffer> commandBuffers;
+  QueueRole                    queueRole;
 
-  CommandBoundElement(VkDevice device, VkCommandPoolCreateInfo poolInfo);
+  CommandBoundElement(
+      VkDevice                device,
+      QueueRole               qRole,
+      VkCommandPoolCreateInfo poolInfo
+  );
 
   CommandBoundElement(
       VkDevice                 device,
+      QueueRole                qRole,
       uint32_t                 queueFamilyIndex,
       VkCommandPoolCreateFlags createFlags =
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
@@ -55,8 +61,7 @@ class CommandBoundElement {
 };
 
 class CommandsHandler {
-  std::list<CommandBoundElement> CBEs; // CommandBoundElements
-  std::unordered_map<QueueRole, CommandBoundElement *> roleBindings;
+  std::list<CommandBoundElement> CBEs;
 
    public:
   CommandsHandler(

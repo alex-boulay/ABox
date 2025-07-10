@@ -4,9 +4,11 @@
 
 CommandBoundElement::CommandBoundElement(
     VkDevice                device,
+    QueueRole               qRole,
     VkCommandPoolCreateInfo poolInfo
 )
     : commandPool(device)
+    , queueRole(qRole)
 {
   VkResult result =
       vkCreateCommandPool(device, &poolInfo, nullptr, commandPool.ptr());
@@ -45,11 +47,13 @@ VkResult CommandBoundElement::createCommandBuffer(
 
 CommandBoundElement::CommandBoundElement(
     VkDevice                 device,
+    QueueRole                qRole,
     uint32_t                 queueFamilyIndex,
     VkCommandPoolCreateFlags createFlags
 )
     : CommandBoundElement(
           device,
+          qRole,
           {.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
            .pNext            = nullptr,
            .flags            = createFlags,
@@ -140,4 +144,7 @@ CommandsHandler::CommandsHandler(
     VkCommandPoolCreateFlags                       createFlags
 )
 {
+  for (const auto &[role, index] : queueFamilyIndices) {
+    CBEs.emplace_back(device, role, index, createFlags);
+  }
 }

@@ -200,21 +200,18 @@ std::unordered_map<QueueRole, uint32_t>
 }
 
 std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
-    QueueFamilyIndices fi
+    std::unordered_map<QueueRole, uint32_t> fi
 )
 {
   std::set<uint32_t> indices;
-  if (fi.graphicsQueueIndex.has_value()) {
-    indices.insert(fi.graphicsQueueIndex.value());
-  }
-  if (fi.presentQueueIndex.has_value()) {
-    indices.insert(fi.presentQueueIndex.value());
+  for (auto [key, val] : fi) {
+    indices.insert(val);
   }
   return indices;
 }
 
 std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices(
-    QueueFamilyIndices fi
+    std::unordered_map<QueueRole, uint32_t> fi
 )
 {
   auto s = getQueueFamilyIndices(fi);
@@ -234,8 +231,9 @@ VkResult DeviceHandler::addLogicalDevice(
   }
   const float queuePriority = 1.0f;
 
-  VkPhysicalDevice phydev   = phyDevices[findBestPhysicalDevice()];
-  auto             fIndices = loadNecessaryQueueFamilies(index, surface);
+  VkPhysicalDevice phydev = phyDevices[findBestPhysicalDevice()];
+  std::unordered_map<QueueRole, uint32_t> fIndices =
+      loadNecessaryQueueFamilies(index, surface);
 
   std::vector<VkDeviceQueueCreateInfo> qCI;
 
@@ -286,13 +284,13 @@ VkResult DeviceHandler::addLogicalDevice(
   }
   vkGetDeviceQueue(
       dev,
-      fIndices.graphicsQueueIndex.value(),
+      fIndices.at(QueueRole::Graphics),
       0,
       &devices.back().graphicsQueue
   );
   vkGetDeviceQueue(
       dev,
-      fIndices.presentQueueIndex.value(),
+      fIndices.at(QueueRole::Present),
       0u,
       &(devices.back().presentQueue)
   );

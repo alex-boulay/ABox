@@ -86,8 +86,10 @@ class DeviceHandler {
   std::list<DeviceBoundElements>               devices;
   std::map<std::string, DeviceBoundElements *> deviceNames;
 
-  std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);
-  std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);
+  std::set<uint32_t>
+      getQueueFamilyIndices(std::unordered_map<QueueRole, uint32_t> fi);
+  std::vector<uint32_t>
+      listQueueFamilyIndices(std::unordered_map<QueueRole, uint32_t> fi);
 
    public:
   DELETE_COPY(DeviceHandler);

@@ -26,24 +26,15 @@ DEFINE_VK_MEMORY_WRAPPER_SOLO(
 )
 
 /**
- * @struct QueueFamilyIndices
- * @brief represent optional queue family indices
- */
-struct QueueFamilyIndices {
-  std::optional<uint32_t> graphicsQueueIndex;
-  std::optional<uint32_t> presentQueueIndex;
-};
-
-/**
  * @struct DeviceBoundElements
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper    device;
-  VkPhysicalDevice physical;
-  // QueueFamilyIndices             fIndices;
-  FrameSyncArray   syncM;
-  CommandsHandler  commands;
+  DeviceWrapper      device;
+  VkPhysicalDevice   physical;
+  QueueFamilyIndices fIndices;
+  FrameSyncArray     syncM;
+  CommandsHandler    commands;
 
    public:
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
@@ -54,9 +45,9 @@ class DeviceBoundElements {
   std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
 
   DeviceBoundElements(
-      VkDevice                                logDevice,
-      VkPhysicalDevice                        phyDev,
-      std::unordered_map<QueueRole, uint32_t> queueRoleIndices
+      VkDevice           logDevice,
+      VkPhysicalDevice   phyDev,
+      QueueFamilyIndices queueRoleIndices
   )
       : device(logDevice)
       , physical(phyDev)
@@ -70,11 +61,11 @@ class DeviceBoundElements {
 
   const DeviceWrapper &getDevice() const { return device; }
 
-  DeviceWrapper   *getDevicePtr() { return &device; }
-  VkPhysicalDevice getPhysicalDevice() { return physical; }
-  // QueueFamilyIndices getFamilyQueueIndices() { return fIndices; }
-  FrameSyncArray  *getFrameSyncArray() { return &syncM; }
-  CommandsHandler *getCommandHandler() { return &commands; }
+  DeviceWrapper     *getDevicePtr() { return &device; }
+  VkPhysicalDevice   getPhysicalDevice() { return physical; }
+  QueueFamilyIndices getFamilyQueueIndices() { return fIndices; }
+  FrameSyncArray    *getFrameSyncArray() { return &syncM; }
+  CommandsHandler   *getCommandHandler() { return &commands; }
 };
 
 /**
@@ -86,10 +77,11 @@ class DeviceHandler {
   std::list<DeviceBoundElements>               devices;
   std::map<std::string, DeviceBoundElements *> deviceNames;
 
-  std::set<uint32_t>
-      getQueueFamilyIndices(std::unordered_map<QueueRole, uint32_t> fi);
-  std::vector<uint32_t>
-      listQueueFamilyIndices(std::unordered_map<QueueRole, uint32_t> fi);
+  std::set<uint32_t> getQueueFamilyIndices(QueueFamilyIndices fi
+  ); // TODO aim for a loaded device instead
+
+  std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi
+  ); // TODO aim for a loaded device Instead
 
    public:
   DELETE_COPY(DeviceHandler);

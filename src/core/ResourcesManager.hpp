@@ -150,9 +150,14 @@ class ResourcesManager {
         .waitSemaphoreCount = 1u,
         .pWaitSemaphores =
             dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.ptr(),
-        .pWaitDstStageMask    = waitStages,
-        .commandBufferCount   = 1u,
-        .pCommandBuffers      =, // TODO after bound to queue management -
+        .pWaitDstStageMask = waitStages,
+        .commandBufferCount =
+            static_cast<uint32_t>( // TODO maybe not size but binding to a
+                                   // specific one
+                dbe->getCommandHandler()->top().commandBuffers.size()
+            ),
+        .pCommandBuffers = dbe->getCommandHandler()->top().commandBuffers.data(
+        ), // TODO after bound to queue management -
         .signalSemaphoreCount = 1,
         .pSignalSemaphores =
             dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),

@@ -17,7 +17,7 @@ DEFINE_VK_MEMORY_WRAPPER(
 // This enum should be in the queueManager but trough dependencies calls ends
 // here for the moment
 enum class QueueRole { Graphics, Present, Compute, Transfer };
-
+using QueueFamilyIndices = std::unordered_map<QueueRole, uint32_t>;
 class CommandBoundElement {
    public:
   CommandPoolWrapper           commandPool;
@@ -70,6 +70,8 @@ class CommandsHandler {
       VkCommandPoolCreateFlags                       createFlags =
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
   );
+
+  CommandBoundElement &top() { return CBEs.back(); }
 };
 
 #endif // COMMANDS_HANDLER_HPP

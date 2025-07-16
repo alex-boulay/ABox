@@ -200,7 +200,7 @@ std::unordered_map<QueueRole, uint32_t>
 }
 
 std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
-    std::unordered_map<QueueRole, uint32_t> fi
+    QueueFamilyIndices fi
 )
 {
   std::set<uint32_t> indices;
@@ -211,7 +211,7 @@ std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
 }
 
 std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices(
-    std::unordered_map<QueueRole, uint32_t> fi
+    QueueFamilyIndices fi
 )
 {
   auto s = getQueueFamilyIndices(fi);
@@ -410,18 +410,18 @@ VkResult DeviceHandler::addSwapchain(
   std::cout << "DBE logical " << (void *)getDevice(devIndex) << '\n';
   std::cout << "DBE surface " << (void *)surface << '\n';
   std::cout << "DBE rQDI " << std::boolalpha
-            << devicePtr->getFamilyQueueIndices().presentQueueIndex.has_value()
+            << devicePtr->getFamilyQueueIndices().at(QueueRole::Present)
             << '\n';
   std::cout << "DBE gQDI " << std::boolalpha
-            << devicePtr->getFamilyQueueIndices().graphicsQueueIndex.has_value()
+            << devicePtr->getFamilyQueueIndices().at(QueueRole::Graphics)
             << '\n';
 
   getDBE(devIndex)->swapchain.emplace(
       devicePtr->getPhysicalDevice(),
       surface,
       getDevice(devIndex),
-      devicePtr->getFamilyQueueIndices().presentQueueIndex.value(),
-      devicePtr->getFamilyQueueIndices().graphicsQueueIndex.value(),
+      devicePtr->getFamilyQueueIndices().at(QueueRole::Present),
+      devicePtr->getFamilyQueueIndices().at(QueueRole::Graphics),
       width,
       height
   );

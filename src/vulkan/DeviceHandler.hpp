@@ -30,11 +30,11 @@ DEFINE_VK_MEMORY_WRAPPER_SOLO(
  * @brief Represents elements bounded to the Logical Device
  */
 class DeviceBoundElements {
-  DeviceWrapper      device;
-  VkPhysicalDevice   physical;
-  QueueFamilyIndices fIndices;
-  FrameSyncArray     syncM;
-  CommandsHandler    commands;
+  DeviceWrapper            device;
+  VkPhysicalDevice         physical;
+  const QueueFamilyIndices fIndices;
+  FrameSyncArray           syncM;
+  CommandsHandler          commands;
 
    public:
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
@@ -51,8 +51,9 @@ class DeviceBoundElements {
   )
       : device(logDevice)
       , physical(phyDev)
-      , syncM(logDevice) // TODO size )
-      , commands(device, queueRoleIndices)
+      , syncM(logDevice)
+      , fIndices(queueRoleIndices)
+      , commands(device, fIndices)
   {
   }
   DELETE_MOVE(DeviceBoundElements);

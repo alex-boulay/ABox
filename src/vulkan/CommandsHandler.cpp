@@ -145,6 +145,8 @@ CommandsHandler::CommandsHandler(
 )
 {
   for (const auto &[role, index] : queueFamilyIndices) {
+    std::cout << "Role " << role << " - QueueFamily Index : " << index
+              << std::endl;
     CBEs.emplace_back(device, role, index, createFlags);
   }
 }

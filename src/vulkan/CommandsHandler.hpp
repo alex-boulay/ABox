@@ -17,6 +17,20 @@ DEFINE_VK_MEMORY_WRAPPER(
 // This enum should be in the queueManager but trough dependencies calls ends
 // here for the moment
 enum class QueueRole { Graphics, Present, Compute, Transfer };
+inline std::ostream &operator<<(
+    std::ostream &os,
+    QueueRole     role
+)
+{
+  switch (role) {
+    case QueueRole::Graphics: os << "Graphics"; break;
+    case QueueRole::Present: os << "Present"; break;
+    case QueueRole::Compute: os << "Compute"; break;
+    case QueueRole::Transfer: os << "Transfer"; break;
+    default: os << "Unknown"; break;
+  }
+  return os;
+}
 using QueueFamilyIndices = std::unordered_map<QueueRole, uint32_t>;
 class CommandBoundElement {
    public:

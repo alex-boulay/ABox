@@ -171,19 +171,19 @@ class ResourcesManager {
     if (result != VK_SUCCESS) {
       throw std::runtime_error("failed to submit draw command buffer!");
     }
-    /** TODO
-            VkSwapchainKHR swapChains[] = {};
-        VkPresentInfoKHR   presentInfo{
-              .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
-              .pNext              = nullptr,
-              .waitSemaphoreCount = 1u,
-              .pWaitSemaphores    = signalSemaphores,
-              .swapchainCount     = 1u,
-              .pSwapchains        = swapChains,
-              .pImageIndices      = &imageIndex,
-              .pResults           = nullptr
-        };
-        vkQueuePresentKHR(presentQueue, &presentInfo);*/
+    VkPresentInfoKHR presentInfo{
+        .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+        .pNext              = nullptr,
+        .waitSemaphoreCount = 1u,
+        .pWaitSemaphores =
+
+            dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
+        .swapchainCount = 1u,
+        .pSwapchains    = dbe->swapchain.value().swapchainPtr(),
+        .pImageIndices  = &imageIndex,
+        .pResults       = nullptr
+    };
+    vkQueuePresentKHR(dbe->presentQueue, &presentInfo);
 
     dbe->getFrameSyncArray()->incrementFrameIndex();
     return;

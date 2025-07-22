@@ -2,7 +2,10 @@
 #include <stdexcept>
 #include <unordered_map>
 
-CommandBoundElement::CommandBoundElement(VkDevice device, QueueRole qRole, VkCommandPoolCreateInfo poolInfo)
+CommandBoundElement::CommandBoundElement(VkDevice                device,
+                                         QueueRole               qRole,
+                                         VkCommandPoolCreateInfo poolInfo,
+                                         uint32_t                bufferCount)
     : commandPool(device)
     , queueRole(qRole)
 {
@@ -15,9 +18,10 @@ CommandBoundElement::CommandBoundElement(VkDevice device, QueueRole qRole, VkCom
     {
         std::cout << " CommandPool allocated ! " << std::endl;
     }
+    createCommandBuffer(device, bufferCount);
 }
 
-VkResult CommandBoundElement::createCommandBuffer(VkDevice device, VkCommandBufferLevel level, uint32_t bufferCount)
+VkResult CommandBoundElement::createCommandBuffer(VkDevice device, uint32_t bufferCount, VkCommandBufferLevel level)
 {
     commandBuffers.resize(bufferCount);
     VkCommandBufferAllocateInfo alInfo{.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
@@ -28,7 +32,7 @@ VkResult CommandBoundElement::createCommandBuffer(VkDevice device, VkCommandBuff
     VkResult                    result = vkAllocateCommandBuffers(device, &alInfo, commandBuffers.data());
     if (result == VK_SUCCESS)
     {
-        std::cout << "Command Buffer allocation Sucessfull" << std::endl;
+        std::cout << "Command Buffer allocation Sucessfull - Size : " << commandBuffers.size() << std::endl;
     }
     else
     {
@@ -40,13 +44,15 @@ VkResult CommandBoundElement::createCommandBuffer(VkDevice device, VkCommandBuff
 CommandBoundElement::CommandBoundElement(VkDevice                 device,
                                          QueueRole                qRole,
                                          uint32_t                 queueFamilyIndex,
+                                         uint32_t                 bufferCount,
                                          VkCommandPoolCreateFlags createFlags)
     : CommandBoundElement(device,
                           qRole,
                           {.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO,
                            .pNext            = nullptr,
                            .flags            = createFlags,
-                           .queueFamilyIndex = queueFamilyIndex})
+                           .queueFamilyIndex = queueFamilyIndex},
+                          bufferCount)
 {
 }
 
@@ -112,6 +118,9 @@ CommandsHandler::CommandsHandler(VkDevice                                       
     for (const auto &[role, index] : queueFamilyIndices)
     {
         std::cout << "Role " << role << " - QueueFamily Index : " << index << std::endl;
-        CBEs.emplace_back(device, role, index, createFlags);
+        if (role == QueueRole::Graphics)
+            CBEs.emplace_back(device, role, index, createFlags, INFLIGHT_NUMBER_OF_ELEMENTS);
+        else if (role != QueueRole::Present)    // doesn't need a Command Buffer
+            CBEs.emplace_back(device, role, index, createFlags);
     }
 }

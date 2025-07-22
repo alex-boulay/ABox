@@ -52,18 +52,19 @@ public:
     std::vector<VkCommandBuffer> commandBuffers;
     QueueRole                    queueRole;
 
-    CommandBoundElement(VkDevice device, QueueRole qRole, VkCommandPoolCreateInfo poolInfo);
+    CommandBoundElement(VkDevice device, QueueRole qRole, VkCommandPoolCreateInfo poolInfo, uint32_t bufferCount);
 
     CommandBoundElement(VkDevice                 device,
                         QueueRole                qRole,
                         uint32_t                 queueFamilyIndex,
+                        uint32_t                 bufferCount,
                         VkCommandPoolCreateFlags createFlags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT);
 
     // TODO : Analyse wanted behavior - Might not suit all needs
     // Behave like a start to end with a fillup -> enhance.
     VkResult        createCommandBuffer(VkDevice             device,
-                                        VkCommandBufferLevel level       = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-                                        uint32_t             bufferCount = 1u);
+                                        uint32_t             bufferCount,
+                                        VkCommandBufferLevel level = VK_COMMAND_BUFFER_LEVEL_PRIMARY);
 
     VkResult        recordCommandBuffer(GraphicsPipeline &gp,
                                         SwapchainManager &sm,

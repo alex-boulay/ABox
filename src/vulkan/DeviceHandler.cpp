@@ -237,6 +237,7 @@ VkResult DeviceHandler::addLogicalDevice(
 
   std::vector<VkDeviceQueueCreateInfo> qCI;
 
+  std::cout << "Logical Device before for " << std::endl;
   for (uint32_t famIndex : listQueueFamilyIndices(fIndices)) {
     qCI.push_back(VkDeviceQueueCreateInfo{
         .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -247,6 +248,7 @@ VkResult DeviceHandler::addLogicalDevice(
         .pQueuePriorities = &queuePriority
     });
   }
+  std::cout << "Step Logical device after for " << std::endl;
   std::vector<const char *> devExtVect(
       deviceExtensions.begin(),
       deviceExtensions.end()
@@ -282,12 +284,17 @@ VkResult DeviceHandler::addLogicalDevice(
     std::cout << "Logical Device Assignment Failure, Result Code : " << res
               << '\n';
   }
+  std::cout << "fIndices size " << fIndices.size() << std::endl;
+  for (const auto &[key, value] : fIndices) {
+    std::cout << "key " << key << " val " << value << std::endl;
+  }
   vkGetDeviceQueue(
       dev,
       fIndices.at(QueueRole::Graphics),
       0,
       &devices.back().graphicsQueue
   );
+
   vkGetDeviceQueue(
       dev,
       fIndices.at(QueueRole::Present),

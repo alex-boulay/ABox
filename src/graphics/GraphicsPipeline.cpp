@@ -1,8 +1,9 @@
-#include "GraphicsPipeline.hpp"
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
+//
+#include "GraphicsPipeline.hpp"
 
 GraphicsPipeline::GraphicsPipeline(
     const SwapchainManager                      &sm,

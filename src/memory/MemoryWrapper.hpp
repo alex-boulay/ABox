@@ -4,39 +4,12 @@
 #include "PreProcUtils.hpp"
 #include <vulkan/vulkan_core.h>
 
-#ifdef DEBUG_VK_ABOX
-  #include <iostream> // Used in MACRO so no direct call but mandatory
-#endif
+#include <iostream> // Used in MACRO so no direct call but mandatory
 
-/**
-template <typename T> class MemoryWrapper {
-  std::function<void()> destroy;
-  T                     container;
-
-   public:
-  MemoryWrapper(
-      T                     item,
-      std::function<void()> destroy
-  )
-      : destroy(destroy)
-      , container(item)
-  {
-  }
-
-  T     &get() { return container; }
-  T     *ptr() { return &container; }
-  inline operator T() const { return container; }
-
-  ~MemoryWrapper() { destroy(); }
-
-  DELETE_COPY(MemoryWrapper);
-
-};
-*/
 template <typename T, typename VkD, typename VkP = std::nullptr_t>
 class MemoryWrapper {
-  VkP                          vulkanParent;
   T                            container;
+  VkP                          vulkanParent;
   VkD                          vulkanDestructionFunction;
   const VkAllocationCallbacks *pAllocator;
 
@@ -47,9 +20,9 @@ class MemoryWrapper {
       VkD                          destructionFunction,
       const VkAllocationCallbacks *pAllocator = nullptr
   )
-      : vulkanDestructionFunction(destructionFunction)
+      : container(item)
       , vulkanParent(parent)
-      , container(item)
+      , vulkanDestructionFunction(destructionFunction)
       , pAllocator(pAllocator)
   {
   }
@@ -61,12 +34,15 @@ class MemoryWrapper {
     std::cout << " ---- Destruction of Memory wrapper -- container "
               << (void *)this->get() << std::endl;
 #endif
+
     if (this->get() != VK_NULL_HANDLE) {
       if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
+
 #ifdef DEBUG_VK_ABOX
         std::cout << " ---- Destruction of Memory wrapper -> no parent"
                   << std::endl;
 #endif
+
         vulkanDestructionFunction(container, pAllocator);
       }
       else {
@@ -87,9 +63,9 @@ class MemoryWrapper {
   MemoryWrapper(
       MemoryWrapper &&other
   ) noexcept
-      : vulkanDestructionFunction(other.vulkanDestructionFunction)
+      : container(other.container)
       , vulkanParent(other.vulkanParent)
-      , container(other.container)
+      , vulkanDestructionFunction(other.vulkanDestructionFunction)
       , pAllocator(other.pAllocator)
   {
     other.container                 = VK_NULL_HANDLE;
@@ -168,42 +144,4 @@ class MemoryWrapper {
     {                                                                          \
     }                                                                          \
   };
-
-/**
-#ifdef DEBUG_VK_ABOX
-  #define VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)        \
-    [this, dev, pAllocator]() {                                                \
-      std::cout << " ---- Destruction of " << TOSTRING(Name) << " "            \
-                << TOSTRING(DestroyFunc) << "\n   -> device value"             \
-                << (void *)dev << " -- container " << (void *)this->get()      \
-                << std::endl;                                                  \
-      if (this->get() != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {            \
-        DestroyFunc(dev, this->get(), pAllocator);                             \
-      }                                                                        \
-    }
-#else
-  #define VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)        \
-    [this, dev, pAllocator]() {                                                \
-      if (this->get() != VK_NULL_HANDLE && dev != VK_NULL_HANDLE) {            \
-        DestroyFunc(dev, this->get(), pAllocator);                             \
-      }                                                                        \
-    }
-#endif
-
-#define DEFINE_VK_MEMORY_WRAPPER(Type, Name, DestroyFunc)                      \
-  class Name##Wrapper : public MemoryWrapper<Type> {                           \
-     public:                                                                   \
-    Name##Wrapper(                                                             \
-        VkDevice dev,                                                          \
-        Type     object                         = VK_NULL_HANDLE,              \
-        const VkAllocationCallbacks *pAllocator = nullptr                      \
-    )                                                                          \
-        : MemoryWrapper<Type>(                                                 \
-              object,                                                          \
-              VK_WRAPPER_DESTROY_LAMBDA(Name, DestroyFunc, dev, pAllocator)    \
-          )                                                                    \
-    {                                                                          \
-    }                                                                          \
-  };
-*/
 #endif // MEMORY_WRAPPER

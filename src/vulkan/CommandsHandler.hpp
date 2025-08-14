@@ -78,6 +78,12 @@ class CommandBoundElement {
   {
     return commandBuffers.at(index);
   }
+  VkCommandBuffer *getCommandBufferPtr(
+      uint32_t index
+  )
+  {
+    return &commandBuffers.at(index);
+  }
 };
 
 class CommandsHandler {

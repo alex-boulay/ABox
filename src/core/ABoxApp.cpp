@@ -1,5 +1,6 @@
 #include "ABoxApp.hpp"
 #include "ShaderHandler.hpp"
+#include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <cstring>
@@ -11,6 +12,7 @@ void ABoxApp::run()
     rs.drawFrame(); // TODO better management in case of no display or compute.
     // std::cout << "FRAMING " << std::endl;
   }
+  // TODO -> rs.waitIdle() Waiting for everything to be idle
 }
 
 ABoxApp::ABoxApp()

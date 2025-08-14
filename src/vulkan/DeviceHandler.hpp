@@ -78,7 +78,7 @@ class DeviceBoundElements {
       uint32_t commandBufferIndex
   )
   {
-    std::cout << "Recording commends Img " << imageIndex
+    std::cout << "Recording commands Img " << imageIndex
               << " commandBufferIndex : " << commandBufferIndex << std::endl;
     return commands.top().recordCommandBuffer(
         graphicsppl.value(),

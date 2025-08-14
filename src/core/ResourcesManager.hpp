@@ -128,7 +128,9 @@ class ResourcesManager {
   {
     uint32_t                         imageIndex;
     ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
+    std::cout << "Got main deviceHandler" << std::endl;
     dbe->getFrameSyncArray()->waitAndReset(dbe->getDevice());
+    std::cout << "Wait and reset done" << std::endl;
 
     vkAcquireNextImageKHR(
         dbe->getDevice(),
@@ -138,14 +140,18 @@ class ResourcesManager {
         VK_NULL_HANDLE,
         &imageIndex
     );
-    dbe->recordCommandBuffer(
-        imageIndex,
-        dbe->getFrameSyncArray()->getFrameIndex()
-    );
+    const uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
+    std::cout << "ImageIndex " << imageIndex << std::endl;
+    std::cout << "FameIndex " << frameIndex << std::endl;
+
+    dbe->recordCommandBuffer(imageIndex, frameIndex);
+
+    std::cout << "recordCommandBuffer done : " << std::endl;
 
     VkPipelineStageFlags waitStages[] = {
         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
     };
+
     VkSubmitInfo submitInfo{
         .sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO,
         .pNext              = nullptr,
@@ -156,10 +162,11 @@ class ResourcesManager {
         .commandBufferCount =
             static_cast<uint32_t>( // TODO maybe not size but binding to a
                                    // specific one
-                dbe->getCommandHandler()->top().commandBuffers.size()
+                1u // dbe->getCommandHandler()->top().commandBuffers.size()
             ),
-        .pCommandBuffers = dbe->getCommandHandler()->top().commandBuffers.data(
-        ), // TODO after bound to queue management -
+        .pCommandBuffers =
+            dbe->getCommandHandler()->top().getCommandBufferPtr(frameIndex
+            ), // TODO after bound to queue management -
         .signalSemaphoreCount = 1,
         .pSignalSemaphores =
             dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
@@ -170,9 +177,11 @@ class ResourcesManager {
         &submitInfo,
         dbe->getFrameSyncArray()->getFrameSyncObject()->inFlight
     );
+
     if (result != VK_SUCCESS) {
       throw std::runtime_error("failed to submit draw command buffer!");
     }
+
     VkPresentInfoKHR presentInfo{
         .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
         .pNext              = nullptr,
@@ -185,6 +194,7 @@ class ResourcesManager {
         .pImageIndices  = &imageIndex,
         .pResults       = nullptr
     };
+
     vkQueuePresentKHR(dbe->presentQueue, &presentInfo);
 
     dbe->getFrameSyncArray()->incrementFrameIndex();

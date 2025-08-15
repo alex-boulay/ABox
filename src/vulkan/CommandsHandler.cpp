@@ -126,6 +126,8 @@ VkResult CommandBoundElement::recordCommandBuffer(
       gp.getScissorPtr()
   );
 
+  vkCmdDraw(commandBuffers.at(commandBufferIndex), 3u, 1u, 0u, 0u);
+
   vkCmdEndRenderPass(commandBuffers.at(commandBufferIndex));
 
   result = vkEndCommandBuffer(commandBuffers.at(commandBufferIndex));

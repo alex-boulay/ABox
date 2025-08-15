@@ -132,7 +132,7 @@ class ResourcesManager {
     dbe->getFrameSyncArray()->waitAndReset(dbe->getDevice());
     std::cout << "Wait and reset done" << std::endl;
 
-    vkAcquireNextImageKHR(
+    VkResult result = vkAcquireNextImageKHR(
         dbe->getDevice(),
         dbe->swapchain.value().getSwapchain(),
         UINT64_MAX,
@@ -140,9 +140,17 @@ class ResourcesManager {
         VK_NULL_HANDLE,
         &imageIndex
     );
+    if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+      // dbe->swapchain.recreateSwapChain();
+      std::cout << "Need to recreate Swapchain ! " << std::endl;
+      return;
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+      throw std::runtime_error("failed to acquire swap chain image!");
+    }
     const uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
     std::cout << "ImageIndex " << imageIndex << std::endl;
-    std::cout << "FameIndex " << frameIndex << std::endl;
+    std::cout << "FrameIndex " << frameIndex << std::endl;
 
     dbe->recordCommandBuffer(imageIndex, frameIndex);
 
@@ -171,7 +179,7 @@ class ResourcesManager {
         .pSignalSemaphores =
             dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
     };
-    VkResult result = vkQueueSubmit(
+    result = vkQueueSubmit(
         dbe->graphicsQueue,
         1,
         &submitInfo,

@@ -49,7 +49,7 @@ GraphicsPipeline::GraphicsPipeline(
       .x        = 0.0f,
       .y        = 0.0f,
       .width    = float(scissor.extent.width),
-      .height   = float(scissor.extent.width),
+      .height   = float(scissor.extent.height),
       .minDepth = 0.0f,
       .maxDepth = 1.0f
   };

@@ -31,7 +31,7 @@ class MemoryWrapper {
   {
 
 #ifdef DEBUG_VK_ABOX
-    std::cout << " ---- Destruction of Memory wrapper -- container "
+    std::cout << " ---- Destruction of Memory wrapper -- container : "
               << (void *)this->get() << std::endl;
 #endif
 
@@ -48,7 +48,7 @@ class MemoryWrapper {
       else {
 
 #ifdef DEBUG_VK_ABOX
-        std::cout << " ---- Destruction of Memory wrapper -> parent state"
+        std::cout << " ---- Destruction of Memory wrapper -> parent state : "
                   << (void *)vulkanParent << std::endl;
 #endif
         if (vulkanParent != VK_NULL_HANDLE) {

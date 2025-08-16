@@ -13,16 +13,14 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 #### Development
 
-- Wrapper extra behavior 
-  - Notion of parent -> (device only atm need a template : Device/Instance)
-  - Self Destruction call 
-  - Specific lambda destructions catch with parents callbacks 
-- AutoLoad/Manage DebugHandler
-- CommandPools/ Buffers 
-- Queues 
+- ResourcesManager
+  - WaitIdle on all devices 
+- Debugging Levels 
+  - Global one
+  - Per Frame activate/deactivate
 - Compute Pipelines
   - Deploy
-  - Make them abble to leave alongside GraphicsPipeline
+  - Make them able to leave alongside GraphicsPipeline
   - QueueFamilies optimisations (maxload)
 
 #### Platform 
@@ -31,8 +29,11 @@ glslang-dev glslang-tools spirv-tools GLFW
   - mem tracking 
   - performance
 
+
 ### Do I do ?
 
+- VMA ? 
+- Custom Memmory allocators overloaded with tracy for CPU too ? 
 - Make a config file ? - Handle external compilation ?
 - inlude ImGui loading interface ?
 - Make everything pickable from a menu ? then save it into a config xml/json ?
@@ -48,4 +49,10 @@ glslang-dev glslang-tools spirv-tools GLFW
 - Swapchain
 - Shader ressources handling 
   - need to manage/free them
-
+- Wrapper extra behavior 
+  - Notion of parent -> (device only atm need a template : Device/Instance)
+  - Self Destruction call 
+  - Specific lambda destructions catch with parents callbacks 
+- AutoLoad/Manage DebugHandler
+- CommandPools/ Buffers 
+- Queues

@@ -77,7 +77,8 @@ class SwapchainManager {
       uint32_t         width,
       uint32_t         height
   );
-  ~SwapchainManager() = default;
+
+  //~SwapchainManager() = default;
 
   // Move constructor
   DELETE_COPY(SwapchainManager);

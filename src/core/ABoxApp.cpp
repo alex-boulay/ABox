@@ -13,7 +13,7 @@ void ABoxApp::run()
     // compute.
     //  std::cout << "FRAMING " << std::endl;
   }
-  // TODO -> rs.waitIdle() Waiting for everything to be idle
+  rs.waitIdle(); // Waiting for everything to be idle
 }
 
 ABoxApp::ABoxApp()

@@ -79,6 +79,13 @@ class ResourcesManager {
   VkResult addLogicalDevice();
   VkResult addLogicalDevice(uint32_t physicalDeviceIndex, std::string name);
 
+  inline void waitIdle()
+  {
+    if (deviceHandler.has_value()) {
+      deviceHandler.value().waitIdle();
+    }
+  }
+
   ABox_Utils::DeviceBoundElements *getMainDevice()
   {
     return deviceHandler->getDBE(0u);

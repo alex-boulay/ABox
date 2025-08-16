@@ -135,6 +135,16 @@ class FrameSyncArray {
     );
     vkResetFences(device, 1, framesSync.at(frameIndex).inFlight.ptr());
   }
+  void waitAll(
+      VkDevice device
+  )
+  {
+    for (auto &f : framesSync) {
+      // vkWaitSemaphores(device,f.imageOk, nullptr, UINT64_MAX);
+      // vkWaitSemaphores(device,f.renderEnd,nullptr,UINT64_MAX);
+      vkWaitForFences(device, 1u, f.inFlight.ptr(), VK_TRUE, UINT64_MAX);
+    }
+  }
 };
 
 #endif

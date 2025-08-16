@@ -112,6 +112,7 @@ class DeviceHandler {
 
   VkResult listPhysicalDevices() const;
 
+  void     waitIdle();
   /**
    * @brief add a Logical device while guessing which Physical Device is the
    * best suited to do the job

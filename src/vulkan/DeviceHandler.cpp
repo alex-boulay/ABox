@@ -168,6 +168,14 @@ VkResult DeviceHandler::listPhysicalDevices() const
   return index > 0 ? VK_SUCCESS : VK_ERROR_DEVICE_LOST;
 }
 
+void DeviceHandler::waitIdle()
+{
+  for (auto &dev : devices) {
+    // dev.getFrameSyncArray()->waitAll(dev.getDevice().get());
+    vkDeviceWaitIdle(dev.getDevice().get());
+  }
+}
+
 std::unordered_map<QueueRole, uint32_t>
     DeviceHandler::loadNecessaryQueueFamilies(
         uint32_t     phyDev,

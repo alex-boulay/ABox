@@ -126,11 +126,12 @@ DEFINE_VK_MEMORY_WRAPPER(
  * @member mask
  */
 class ShaderDataFile {
-  const std::string           name;     // name without extensions
-  const std::vector<uint32_t> code;     // Spirv output
-  const stageExtention *const stage;    // Pipeline stage for the shader
-  const SourcePlatform        platform; // in case of recompilation ?
-                                 // ShaderDataFile doesn't handle allocations
+  const std::string           name;  // name without extensions
+  const std::vector<uint32_t> code;  // Spirv output
+  const stageExtention *const stage; // Pipeline stage for the shader
+  [[maybe_unused]] const SourcePlatform
+      platform; // in case of recompilation ?
+                // ShaderDataFile doesn't handle allocations
    public:
   ShaderDataFile(
       const std::string           &name_,

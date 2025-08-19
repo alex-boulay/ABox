@@ -49,8 +49,7 @@ class SwapchainManager {
   std::list<SwapchainImage>     swapChainImages;
   std::list<FramebufferWrapper> framebuffers;
 
-  VkFormat   swapChainImageFormat;
-  VkExtent2D swapChainExtent;
+  VkFormat swapChainImageFormat;
 
   // Listings
   VkSurfaceCapabilitiesKHR        capabilities;
@@ -118,7 +117,19 @@ class SwapchainManager {
   // TODO:
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult
-  // resizeSwapChain(uint32_t width, uint32_t height);
+  VkResult        resizeSwapChain()
+  {
+    // TODO :
+
+    return VK_SUCCESS;
+  }
+  inline VkResult resizeSwapChain(
+      VkExtent2D window
+  )
+  {
+    extent = window;
+    return resizeSwapChain();
+  }
 };
 
 #endif

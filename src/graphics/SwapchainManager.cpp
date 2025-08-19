@@ -128,7 +128,6 @@ SwapchainManager::SwapchainManager(
   );
 
   swapChainImageFormat = surfaceFormat.format;
-  swapChainExtent      = extent;
 
   constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
 
@@ -239,8 +238,8 @@ VkResult SwapchainManager::createFramebuffers(
         .renderPass      = renderPass,
         .attachmentCount = 1u,
         .pAttachments    = a.imageViewWrapper.ptr(),
-        .width           = swapChainExtent.width,
-        .height          = swapChainExtent.height,
+        .width           = extent.width,
+        .height          = extent.height,
         .layers          = 1u
     };
     VkFramebuffer _swapchainFramebuffer;

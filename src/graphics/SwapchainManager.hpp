@@ -117,18 +117,26 @@ class SwapchainManager {
   // TODO:
   // Latter implementation for windowcallback
   // windowManager::resize(SwapchainManager sm): VkResult
-  VkResult        resizeSwapChain()
+  VkResult        resizeSwapChain(
+             VkDevice device
+         )
   {
-    // TODO :
+    vkDeviceWaitIdle(device); // Maybe on the DBE ? with call to swapchain
+    framebuffers.clear();
+    swapChainImages.clear();
+    // Maybe Just reload the whole process from DBE or here separate calls ?
+    // createSwapchain();
+    // createImageViews();
 
     return VK_SUCCESS;
   }
   inline VkResult resizeSwapChain(
+      VkDevice   device,
       VkExtent2D window
   )
   {
     extent = window;
-    return resizeSwapChain();
+    return resizeSwapChain(device);
   }
 };
 

@@ -227,9 +227,9 @@ std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices(
 }
 
 VkResult DeviceHandler::addLogicalDevice(
-    uint32_t     index,
     VkSurfaceKHR surface,
-    std::string  name
+    std::string  name,
+    uint32_t     index
 )
 {
   if (surface == VK_NULL_HANDLE) {
@@ -239,7 +239,7 @@ VkResult DeviceHandler::addLogicalDevice(
   }
   const float queuePriority = 1.0f;
 
-  VkPhysicalDevice phydev = phyDevices[findBestPhysicalDevice()];
+  VkPhysicalDevice                        phydev = phyDevices[index];
   std::unordered_map<QueueRole, uint32_t> fIndices =
       loadNecessaryQueueFamilies(index, surface);
 
@@ -377,7 +377,7 @@ VkResult DeviceHandler::addLogicalDevice(
     VkSurfaceKHR surface
 )
 {
-  return addLogicalDevice(findBestPhysicalDevice(), surface, "main");
+  return addLogicalDevice(surface, "main", findBestPhysicalDevice());
 }
 
 DeviceBoundElements *DeviceHandler::getDBE(

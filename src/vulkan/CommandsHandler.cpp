@@ -160,8 +160,8 @@ CommandsHandler::CommandsHandler(
           device,
           role,
           index,
-          createFlags,
-          INFLIGHT_NUMBER_OF_ELEMENTS
+          INFLIGHT_NUMBER_OF_ELEMENTS,
+          createFlags
       );
     }
     else if (role != QueueRole::Present) { // doesn't need a Command Buffer

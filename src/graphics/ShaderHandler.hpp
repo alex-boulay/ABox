@@ -200,8 +200,9 @@ class ShaderHandler {
   /**@brief uninitialise glsl*/
   inline void finalizeGlsLang()
   {
-    if (isGlsInit && !(isGlsInit ^= isGlsInit)) {
+    if (isGlsInit) {
       glslang::FinalizeProcess();
+      isGlsInit = false;
     }
   }
 

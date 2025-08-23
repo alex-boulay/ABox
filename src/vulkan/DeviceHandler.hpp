@@ -130,7 +130,7 @@ class DeviceHandler {
    * value
    */
   VkResult
-      addLogicalDevice(uint32_t index, VkSurfaceKHR surface, std::string name);
+      addLogicalDevice(VkSurfaceKHR surface, std::string name, uint32_t index);
 
   // TODO : VkResult clear();
   uint32_t listQueueFamilies();

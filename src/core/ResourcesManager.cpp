@@ -105,7 +105,7 @@ VkResult ResourcesManager::addLogicalDevice(
 )
 {
   return deviceHandler.value()
-      .addLogicalDevice(physicalDeviceIndex, getWindowSurface(), name);
+      .addLogicalDevice(getWindowSurface(), name, physicalDeviceIndex);
 }
 
 VkResult ResourcesManager::createSwapchain(

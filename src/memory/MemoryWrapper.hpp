@@ -72,11 +72,13 @@ class MemoryWrapper {
     other.vulkanParent              = VK_NULL_HANDLE;
     other.vulkanDestructionFunction = nullptr;
     other.pAllocator                = nullptr;
+#ifdef DEBUG_VK_ABOX
     std::cout << "Dangerous -> Memory Moved (reference) \n"
               << "previous parent value " << (void *)other.vulkanParent
               << "previous container value " << (void *)other.container << "\n"
               << "current parent value " << (void *)vulkanParent
               << "previous container value " << (void *)container << std::endl;
+#endif
   }
 
   MemoryWrapper &operator=(
@@ -95,11 +97,13 @@ class MemoryWrapper {
       other.pAllocator                = nullptr;
     }
 
+#ifdef DEBUG_VK_ABOX
     std::cout << "Dangerous -> Memory Moved (assigned)"
               << "\nprevious parent value " << (void *)other.vulkanParent
               << "\nprevious container value " << (void *)other.container
               << "\nnew parent value " << (void *)vulkanParent
               << "\nnew container value " << (void *)container << std::endl;
+#endif
     return *this;
   }
   T      get() const { return container; }

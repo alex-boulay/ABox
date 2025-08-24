@@ -206,12 +206,12 @@ VkResult SwapchainManager::chooseSwapExtent(
   }
   else {
     extent = {
-        std::clamp(
+        .width = std::clamp(
             width,
             capabilities.minImageExtent.width,
             capabilities.maxImageExtent.width
         ),
-        extent.height = std::clamp(
+        .height = std::clamp(
             height,
             capabilities.minImageExtent.height,
             capabilities.maxImageExtent.height

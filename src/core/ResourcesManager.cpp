@@ -133,3 +133,99 @@ VkResult ResourcesManager::addGraphicsPipeline(
              ? deviceHandler.value().addGraphicsPipeline(devIndex, smcis)
              : VK_ERROR_DEVICE_LOST;
 }
+VkResult ResourcesManager::createFramebuffers(
+    uint32_t devIndex = 0u
+)
+{
+  if (deviceHandler.has_value()) {
+    return deviceHandler.value().createFramebuffers(devIndex);
+  }
+  else {
+    throw std::runtime_error(
+        "No DeviceHandler allocated - impossible to create a framebuffer !"
+    );
+  }
+}
+void ResourcesManager::drawFrame()
+{
+  uint32_t                         imageIndex;
+  ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
+  std::cout << "Got main deviceHandler" << std::endl;
+  dbe->getFrameSyncArray()->waitAndReset(dbe->getDevice());
+  std::cout << "Wait and reset done" << std::endl;
+
+  VkResult result = vkAcquireNextImageKHR(
+      dbe->getDevice(),
+      dbe->swapchain.value().getSwapchain(),
+      UINT64_MAX,
+      dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.get(),
+      VK_NULL_HANDLE,
+      &imageIndex
+  );
+  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    // dbe->swapchain.recreateSwapChain();
+    std::cout << "Need to recreate Swapchain ! " << std::endl;
+    return;
+  }
+  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    throw std::runtime_error("failed to acquire swap chain image!");
+  }
+  const uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
+  std::cout << "ImageIndex " << imageIndex << std::endl;
+  std::cout << "FrameIndex " << frameIndex << std::endl;
+
+  dbe->recordCommandBuffer(imageIndex, frameIndex);
+
+  std::cout << "recordCommandBuffer done : " << std::endl;
+
+  VkPipelineStageFlags waitStages[] = {
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
+  };
+
+  VkSubmitInfo submitInfo{
+      .sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext              = nullptr,
+      .waitSemaphoreCount = 1u,
+      .pWaitSemaphores =
+          dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.ptr(),
+      .pWaitDstStageMask  = waitStages,
+      .commandBufferCount = static_cast<uint32_t>( // TODO maybe not size but
+                                                   // binding to a specific one
+          1u // dbe->getCommandHandler()->top().commandBuffers.size()
+      ),
+      .pCommandBuffers =
+          dbe->getCommandHandler()->top().getCommandBufferPtr(frameIndex
+          ), // TODO after bound to queue management -
+      .signalSemaphoreCount = 1,
+      .pSignalSemaphores =
+          dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
+  };
+  result = vkQueueSubmit(
+      dbe->graphicsQueue,
+      1,
+      &submitInfo,
+      dbe->getFrameSyncArray()->getFrameSyncObject()->inFlight
+  );
+
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("failed to submit draw command buffer!");
+  }
+
+  VkPresentInfoKHR presentInfo{
+      .sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+      .pNext              = nullptr,
+      .waitSemaphoreCount = 1u,
+      .pWaitSemaphores =
+
+          dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
+      .swapchainCount = 1u,
+      .pSwapchains    = dbe->swapchain.value().swapchainPtr(),
+      .pImageIndices  = &imageIndex,
+      .pResults       = nullptr
+  };
+
+  vkQueuePresentKHR(dbe->presentQueue, &presentInfo);
+
+  dbe->getFrameSyncArray()->incrementFrameIndex();
+  return;
+}

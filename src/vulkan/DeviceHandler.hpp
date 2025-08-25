@@ -201,6 +201,18 @@ class DeviceHandler {
     }
     return VK_SUCCESS;
   }
+
+  VkResult recreateSwapchain(
+      VkExtent2D window,
+      uint32_t   deviceIndex = 0u
+  )
+  {
+    DeviceBoundElements *dbe = getDBE(deviceIndex);
+    if (dbe->swapchain.has_value()) {
+      dbe->swapchain.value().resizeSwapChain(dbe->getDevice().get(), window);
+    }
+    return VK_ERROR_DEVICE_LOST;
+  }
 };
 
 std::stringstream vkQueueFlagSS(const VkQueueFlags &flag);

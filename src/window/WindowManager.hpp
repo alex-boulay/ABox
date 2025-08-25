@@ -16,7 +16,7 @@
  */
 class WindowManager {
   GLFWwindow *window;
-  VkExtent2D  ext;
+  VkExtent2D  extent;
   std::string title              = "ABox";
   bool        framebufferResized = false;
 
@@ -29,17 +29,34 @@ class WindowManager {
        createSwapchain(ResourcesManager &rm, uint_fast8_t devIndex = 0) const;
   void destroySurface();
 
-  uint32_t getWidth() const { return ext.width; }
+  uint32_t getWidth() const { return extent.width; }
 
-  uint32_t getHeight() const { return ext.height; }
+  uint32_t getHeight() const { return extent.height; }
+  void     setExtent(
+          VkExtent2D ext
+      )
+  {
+    extent = ext;
+  }
+  void setFramebufferResized(
+      bool status
+  )
+  {
+    framebufferResized = status;
+  }
+  bool setFramebufferResized() const noexcept { return framebufferResized; }
 
   GLFWwindow *getWindow() const { return window; }
 
   inline void pollEvents() const { glfwPollEvents(); }
 
-  inline bool shouldClose() { return glfwWindowShouldClose(window); }
-  static void
-      framebufferResizeCallback(GLFWwindow *window, int width_, int height_);
+  inline bool        shouldClose() { return glfwWindowShouldClose(window); }
+  inline static void framebufferResizeCallback(
+      GLFWwindow *window,
+      int         width,
+      int         height
+
+  );
 };
 
 #endif

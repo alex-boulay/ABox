@@ -11,7 +11,7 @@
 WindowManager::WindowManager(
     VkExtent2D ext
 )
-    : ext(ext)
+    : extent(ext)
 {
   if (!glfwInit()) {
     throw std::runtime_error("Failed to initialize GLFW");
@@ -43,14 +43,22 @@ WindowManager::~WindowManager()
 
 void WindowManager::framebufferResizeCallback(
     [[maybe_unused]] GLFWwindow *window,
-    int                          width_,
-    int                          height_
+    int                          width,
+    int                          height
 )
 {
+  WindowManager *wm = (WindowManager *)(window);
+  wm->setExtent(VkExtent2D{
+      .width  = static_cast<uint32_t>(width),
+      .height = static_cast<uint32_t>(height)
+  });
+  wm->setFramebufferResized(true);
+  // window.getDeviceHandler()->recreateSwapchain(extent);
+#ifdef DEBUG_VK_ABOX
   std::cout << "Resizing has been called \n"
-            << "\tNew Width : " << width_ << '\n'
-            << "\tNew Height : " << height_ << std::endl;
-  // Recreate the Swapchain
+            << "\tNew Width : " << wm->getWidth() << '\n'
+            << "\tNew Height : " << wm->getHeight() << std::endl;
+#endif
 }
 
 VkResult WindowManager::createSurface(
@@ -78,5 +86,5 @@ VkResult WindowManager::createSwapchain(
     uint_fast8_t      devIndex
 ) const
 {
-  return rm.createSwapchain(ext.width, ext.height, devIndex);
+  return rm.createSwapchain(extent.width, extent.height, devIndex);
 }

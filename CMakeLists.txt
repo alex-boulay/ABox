@@ -94,3 +94,10 @@ install(TARGETS ABox RUNTIME DESTINATION bin)
 # Optionally install shaders or other resources
 install(DIRECTORY shaders/ DESTINATION share/ABox/shaders)
 install(DIRECTORY resources/ DESTINATION share/ABox/resources)
+
+add_custom_command(
+  TARGET ${PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_BINARY_DIR}/compile_commands.json"
+          "${CMAKE_SOURCE_DIR}/compile_commands.json"
+)

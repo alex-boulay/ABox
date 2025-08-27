@@ -48,11 +48,11 @@ void WindowManager::framebufferResizeCallback(
 )
 {
   WindowManager *wm = (WindowManager *)(window);
-  wm->setExtent(VkExtent2D{
-      .width  = static_cast<uint32_t>(width),
-      .height = static_cast<uint32_t>(height)
-  });
-  wm->setFramebufferResized(true);
+  wm->extent        = VkExtent2D{
+             .width  = static_cast<uint32_t>(width),
+             .height = static_cast<uint32_t>(height)
+  };
+  wm->framebufferResized = true;
   // window.getDeviceHandler()->recreateSwapchain(extent);
 #ifdef DEBUG_VK_ABOX
   std::cout << "Resizing has been called \n"

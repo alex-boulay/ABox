@@ -10,10 +10,13 @@ void ABoxApp::run()
   while (!wm.shouldClose()) {
     wm.pollEvents();
     rs.drawFrame(); // TODO better management in case of no display or
-    // compute.
-    //  std::cout << "FRAMING " << std::endl;
+    if (wm.consumeFramebufferResized()) {
+      rs.waitIdle();
+      rs.createSwapchain(wm.getWidth(), wm.getHeight());
+      rs.createFramebuffers();
+    }
   }
-  rs.waitIdle(); // Waiting for everything to be idle
+  rs.waitIdle();
 }
 
 ABoxApp::ABoxApp()

@@ -3,6 +3,7 @@
 
 #include "ResourcesManager.hpp"
 #include <GLFW/glfw3.h>
+#include <atomic>
 #include <cstdint>
 #include <string>
 #include <vulkan/vulkan_core.h>
@@ -15,10 +16,10 @@
  * of te width and height of the window and associated swapchain
  */
 class WindowManager {
-  GLFWwindow *window;
-  VkExtent2D  extent;
-  std::string title              = "ABox";
-  bool        framebufferResized = false;
+  GLFWwindow       *window;
+  VkExtent2D        extent;
+  std::string       title              = "ABox";
+  std::atomic<bool> framebufferResized = false;
 
    public:
   WindowManager(VkExtent2D ext);
@@ -44,7 +45,15 @@ class WindowManager {
   {
     framebufferResized = status;
   }
-  bool setFramebufferResized() const noexcept { return framebufferResized; }
+  bool getFramebufferResized() const noexcept
+  {
+    return framebufferResized.load(std::memory_order_relaxed);
+  }
+
+  bool consumeFramebufferResized()
+  {
+    return framebufferResized.exchange(false);
+  }
 
   GLFWwindow *getWindow() const { return window; }
 

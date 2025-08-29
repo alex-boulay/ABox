@@ -7,18 +7,52 @@
 #include <iostream>
 #include <sstream>
 #include <stdexcept>
+#include <iterator>
 
 #ifdef DEBUG_VK_ABOX
 #endif
 
 std::vector<const char *> ResourcesManager::getLayerNames()
 {
+    uint32_t count = 0u;
+    vkEnumerateInstanceLayerProperties(&count, nullptr);
+    std::vector<VkLayerProperties> avail(count);
+    vkEnumerateInstanceLayerProperties(&count, avail.data());
+
     std::vector<const char *> result;
-    for (const char *a : InstanceLayers)
+    for (std::unordered_set<const char *>::const_iterator it = InstanceLayers.begin(); it != InstanceLayers.end(); ++it)
     {
-        result.push_back(a);
+        const char *const layer = *it;
+        const uint32_t    index = std::distance(InstanceLayers.cbegin(), it);
+        std::cout << "Layer number : " << index << " layer name " << layer << std::endl;
+        bool found = false;
+        for (const VkLayerProperties &lp : avail)
+        {
+            if (strcmp(lp.layerName, layer) == 0)
+            {
+                found = true;
+                break;
+            }
+        }
+        if (found)
+        {
+            std::cout << "Was found !" << std::endl;
+            result.push_back(layer);
+        }
+        else
+            std::cerr << "[Vulkan] Skipping missing layer: " << layer << "\n";
     }
     return result;
+}
+
+static std::vector<const char *> filterAvailableInstanceLayers(const std::vector<const char *> &requested)
+{
+    uint32_t                  count = 0;
+    std::vector<const char *> enabled;
+    for (const char *name : requested)
+    {
+    }
+    return enabled;
 }
 
 ResourcesManager::ResourcesManager()

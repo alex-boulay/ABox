@@ -13,8 +13,6 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 #### Development
 
-- ResourcesManager
-  - WaitIdle on all devices 
 - Debugging Levels 
   - Global one
   - Per Frame activate/deactivate
@@ -56,3 +54,5 @@ glslang-dev glslang-tools spirv-tools GLFW
 - AutoLoad/Manage DebugHandler
 - CommandPools/ Buffers 
 - Queues
+- ResourcesManager
+  - WaitIdle on all devices 

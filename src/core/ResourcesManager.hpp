@@ -4,7 +4,6 @@
 #include "DeviceHandler.hpp"
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
-#include <stdexcept>
 #include <unordered_set>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
@@ -83,6 +82,8 @@ public:
     VkResult                         VkResuladdLogicalDevice(uint32_t physicalDeviceIndex);
 
     VkResult                         createSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0u);
+
+    VkResult                         reCreateSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0);
 
     std::vector<const char *>        getLayerNames();
 

@@ -14,7 +14,9 @@ void ABoxApp::run()
         if (wm.consumeFramebufferResized())
         {
             rs.waitIdle();
-            rs.createSwapchain(wm.getWidth(), wm.getHeight());
+            std::cout << "recreating swapchain" << std::endl;
+            std::cout << "value : " << static_cast<int32_t>(rs.reCreateSwapchain(wm.getWidth(), wm.getHeight()))
+                      << std::endl;
             rs.createFramebuffers();
         }
     }

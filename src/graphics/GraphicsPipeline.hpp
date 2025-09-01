@@ -50,9 +50,17 @@ public:
 
     void                            updateExtent(VkExtent2D ext)
     {
-        viewport.width  = static_cast<float>(ext.width);
-        viewport.height = static_cast<float>(ext.height);
-        scissor.extent  = ext;
+        std::cout << "Updating extend in GP width :" << ext.width << " - height " << ext.height << std::endl;
+        scissor = {
+            .offset = {0u, 0u},
+            .extent = ext
+        };
+        viewport = {.x        = 0.0f,
+                    .y        = 0.0f,
+                    .width    = static_cast<float>(scissor.extent.width),
+                    .height   = static_cast<float>(scissor.extent.height),
+                    .minDepth = 0.0f,
+                    .maxDepth = 1.0f};
     }
 };
 

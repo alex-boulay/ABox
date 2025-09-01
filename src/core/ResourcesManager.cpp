@@ -144,6 +144,13 @@ VkResult ResourcesManager::createSwapchain(uint32_t width, uint32_t height, uint
                VK_ERROR_DEVICE_LOST;
 }
 
+VkResult ResourcesManager::reCreateSwapchain(uint32_t width, uint32_t height, uint32_t devIndex)
+{
+    return deviceHandler.value().hasDevice(devIndex) ?
+               deviceHandler.value().recreateSwapchain({width, height}, devIndex) :
+               VK_ERROR_DEVICE_LOST;
+}
+
 VkResult ResourcesManager::addGraphicsPipeline(const std::list<ShaderDataFile> &smcis, uint32_t devIndex)
 {
     std::cout << " devIndex : " << devIndex << " Instance Loaded DeviceHandler ? " << deviceHandler.has_value()

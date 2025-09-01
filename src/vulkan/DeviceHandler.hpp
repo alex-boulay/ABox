@@ -174,9 +174,16 @@ public:
     VkResult recreateSwapchain(VkExtent2D window, uint32_t deviceIndex = 0u)
     {
         DeviceBoundElements *dbe = getDBE(deviceIndex);
+        std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
         if (dbe->swapchain.has_value())
         {
             dbe->swapchain.value().resizeSwapChain(dbe->getDevice().get(), window);
+            if (dbe->graphicsppl.has_value())
+            {
+                std::cout << "GP has value " << dbe->graphicsppl.has_value() << std::endl;
+                dbe->graphicsppl.value().updateExtent(window);
+            }
+            return VK_SUCCESS;
         }
         return VK_ERROR_DEVICE_LOST;
     }

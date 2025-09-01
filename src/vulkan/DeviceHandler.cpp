@@ -425,10 +425,7 @@ VkResult DeviceHandler::addSwapchain(uint32_t width, uint32_t height, VkSurfaceK
                                         width,
                                         height);
     std::cout << "SwapchainMapping done " << std::endl;
-    if (getDBE(devIndex)->graphicsppl.has_value())
-    {
-        getDBE(devIndex)->graphicsppl.value().updateExtent(VkExtent2D{.width = width, .height = height});
-    }
+
     return VK_SUCCESS;
 }
 

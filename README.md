@@ -13,6 +13,7 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 #### Development
 
+- Add clang-format file to avoid code moving around when commiting from different IDE.
 - Debugging Levels 
   - Global one
   - Per Frame activate/deactivate

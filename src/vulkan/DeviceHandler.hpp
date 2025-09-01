@@ -69,8 +69,8 @@ public:
 
     VkResult             recordCommandBuffer(uint32_t imageIndex, uint32_t commandBufferIndex)
     {
-        std::cout << "Recording commands Img " << imageIndex << " commandBufferIndex : " << commandBufferIndex
-                  << std::endl;
+        // std::cout << "Recording commands Img " << imageIndex << " commandBufferIndex : " << commandBufferIndex
+        //          << std::endl;
         return commands.top().recordCommandBuffer(graphicsppl.value(),
                                                   swapchain.value(),
                                                   imageIndex,

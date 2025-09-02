@@ -1,3 +1,8 @@
+#ifndef PRE_PROC_UTILS_HPP
+#define PRE_PROC_UTILS_HPP
+
+#include <iostream>
+#include <sstream>
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x)  STRINGIFY(x)
@@ -54,4 +59,24 @@
 #define FILE_DEBUG_PRINT(fmt, ...)
 #endif
 
+#define ABOX_LOG_PER_FRAME
+#if defined(DEBUG_VK_ABOX) && defined(ABOX_LOG_PER_FRAME)
+#define ABOX_PER_FRAME_DEBUG_LOG(msg_expr) \
+    do \
+    { \
+        std::ostringstream oss; \
+        oss << msg_expr; \
+        std::cout << oss.str() << std::endl; \
+    } \
+    while (0)
+#else
+#define ABOX_PER_FRAME_DEBUG_LOG(msg_expr) \
+    do \
+    { \
+    } \
+    while (0)
+#endif
+
 #define INFLIGHT_NUMBER_OF_ELEMENTS 2
+
+#endif

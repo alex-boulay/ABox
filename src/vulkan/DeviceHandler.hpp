@@ -69,8 +69,20 @@ public:
 
     VkResult             recordCommandBuffer(uint32_t imageIndex, uint32_t commandBufferIndex)
     {
-        // std::cout << "Recording commands Img " << imageIndex << " commandBufferIndex : " << commandBufferIndex
-        //          << std::endl;
+        ABOX_PER_FRAME_DEBUG_LOG("Recording commands Img " << imageIndex
+                                                           << " commandBufferIndex : " << commandBufferIndex);
+
+        if (!graphicsppl.has_value())
+        {
+            std::cout << "No Value in graphics ppl" << std::endl;
+            throw std::runtime_error("Wrong graphics pipeline target during recordcommandbuffer");
+        }
+
+        if (!swapchain.has_value())
+        {
+            std::cout << "No Value in swapchain" << std::endl;
+            throw std::runtime_error("Wrong swapchain target during recordcommandbuffer");
+        }
         return commands.top().recordCommandBuffer(graphicsppl.value(),
                                                   swapchain.value(),
                                                   imageIndex,

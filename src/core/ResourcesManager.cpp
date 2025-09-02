@@ -176,9 +176,9 @@ void ResourcesManager::drawFrame()
 {
     uint32_t                         imageIndex;
     ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
-    // std::cout << "Got main deviceHandler" << std::endl;
+    ABOX_PER_FRAME_DEBUG_LOG("Got main deviceHandler");
     dbe->getFrameSyncArray()->waitAndReset(dbe->getDevice());
-    // std::cout << "Wait and reset done" << std::endl;
+    ABOX_PER_FRAME_DEBUG_LOG("Wait and reset done");
 
     VkResult result = vkAcquireNextImageKHR(dbe->getDevice(),
                                             dbe->swapchain.value().getSwapchain(),
@@ -197,12 +197,12 @@ void ResourcesManager::drawFrame()
         throw std::runtime_error("failed to acquire swap chain image!");
     }
     const uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
-    // std::cout << "ImageIndex " << imageIndex << std::endl;
-    // std::cout << "FrameIndex " << frameIndex << std::endl;
+    ABOX_PER_FRAME_DEBUG_LOG("ImageIndex " << imageIndex);
+    ABOX_PER_FRAME_DEBUG_LOG("FrameIndex " << frameIndex);
 
     dbe->recordCommandBuffer(imageIndex, frameIndex);
 
-    // std::cout << "recordCommandBuffer done : " << std::endl;
+    ABOX_PER_FRAME_DEBUG_LOG("recordCommandBuffer done : ");
 
     VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
 

@@ -8,136 +8,109 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkImageView,
-    ImageView,
-    vkDestroyImageView
-)
+DEFINE_VK_MEMORY_WRAPPER(VkImageView, ImageView, vkDestroyImageView)
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkSwapchainKHR,
-    Swapchain,
-    vkDestroySwapchainKHR
-)
+DEFINE_VK_MEMORY_WRAPPER(VkSwapchainKHR, Swapchain, vkDestroySwapchainKHR)
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkFramebuffer,
-    Framebuffer,
-    vkDestroyFramebuffer
-)
+DEFINE_VK_MEMORY_WRAPPER(VkFramebuffer, Framebuffer, vkDestroyFramebuffer)
 
-class SwapchainImage {
-   public:
-  VkImage          image;
-  ImageViewWrapper imageViewWrapper;
+class SwapchainImage
+{
+public:
+    VkImage          image;
+    ImageViewWrapper imageViewWrapper;
 
-  SwapchainImage(
-      VkImage     image,
-      VkImageView imageView,
-      VkDevice    device
-  )
-      : image(image)
-      , imageViewWrapper(device, imageView)
-  {
-  }
+    SwapchainImage(VkImage image, VkImageView imageView, VkDevice device)
+        : image(image)
+        , imageViewWrapper(device, imageView)
+    {
+    }
 };
 
-class SwapchainManager {
+class SwapchainManager
+{
+    // Main Utils
+    SwapchainWrapper                swapChain;
+    std::list<SwapchainImage>       swapChainImages;
+    std::list<FramebufferWrapper>   framebuffers;
 
-  // Main Utils
-  SwapchainWrapper              swapChain;
-  std::list<SwapchainImage>     swapChainImages;
-  std::list<FramebufferWrapper> framebuffers;
+    VkFormat                        swapChainImageFormat;
 
-  VkFormat swapChainImageFormat;
+    // Listings
+    VkSurfaceCapabilitiesKHR        capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR>   presentModes;
 
-  // Listings
-  VkSurfaceCapabilitiesKHR        capabilities;
-  std::vector<VkSurfaceFormatKHR> formats;
-  std::vector<VkPresentModeKHR>   presentModes;
+    // Picking
+    VkSurfaceFormatKHR              surfaceFormat;
+    VkPresentModeKHR                presentMode;
+    VkExtent2D                      extent;
 
-  // Picking
-  VkSurfaceFormatKHR surfaceFormat;
-  VkPresentModeKHR   presentMode;
-  VkExtent2D         extent;
+    VkResult                        querySwapChainSupport(VkPhysicalDevice phyDev);
+    VkResult                        chooseSwapSurfaceFormat();
+    VkResult                        chooseSwapPresentMode();
+    VkResult                        chooseSwapExtent(uint32_t width, uint32_t height);
 
-  VkResult querySwapChainSupport(VkPhysicalDevice phyDev);
-  VkResult chooseSwapSurfaceFormat();
-  VkResult chooseSwapPresentMode();
-  VkResult chooseSwapExtent(uint32_t width, uint32_t height);
+public:
+    SwapchainManager(VkPhysicalDevice phyDev,
+                     VkSurfaceKHR    *surface,
+                     VkDevice         logicalDevice,
+                     uint32_t         rQDI,
+                     uint32_t         gQDI,
+                     uint32_t         width,
+                     uint32_t         height);
 
-   public:
-  SwapchainManager(
-      VkPhysicalDevice phyDev,
-      VkSurfaceKHR    *surface,
-      VkDevice         logicalDevice,
-      uint32_t         rQDI,
-      uint32_t         gQDI,
-      uint32_t         width,
-      uint32_t         height
-  );
+    //~SwapchainManager() = default;
 
-  //~SwapchainManager() = default;
+    // Move constructor
+    DELETE_COPY(SwapchainManager);
+    DELETE_MOVE(SwapchainManager);
 
-  // Move constructor
-  DELETE_COPY(SwapchainManager);
-  DELETE_MOVE(SwapchainManager);
-  VkExtent2D getExtent() const noexcept { return extent; }
-  VkFormat   getFormat() const noexcept { return swapChainImageFormat; }
+    VkExtent2D    getExtent() const noexcept { return extent; }
 
-  VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
+    VkFormat      getFormat() const noexcept { return swapChainImageFormat; }
 
-  VkFramebuffer getFrameBuffer(
-      uint32_t index
-  )
-  {
-    std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
-    std::advance(it, index);
-    return it->get();
-  }
+    VkResult      createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 
-  uint32_t acquireNextImage(
-      VkDevice    device,
-      VkSemaphore imgSemaphore
-  )
-  {
-    uint32_t imageIndex;
-    vkAcquireNextImageKHR(
-        device,
-        swapChain,
-        UINT64_MAX,
-        imgSemaphore,
-        VK_NULL_HANDLE,
-        &imageIndex
-    );
-    return imageIndex;
-  }
-  VkSwapchainKHR  getSwapchain() const { return swapChain.get(); }
-  VkSwapchainKHR *swapchainPtr() { return swapChain.ptr(); }
-  // TODO:
-  // Latter implementation for windowcallback
-  // windowManager::resize(SwapchainManager sm): VkResult
-  VkResult        resizeSwapChain(
-             VkDevice device
-         )
-  {
-    vkDeviceWaitIdle(device); // Maybe on the DBE ? with call to swapchain
-    framebuffers.clear();
-    swapChainImages.clear();
-    // Maybe Just reload the whole process from DBE or here separate calls ?
-    // createSwapchain();
-    // createImageViews();
+    VkFramebuffer getFrameBuffer(uint32_t index)
+    {
+        std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
+        std::advance(it, index);
+        return it->get();
+    }
 
-    return VK_SUCCESS;
-  }
-  inline VkResult resizeSwapChain(
-      VkDevice   device,
-      VkExtent2D window
-  )
-  {
-    extent = window;
-    return resizeSwapChain(device);
-  }
+    uint32_t acquireNextImage(VkDevice device, VkSemaphore imgSemaphore)
+    {
+        uint32_t imageIndex;
+        vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imgSemaphore, VK_NULL_HANDLE, &imageIndex);
+        return imageIndex;
+    }
+
+    VkSwapchainKHR  getSwapchain() const { return swapChain.get(); }
+
+    VkSwapchainKHR *swapchainPtr() { return swapChain.ptr(); }
+
+    // TODO:
+    // Latter implementation for windowcallback
+    // windowManager::resize(SwapchainManager sm): VkResult
+    VkResult        resizeSwapChain(VkDevice device)
+    {
+        framebuffers.clear();
+        swapChainImages.clear();
+        // createSwapchain(); need to do the two behaviors -> create from scratch and recreate (reusing swapchaininfo)
+        // createImageViews();
+        // createFramebuffers(renderPass,device);
+
+        return VK_SUCCESS;
+    }
+
+    inline VkResult resizeSwapChain(VkDevice device, VkExtent2D window)
+    {
+        extent = window;
+        return resizeSwapChain(device);
+    }
+
+    inline uint32_t frameBufferSize() { return framebuffers.size(); }
 };
 
 #endif

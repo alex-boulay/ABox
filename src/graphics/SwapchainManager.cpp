@@ -64,6 +64,8 @@ SwapchainManager::SwapchainManager(
   chooseSwapPresentMode();
   chooseSwapExtent(width, height);
 
+  //------------------- Create Swapchain --------------
+  // Saving rQDI && gQDI ?? or recreation doesn't need em ?
   std::vector<uint32_t> queueFamilyIndices = {rQDI, gQDI};
 
 #define SCSC_Mi capabilities.minImageCount + 1
@@ -112,7 +114,7 @@ SwapchainManager::SwapchainManager(
   else {
     std::cout << "Swapchain created : " << (void *)swapChain.ptr() << "\n";
   }
-
+  //---------- Image Creation ------------//
   vkGetSwapchainImagesKHR(
       logicalDevice,
       swapChain,
@@ -127,8 +129,6 @@ SwapchainManager::SwapchainManager(
       _images.data()
   );
 
-  swapChainImageFormat = surfaceFormat.format;
-
   constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
 
   for (const auto &img : _images) {
@@ -138,7 +138,7 @@ SwapchainManager::SwapchainManager(
         .flags      = 0,
         .image      = img,
         .viewType   = VK_IMAGE_VIEW_TYPE_2D,
-        .format     = swapChainImageFormat,
+        .format     = surfaceFormat.format,
         .components = {sid, sid, sid, sid},
         .subresourceRange =
             {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,

@@ -3,114 +3,200 @@
 
 #include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
+#include <array>
 #include <cstdint>
 #include <list>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-DEFINE_VK_MEMORY_WRAPPER(VkImageView, ImageView, vkDestroyImageView)
+DEFINE_VK_MEMORY_WRAPPER(
+    VkImageView,
+    ImageView,
+    vkDestroyImageView
+)
 
-DEFINE_VK_MEMORY_WRAPPER(VkSwapchainKHR, Swapchain, vkDestroySwapchainKHR)
+DEFINE_VK_MEMORY_WRAPPER(
+    VkSwapchainKHR,
+    Swapchain,
+    vkDestroySwapchainKHR
+)
 
-DEFINE_VK_MEMORY_WRAPPER(VkFramebuffer, Framebuffer, vkDestroyFramebuffer)
+DEFINE_VK_MEMORY_WRAPPER(
+    VkFramebuffer,
+    Framebuffer,
+    vkDestroyFramebuffer
+)
+class DisplayQueueIndices {
+  std::array<uint32_t, 2u> indices{0, 0};
 
-class SwapchainImage
-{
-public:
-    VkImage          image;
-    ImageViewWrapper imageViewWrapper;
-
-    SwapchainImage(VkImage image, VkImageView imageView, VkDevice device)
-        : image(image)
-        , imageViewWrapper(device, imageView)
-    {
-    }
+   public:
+  DisplayQueueIndices(
+      uint32_t rQDI,
+      uint32_t gQDI
+  )
+      : indices{rQDI, gQDI}
+  {
+  }
+  void setIndices(
+      uint32_t rQDI_,
+      uint32_t gQDI_
+  )
+  {
+    indices[0] = rQDI_;
+    indices[1] = gQDI_;
+  }
+  uint32_t  getRenderQueueDeviceIndice() const { return indices[0]; };
+  uint32_t  getGraphicsQueueDeviceIndice() const { return indices[1]; };
+  uint32_t *data() { return indices.data(); }
+  uint32_t  size() { return static_cast<uint32_t>(indices.size()); }
 };
 
-class SwapchainManager
-{
-    // Main Utils
-    SwapchainWrapper                swapChain;
-    std::list<SwapchainImage>       swapChainImages;
-    std::list<FramebufferWrapper>   framebuffers;
+class SwapchainImage {
+   public:
+  VkImage          image;
+  ImageViewWrapper imageViewWrapper;
 
-    VkFormat                        swapChainImageFormat;
+  SwapchainImage(
+      VkImage     image,
+      VkImageView imageView,
+      VkDevice    device
+  )
+      : image(image)
+      , imageViewWrapper(device, imageView)
+  {
+  }
+};
 
-    // Listings
-    VkSurfaceCapabilitiesKHR        capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR>   presentModes;
+class SwapchainManager {
+  // Main Utils
+  SwapchainWrapper              swapChain;
+  std::list<SwapchainImage>     swapChainImages;
+  std::list<FramebufferWrapper> framebuffers;
 
-    // Picking
-    VkSurfaceFormatKHR              surfaceFormat;
-    VkPresentModeKHR                presentMode;
-    VkExtent2D                      extent;
+  VkFormat swapChainImageFormat;
 
-    VkResult                        querySwapChainSupport(VkPhysicalDevice phyDev);
-    VkResult                        chooseSwapSurfaceFormat();
-    VkResult                        chooseSwapPresentMode();
-    VkResult                        chooseSwapExtent(uint32_t width, uint32_t height);
+  // Listings
+  VkSurfaceCapabilitiesKHR        capabilities;
+  std::vector<VkSurfaceFormatKHR> formats;
+  std::vector<VkPresentModeKHR>   presentModes;
+  DisplayQueueIndices             queueFamilyIndices;
 
-public:
-    SwapchainManager(VkPhysicalDevice phyDev,
-                     VkSurfaceKHR    *surface,
-                     VkDevice         logicalDevice,
-                     uint32_t         rQDI,
-                     uint32_t         gQDI,
-                     uint32_t         width,
-                     uint32_t         height);
+  // Picking
+  VkSurfaceFormatKHR surfaceFormat;
+  VkPresentModeKHR   presentMode;
+  VkExtent2D         extent;
 
-    //~SwapchainManager() = default;
+  VkResult querySwapChainSupport(VkPhysicalDevice phyDev);
+  VkResult chooseSwapSurfaceFormat();
+  VkResult chooseSwapPresentMode();
+  VkResult chooseSwapExtent(uint32_t width, uint32_t height);
 
-    // Move constructor
-    DELETE_COPY(SwapchainManager);
-    DELETE_MOVE(SwapchainManager);
+   public:
+  SwapchainManager(
+      VkPhysicalDevice phyDev,
+      VkSurfaceKHR    *surface,
+      VkDevice         logicalDevice,
+      uint32_t         rQDI,
+      uint32_t         gQDI,
+      uint32_t         width,
+      uint32_t         height
+  );
 
-    VkExtent2D    getExtent() const noexcept { return extent; }
+  //~SwapchainManager() = default;
 
-    VkFormat      getFormat() const noexcept { return swapChainImageFormat; }
+  // Move constructor
+  DELETE_COPY(SwapchainManager);
+  DELETE_MOVE(SwapchainManager);
 
-    VkResult      createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
+  VkExtent2D getExtent() const noexcept { return extent; }
 
-    VkFramebuffer getFrameBuffer(uint32_t index)
-    {
-        std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
-        std::advance(it, index);
-        return it->get();
-    }
+  VkFormat getFormat() const noexcept { return swapChainImageFormat; }
 
-    uint32_t acquireNextImage(VkDevice device, VkSemaphore imgSemaphore)
-    {
-        uint32_t imageIndex;
-        vkAcquireNextImageKHR(device, swapChain, UINT64_MAX, imgSemaphore, VK_NULL_HANDLE, &imageIndex);
-        return imageIndex;
-    }
+  VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 
-    VkSwapchainKHR  getSwapchain() const { return swapChain.get(); }
+  VkFramebuffer getFrameBuffer(
+      uint32_t index
+  )
+  {
+    std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
+    std::advance(it, index);
+    return it->get();
+  }
 
-    VkSwapchainKHR *swapchainPtr() { return swapChain.ptr(); }
+  uint32_t getRenderQueueDeviceIndice() const
+  {
+    return queueFamilyIndices.getRenderQueueDeviceIndice();
+  };
 
-    // TODO:
-    // Latter implementation for windowcallback
-    // windowManager::resize(SwapchainManager sm): VkResult
-    VkResult        resizeSwapChain(VkDevice device)
-    {
-        framebuffers.clear();
-        swapChainImages.clear();
-        // createSwapchain(); need to do the two behaviors -> create from scratch and recreate (reusing swapchaininfo)
-        // createImageViews();
-        // createFramebuffers(renderPass,device);
+  uint32_t getGraphicsQueueDeviceIndice() const
+  {
+    return queueFamilyIndices.getGraphicsQueueDeviceIndice();
+  };
 
-        return VK_SUCCESS;
-    }
+  VkResult createSwapchain(
+      VkPhysicalDevice phyDev,
+      VkDevice         logicalDevice,
+      VkSurfaceKHR    *surface
+  );
 
-    inline VkResult resizeSwapChain(VkDevice device, VkExtent2D window)
-    {
-        extent = window;
-        return resizeSwapChain(device);
-    }
+  VkResult createImageViews();
 
-    inline uint32_t frameBufferSize() { return framebuffers.size(); }
+  uint32_t acquireNextImage(
+      VkDevice    device,
+      VkSemaphore imgSemaphore
+  )
+  {
+    uint32_t imageIndex;
+    vkAcquireNextImageKHR(
+        device,
+        swapChain,
+        UINT64_MAX,
+        imgSemaphore,
+        VK_NULL_HANDLE,
+        &imageIndex
+    );
+    return imageIndex;
+  }
+
+  VkSwapchainKHR getSwapchain() const { return swapChain.get(); }
+
+  VkSwapchainKHR *swapchainPtr() { return swapChain.ptr(); }
+
+  // TODO:
+  // Latter implementation for windowcallback
+  // windowManager::resize(SwapchainManager sm): VkResult
+  VkResult resizeSwapChain(
+      VkPhysicalDevice phyDev,
+      VkDevice         device,
+      VkSurfaceKHR    *surface
+  )
+  {
+    framebuffers.clear();
+    swapChainImages.clear();
+    createSwapchain(
+        phyDev,
+        device,
+        surface
+    ); // need to do the two behaviors -> create from
+       // scratch and recreate (reusing swapchaininfo)
+    // createImageViews(); // TODO: verify swapchain and do imageViews (min size
+    // needed) createFramebuffers(renderPass,device);
+
+    return VK_SUCCESS;
+  }
+
+  inline VkResult resizeSwapChain(
+      VkPhysicalDevice phyDev,
+      VkDevice         device,
+      VkExtent2D       window,
+      VkSurfaceKHR    *surface
+  )
+  {
+    extent = window;
+    return resizeSwapChain(phyDev, device, surface);
+  }
+
+  inline uint32_t frameBufferSize() { return framebuffers.size(); }
 };
 
 #endif

@@ -13,23 +13,8 @@ class MemoryWrapper {
   VkD                          vulkanDestructionFunction;
   const VkAllocationCallbacks *pAllocator;
 
-   public:
-  MemoryWrapper(
-      T                            item,
-      VkP                          parent,
-      VkD                          destructionFunction,
-      const VkAllocationCallbacks *pAllocator = nullptr
-  )
-      : container(item)
-      , vulkanParent(parent)
-      , vulkanDestructionFunction(destructionFunction)
-      , pAllocator(pAllocator)
+  void Destroy()
   {
-  }
-
-  ~MemoryWrapper()
-  {
-
 #ifdef DEBUG_VK_ABOX
     std::cout << " ---- Destruction of Memory wrapper -- container : "
               << (void *)this->get() << std::endl;
@@ -57,6 +42,22 @@ class MemoryWrapper {
       }
     }
   }
+
+   public:
+  MemoryWrapper(
+      T                            item,
+      VkP                          parent,
+      VkD                          destructionFunction,
+      const VkAllocationCallbacks *pAllocator = nullptr
+  )
+      : container(item)
+      , vulkanParent(parent)
+      , vulkanDestructionFunction(destructionFunction)
+      , pAllocator(pAllocator)
+  {
+  }
+
+  ~MemoryWrapper() { Destroy(); }
 
   DELETE_COPY(MemoryWrapper);
 
@@ -109,6 +110,15 @@ class MemoryWrapper {
   T      get() const { return container; }
   T     *ptr() { return &container; }
   inline operator T() const { return container; }
+
+  void swap(
+      const T &item
+  )
+  {
+    Destroy();
+    container = item;
+  }
+  bool empty() const { return container != VK_NULL_HANDLE; }
 };
 
 #define DEFINE_VK_MEMORY_WRAPPER_FULL(Type, Name, DestroyFunc, VkParent)       \
@@ -116,8 +126,8 @@ class MemoryWrapper {
       : public MemoryWrapper<Type, decltype(&DestroyFunc), VkParent> {         \
      public:                                                                   \
     Name##Wrapper(                                                             \
-        VkParent dev,                                                          \
-        Type     object                         = VK_NULL_HANDLE,              \
+        VkParent                     dev,                                      \
+        Type                         object     = VK_NULL_HANDLE,              \
         const VkAllocationCallbacks *pAllocator = nullptr                      \
     )                                                                          \
         : MemoryWrapper<Type, decltype(&DestroyFunc), VkParent>(               \
@@ -136,7 +146,7 @@ class MemoryWrapper {
   class Name##Wrapper : public MemoryWrapper<Type, decltype(&DestroyFunc)> {   \
      public:                                                                   \
     Name##Wrapper(                                                             \
-        Type object                             = VK_NULL_HANDLE,              \
+        Type                         object     = VK_NULL_HANDLE,              \
         const VkAllocationCallbacks *pAllocator = nullptr                      \
     )                                                                          \
         : MemoryWrapper<Type, decltype(&DestroyFunc)>(                         \

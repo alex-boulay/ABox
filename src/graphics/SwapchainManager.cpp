@@ -19,6 +19,7 @@ SwapchainManager::SwapchainManager(
     uint32_t         height
 )
     : swapChain(logicalDevice)
+    , queueFamilyIndices(rQDI, gQDI)
 {
   // query part can be a standalone function
   vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, *surface, &capabilities);
@@ -63,57 +64,9 @@ SwapchainManager::SwapchainManager(
   chooseSwapSurfaceFormat();
   chooseSwapPresentMode();
   chooseSwapExtent(width, height);
-
+  createSwapchain(phyDev, logicalDevice, surface);
   //------------------- Create Swapchain --------------
   // Saving rQDI && gQDI ?? or recreation doesn't need em ?
-  std::vector<uint32_t> queueFamilyIndices = {rQDI, gQDI};
-
-#define SCSC_Mi capabilities.minImageCount + 1
-#define SCSC_Ma capabilities.maxImageCount
-#define SCSC_MinC std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi)
-#define SCSC_CONCURENT (rQDI != gQDI)
-
-  VkSwapchainCreateInfoKHR createInfo{
-      .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
-      .pNext            = nullptr,
-      .flags            = 0,
-      .surface          = *surface,
-      .minImageCount    = SCSC_MinC,
-      .imageFormat      = surfaceFormat.format,
-      .imageColorSpace  = surfaceFormat.colorSpace,
-      .imageExtent      = extent,
-      .imageArrayLayers = 1,
-      .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
-      .imageSharingMode = SCSC_CONCURENT ? VK_SHARING_MODE_CONCURRENT
-                                         : VK_SHARING_MODE_EXCLUSIVE,
-      .queueFamilyIndexCount =
-          SCSC_CONCURENT * static_cast<uint32_t>(queueFamilyIndices.size()),
-      .pQueueFamilyIndices =
-          SCSC_CONCURENT ? queueFamilyIndices.data() : nullptr,
-      .preTransform   = capabilities.currentTransform,
-      .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-      .presentMode    = presentMode,
-      .clipped        = VK_TRUE,
-      .oldSwapchain   = VK_NULL_HANDLE
-  };
-
-#undef SCSC_CONCURENT
-#undef SCSC_Ma
-#undef SCSC_Mi
-#undef SCSC_MinC
-
-  VkResult return_value = vkCreateSwapchainKHR(
-      logicalDevice,
-      &createInfo,
-      nullptr,
-      swapChain.ptr()
-  );
-  if (return_value != VK_SUCCESS) {
-    throw std::runtime_error("failed to create swap chain !");
-  }
-  else {
-    std::cout << "Swapchain created : " << (void *)swapChain.ptr() << "\n";
-  }
   //---------- Image Creation ------------//
   vkGetSwapchainImagesKHR(
       logicalDevice,
@@ -133,22 +86,23 @@ SwapchainManager::SwapchainManager(
 
   for (const auto &img : _images) {
     VkImageViewCreateInfo createInfo = {
-        .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext      = nullptr,
-        .flags      = 0,
-        .image      = img,
-        .viewType   = VK_IMAGE_VIEW_TYPE_2D,
-        .format     = surfaceFormat.format,
-        .components = {sid, sid, sid, sid},
-        .subresourceRange =
-            {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                       .baseMipLevel   = 0,
-                       .levelCount     = 1,
-                       .baseArrayLayer = 0,
-                       .layerCount     = 1}
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext            = nullptr,
+        .flags            = 0,
+        .image            = img,
+        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+        .format           = surfaceFormat.format,
+        .components       = {sid, sid, sid, sid},
+        .subresourceRange = {
+                             .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel   = 0,
+                             .levelCount     = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount     = 1
+        }
     };
     VkImageView _imageView;
-    return_value =
+    VkResult    return_value =
         vkCreateImageView(logicalDevice, &createInfo, nullptr, &_imageView);
     if (return_value != VK_SUCCESS) {
       throw std::runtime_error("failed to create image views!");
@@ -159,6 +113,71 @@ SwapchainManager::SwapchainManager(
     }
     swapChainImages.emplace_back(img, _imageView, logicalDevice);
   }
+}
+
+VkResult SwapchainManager::createSwapchain(
+    VkPhysicalDevice phyDev,
+    VkDevice         logicalDevice,
+    VkSurfaceKHR    *surface
+)
+{
+  VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
+  ;
+
+  vkGetPhysicalDeviceSurfaceCapabilitiesKHR(phyDev, *surface, &capabilities);
+
+  uint32_t rQDI = queueFamilyIndices.getRenderQueueDeviceIndice();
+  uint32_t gQDI = queueFamilyIndices.getGraphicsQueueDeviceIndice();
+
+  const uint32_t SCSC_Mi = capabilities.minImageCount + 1;
+  const uint32_t SCSC_Ma = capabilities.maxImageCount;
+  const uint32_t SCSC_MinC =
+      std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi);
+  const bool scscConcurent = (rQDI != gQDI);
+
+  VkSwapchainCreateInfoKHR createInfo{
+      .sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
+      .pNext            = nullptr,
+      .flags            = 0,
+      .surface          = *surface,
+      .minImageCount    = SCSC_MinC,
+      .imageFormat      = surfaceFormat.format,
+      .imageColorSpace  = surfaceFormat.colorSpace,
+      .imageExtent      = extent,
+      .imageArrayLayers = 1,
+      .imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+      .imageSharingMode = scscConcurent ? VK_SHARING_MODE_CONCURRENT
+                                        : VK_SHARING_MODE_EXCLUSIVE,
+      .queueFamilyIndexCount =
+          scscConcurent * static_cast<uint32_t>(queueFamilyIndices.size()),
+      .pQueueFamilyIndices =
+          scscConcurent ? queueFamilyIndices.data() : nullptr,
+      .preTransform   = capabilities.currentTransform,
+      .compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
+      .presentMode    = presentMode,
+      .clipped        = VK_TRUE,
+      .oldSwapchain   = swapChain.get()
+  };
+
+  VkResult return_value =
+      vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &newSwapchain);
+
+  if (return_value != VK_SUCCESS) {
+    throw std::runtime_error("failed to create swap chain !");
+  }
+  else {
+    std::cout << "Has an old swapchain ?" << (bool)(!swapChain.empty())
+              << " ptrValue : " << (void *)swapChain.ptr() << "\n";
+    swapChain.swap(newSwapchain);
+    std::cout << "Swapchain created : " << (void *)swapChain.ptr() << "\n";
+  }
+  return VK_SUCCESS;
+}
+
+VkResult SwapchainManager::createImageViews()
+{
+  VkResult result = VK_SUCCESS;
+  return result;
 }
 
 VkResult SwapchainManager::chooseSwapSurfaceFormat()

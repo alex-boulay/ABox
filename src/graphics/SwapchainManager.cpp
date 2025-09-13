@@ -19,6 +19,7 @@ SwapchainManager::SwapchainManager(
     uint32_t         height
 )
     : swapChain(logicalDevice)
+    , surface(surface)
     , queueFamilyIndices(rQDI, gQDI)
 {
   // query part can be a standalone function
@@ -64,61 +65,16 @@ SwapchainManager::SwapchainManager(
   chooseSwapSurfaceFormat();
   chooseSwapPresentMode();
   chooseSwapExtent(width, height);
-  createSwapchain(phyDev, logicalDevice, surface);
+  createSwapchain(phyDev, logicalDevice);
   //------------------- Create Swapchain --------------
-  // Saving rQDI && gQDI ?? or recreation doesn't need em ?
+
   //---------- Image Creation ------------//
-  vkGetSwapchainImagesKHR(
-      logicalDevice,
-      swapChain,
-      &createInfo.minImageCount,
-      nullptr
-  );
-  std::vector<VkImage> _images(createInfo.minImageCount);
-  vkGetSwapchainImagesKHR(
-      logicalDevice,
-      swapChain,
-      &createInfo.minImageCount,
-      _images.data()
-  );
-
-  constexpr VkComponentSwizzle sid = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-  for (const auto &img : _images) {
-    VkImageViewCreateInfo createInfo = {
-        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext            = nullptr,
-        .flags            = 0,
-        .image            = img,
-        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
-        .format           = surfaceFormat.format,
-        .components       = {sid, sid, sid, sid},
-        .subresourceRange = {
-                             .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                             .baseMipLevel   = 0,
-                             .levelCount     = 1,
-                             .baseArrayLayer = 0,
-                             .layerCount     = 1
-        }
-    };
-    VkImageView _imageView;
-    VkResult    return_value =
-        vkCreateImageView(logicalDevice, &createInfo, nullptr, &_imageView);
-    if (return_value != VK_SUCCESS) {
-      throw std::runtime_error("failed to create image views!");
-    }
-    else {
-      std::cout << "Image Views created - n°" << swapChainImages.size() + 1
-                << std::endl;
-    }
-    swapChainImages.emplace_back(img, _imageView, logicalDevice);
-  }
+  createImageViews(logicalDevice);
 }
 
 VkResult SwapchainManager::createSwapchain(
     VkPhysicalDevice phyDev,
-    VkDevice         logicalDevice,
-    VkSurfaceKHR    *surface
+    VkDevice         logicalDevice
 )
 {
   VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
@@ -129,10 +85,6 @@ VkResult SwapchainManager::createSwapchain(
   uint32_t rQDI = queueFamilyIndices.getRenderQueueDeviceIndice();
   uint32_t gQDI = queueFamilyIndices.getGraphicsQueueDeviceIndice();
 
-  const uint32_t SCSC_Mi = capabilities.minImageCount + 1;
-  const uint32_t SCSC_Ma = capabilities.maxImageCount;
-  const uint32_t SCSC_MinC =
-      std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi);
   const bool scscConcurent = (rQDI != gQDI);
 
   VkSwapchainCreateInfoKHR createInfo{
@@ -140,7 +92,7 @@ VkResult SwapchainManager::createSwapchain(
       .pNext            = nullptr,
       .flags            = 0,
       .surface          = *surface,
-      .minImageCount    = SCSC_MinC,
+      .minImageCount    = getMinImageCount(),
       .imageFormat      = surfaceFormat.format,
       .imageColorSpace  = surfaceFormat.colorSpace,
       .imageExtent      = extent,
@@ -174,10 +126,46 @@ VkResult SwapchainManager::createSwapchain(
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::createImageViews()
+VkResult SwapchainManager::createImageViews(
+    VkDevice device
+)
 {
-  VkResult result = VK_SUCCESS;
-  return result;
+  uint32_t minImageCount = getMinImageCount();
+  vkGetSwapchainImagesKHR(device, swapChain, &minImageCount, nullptr);
+  std::vector<VkImage> _images(minImageCount);
+  vkGetSwapchainImagesKHR(device, swapChain, &minImageCount, _images.data());
+
+  constexpr VkComponentSwizzle sid          = VK_COMPONENT_SWIZZLE_IDENTITY;
+  VkResult                     return_value = VK_SUCCESS;
+  for (const auto &img : _images) {
+    VkImageViewCreateInfo createInfo = {
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext            = nullptr,
+        .flags            = 0,
+        .image            = img,
+        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+        .format           = surfaceFormat.format,
+        .components       = {sid, sid, sid, sid},
+        .subresourceRange = {
+                             .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel   = 0,
+                             .levelCount     = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount     = 1
+        }
+    };
+    VkImageView _imageView;
+    return_value = vkCreateImageView(device, &createInfo, nullptr, &_imageView);
+    if (return_value != VK_SUCCESS) {
+      throw std::runtime_error("failed to create image views!");
+    }
+    else {
+      std::cout << "Image Views created - n°" << swapChainImages.size() + 1
+                << std::endl;
+    }
+    swapChainImages.emplace_back(img, _imageView, device);
+  }
+  return return_value;
 }
 
 VkResult SwapchainManager::chooseSwapSurfaceFormat()

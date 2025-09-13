@@ -73,7 +73,9 @@ class SwapchainManager {
   std::list<SwapchainImage>     swapChainImages;
   std::list<FramebufferWrapper> framebuffers;
 
-  VkFormat swapChainImageFormat;
+  VkFormat      swapChainImageFormat;
+  VkExtent2D    extent;
+  VkSurfaceKHR *surface;
 
   // Listings
   VkSurfaceCapabilitiesKHR        capabilities;
@@ -84,7 +86,6 @@ class SwapchainManager {
   // Picking
   VkSurfaceFormatKHR surfaceFormat;
   VkPresentModeKHR   presentMode;
-  VkExtent2D         extent;
 
   VkResult querySwapChainSupport(VkPhysicalDevice phyDev);
   VkResult chooseSwapSurfaceFormat();
@@ -133,13 +134,9 @@ class SwapchainManager {
     return queueFamilyIndices.getGraphicsQueueDeviceIndice();
   };
 
-  VkResult createSwapchain(
-      VkPhysicalDevice phyDev,
-      VkDevice         logicalDevice,
-      VkSurfaceKHR    *surface
-  );
+  VkResult createSwapchain(VkPhysicalDevice phyDev, VkDevice logicalDevice);
 
-  VkResult createImageViews();
+  VkResult createImageViews(VkDevice device);
 
   uint32_t acquireNextImage(
       VkDevice    device,
@@ -167,16 +164,14 @@ class SwapchainManager {
   // windowManager::resize(SwapchainManager sm): VkResult
   VkResult resizeSwapChain(
       VkPhysicalDevice phyDev,
-      VkDevice         device,
-      VkSurfaceKHR    *surface
+      VkDevice         device
   )
   {
     framebuffers.clear();
     swapChainImages.clear();
     createSwapchain(
         phyDev,
-        device,
-        surface
+        device
     ); // need to do the two behaviors -> create from
        // scratch and recreate (reusing swapchaininfo)
     // createImageViews(); // TODO: verify swapchain and do imageViews (min size
@@ -188,15 +183,21 @@ class SwapchainManager {
   inline VkResult resizeSwapChain(
       VkPhysicalDevice phyDev,
       VkDevice         device,
-      VkExtent2D       window,
-      VkSurfaceKHR    *surface
+      VkExtent2D       window
   )
   {
     extent = window;
-    return resizeSwapChain(phyDev, device, surface);
+    return resizeSwapChain(phyDev, device);
   }
 
   inline uint32_t frameBufferSize() { return framebuffers.size(); }
+  inline uint32_t getMinImageCount() const
+  {
+
+    const uint32_t SCSC_Mi = capabilities.minImageCount + 1;
+    const uint32_t SCSC_Ma = capabilities.maxImageCount;
+    return std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi);
+  }
 };
 
 #endif

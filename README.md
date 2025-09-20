@@ -14,7 +14,7 @@ glslang-dev glslang-tools spirv-tools GLFW
 #### Development
 
 - Add clang-format file to avoid code moving around when commiting from different IDE.
-- Debugging Levels 
+- Debugging Levels
   - Global one
   - Per Frame activate/deactivate
 - Compute Pipelines
@@ -22,38 +22,38 @@ glslang-dev glslang-tools spirv-tools GLFW
   - Make them able to leave alongside GraphicsPipeline
   - QueueFamilies optimisations (maxload)
 
-#### Platform 
+#### Platform
 
 - load tracy :
-  - mem tracking 
+  - mem tracking
   - performance
-
 
 ### Do I do ?
 
-- VMA ? 
-- Custom Memmory allocators overloaded with tracy for CPU too ? 
+- VMA ?
+- Custom Memmory allocators overloaded with tracy for CPU too ?
 - Make a config file ? - Handle external compilation ?
 - inlude ImGui loading interface ?
 - Make everything pickable from a menu ? then save it into a config xml/json ?
 
-### Done 
+### Done
 
 - Automanage Malloc/Free Vulkan Structure dependencies
 - tracy part of the makefile (might have to change the download to local archive for stability and offline purposes)
 - VkShader Loading and binding
 - ResourcesManager Instance Loading
-- Device Manager 
+- Device Manager
 - GraphicsPipeline
 - Swapchain
-- Shader ressources handling 
+  - Swapchain recreation
+- Shader ressources handling
   - need to manage/free them
-- Wrapper extra behavior 
+- Wrapper extra behavior
   - Notion of parent -> (device only atm need a template : Device/Instance)
-  - Self Destruction call 
-  - Specific lambda destructions catch with parents callbacks 
+  - Self Destruction call
+  - Specific lambda destructions catch with parents callbacks
 - AutoLoad/Manage DebugHandler
-- CommandPools/ Buffers 
+- CommandPools/ Buffers
 - Queues
 - ResourcesManager
-  - WaitIdle on all devices 
+  - WaitIdle on all devices

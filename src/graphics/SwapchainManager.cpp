@@ -274,14 +274,10 @@ VkResult SwapchainManager::resizeSwapChain(
 {
   framebuffers.clear();
   swapChainImages.clear();
+
   createSwapchain(phyDev, device);
   createImageViews(device);
   createFramebuffers(rp, device);
-  // need to do the two behaviors -> create from
-  // scratch and recreate (reusing swapchaininfo)
-  // createImageViews(); // TODO: verify swapchain and do imageViews (min size
-  // needed) createFramebuffers(renderPass,device);
-
   return VK_SUCCESS;
 }
 

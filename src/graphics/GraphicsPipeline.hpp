@@ -28,6 +28,7 @@ DEFINE_VK_MEMORY_WRAPPER(
 )
 
 class GraphicsPipeline {
+
   PipelineWrapper       graphicsPipeline; // main object
   RenderPassWrapper     renderPass;
   PipelineLayoutWrapper pipelineLayout;
@@ -93,6 +94,7 @@ class GraphicsPipeline {
         .offset = {0u, 0u},
         .extent = ext
     };
+
     viewport = {
         .x        = 0.0f,
         .y        = 0.0f,

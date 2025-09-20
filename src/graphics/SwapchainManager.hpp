@@ -9,6 +9,8 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+class GraphicsPipeline;
+
 DEFINE_VK_MEMORY_WRAPPER(
     VkImageView,
     ImageView,
@@ -164,31 +166,16 @@ class SwapchainManager {
   // windowManager::resize(SwapchainManager sm): VkResult
   VkResult resizeSwapChain(
       VkPhysicalDevice phyDev,
-      VkDevice         device
-  )
-  {
-    framebuffers.clear();
-    swapChainImages.clear();
-    createSwapchain(
-        phyDev,
-        device
-    ); // need to do the two behaviors -> create from
-       // scratch and recreate (reusing swapchaininfo)
-    // createImageViews(); // TODO: verify swapchain and do imageViews (min size
-    // needed) createFramebuffers(renderPass,device);
+      VkDevice         device,
+      VkRenderPass     rp
+  );
 
-    return VK_SUCCESS;
-  }
-
-  inline VkResult resizeSwapChain(
+  VkResult resizeSwapChain(
       VkPhysicalDevice phyDev,
       VkDevice         device,
-      VkExtent2D       window
-  )
-  {
-    extent = window;
-    return resizeSwapChain(phyDev, device);
-  }
+      VkExtent2D       window,
+      VkRenderPass     rp
+  );
 
   inline uint32_t frameBufferSize() { return framebuffers.size(); }
   inline uint32_t getMinImageCount() const

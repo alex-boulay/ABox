@@ -139,20 +139,19 @@ VkResult SwapchainManager::createImageViews(
   VkResult                     return_value = VK_SUCCESS;
   for (const auto &img : _images) {
     VkImageViewCreateInfo createInfo = {
-        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext            = nullptr,
-        .flags            = 0,
-        .image            = img,
-        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
-        .format           = surfaceFormat.format,
-        .components       = {sid, sid, sid, sid},
-        .subresourceRange = {
-                             .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                             .baseMipLevel   = 0,
-                             .levelCount     = 1,
-                             .baseArrayLayer = 0,
-                             .layerCount     = 1
-        }
+        .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext      = nullptr,
+        .flags      = 0,
+        .image      = img,
+        .viewType   = VK_IMAGE_VIEW_TYPE_2D,
+        .format     = surfaceFormat.format,
+        .components = {sid, sid, sid, sid},
+        .subresourceRange =
+            {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                       .baseMipLevel   = 0,
+                       .levelCount     = 1,
+                       .baseArrayLayer = 0,
+                       .layerCount     = 1}
     };
     VkImageView _imageView;
     return_value = vkCreateImageView(device, &createInfo, nullptr, &_imageView);
@@ -266,5 +265,34 @@ VkResult SwapchainManager::createFramebuffers(
   }
   std::cout << "Done with framebuffers " << std::endl;
   return VK_SUCCESS;
+}
+VkResult SwapchainManager::resizeSwapChain(
+    VkPhysicalDevice phyDev,
+    VkDevice         device,
+    VkRenderPass     rp
+)
+{
+  framebuffers.clear();
+  swapChainImages.clear();
+  createSwapchain(phyDev, device);
+  createImageViews(device);
+  createFramebuffers(rp, device);
+  // need to do the two behaviors -> create from
+  // scratch and recreate (reusing swapchaininfo)
+  // createImageViews(); // TODO: verify swapchain and do imageViews (min size
+  // needed) createFramebuffers(renderPass,device);
+
+  return VK_SUCCESS;
+}
+
+VkResult SwapchainManager::resizeSwapChain(
+    VkPhysicalDevice phyDev,
+    VkDevice         device,
+    VkExtent2D       window,
+    VkRenderPass     rp
+)
+{
+  extent = window;
+  return resizeSwapChain(phyDev, device, rp);
 }
 

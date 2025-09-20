@@ -114,12 +114,10 @@ class DeviceHandler {
   std::list<DeviceBoundElements>               devices;
   std::map<std::string, DeviceBoundElements *> deviceNames;
 
-  std::set<uint32_t> getQueueFamilyIndices(
-      QueueFamilyIndices fi
+  std::set<uint32_t> getQueueFamilyIndices(QueueFamilyIndices fi
   ); // TODO aim for a loaded device instead
 
-  std::vector<uint32_t> listQueueFamilyIndices(
-      QueueFamilyIndices fi
+  std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi
   ); // TODO aim for a loaded device Instead
 
    public:
@@ -228,15 +226,21 @@ class DeviceHandler {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
     std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
     if (dbe->swapchain.has_value()) {
-      dbe->swapchain.value().resizeSwapChain(
-          dbe->getPhysicalDevice(),
-          dbe->getDevice().get(),
-          window
-      );
       if (dbe->graphicsppl.has_value()) {
         std::cout << "GP has value " << dbe->graphicsppl.has_value()
                   << std::endl;
         dbe->graphicsppl.value().updateExtent(window);
+        dbe->swapchain.value().resizeSwapChain(
+            dbe->getPhysicalDevice(),
+            dbe->getDevice().get(),
+            window,
+            dbe->graphicsppl.value().getRenderPass()
+        );
+      }
+      else {
+        std::cout << "Cannot reconstruct swapchain FrameBuffers due to the "
+                     "absence of Graphics Pipeline"
+                  << std::endl;
       }
       return VK_SUCCESS;
     }

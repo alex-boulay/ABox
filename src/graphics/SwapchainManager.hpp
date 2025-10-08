@@ -9,6 +9,8 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
+class GraphicsPipeline;
+
 DEFINE_VK_MEMORY_WRAPPER(
     VkImageView,
     ImageView,
@@ -177,10 +179,7 @@ class SwapchainManager {
     // createImageViews(); // TODO: verify swapchain and do imageViews (min size
     // needed) createFramebuffers(renderPass,device);
 
-    return VK_SUCCESS;
-  }
-
-  inline VkResult resizeSwapChain(
+  VkResult resizeSwapChain(
       VkPhysicalDevice phyDev,
       VkDevice         device,
       VkExtent2D       window

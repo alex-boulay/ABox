@@ -267,4 +267,29 @@ VkResult SwapchainManager::createFramebuffers(
   std::cout << "Done with framebuffers " << std::endl;
   return VK_SUCCESS;
 }
+VkResult SwapchainManager::resizeSwapChain(
+    VkPhysicalDevice phyDev,
+    VkDevice         device,
+    VkRenderPass     rp
+)
+{
+  framebuffers.clear();
+  swapChainImages.clear();
+
+  createSwapchain(phyDev, device);
+  createImageViews(device);
+  createFramebuffers(rp, device);
+  return VK_SUCCESS;
+}
+
+VkResult SwapchainManager::resizeSwapChain(
+    VkPhysicalDevice phyDev,
+    VkDevice         device,
+    VkExtent2D       window,
+    VkRenderPass     rp
+)
+{
+  extent = window;
+  return resizeSwapChain(phyDev, device, rp);
+}
 

@@ -9,6 +9,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
+#include <spirv_reflect.h>
 
 // @brief anonymous namespace to declare static elements
 namespace {
@@ -246,4 +247,72 @@ const ShaderDataFile *ShaderHandler::getShader(
     result.push_back(static_cast<VkShaderModuleCreateInfo>(a));
   }
   return result;
+}
+
+void ShaderDataFile::performReflection() {
+  SpvReflectResult result = spvReflectCreateShaderModule(
+      code.size() * sizeof(uint32_t),
+      code.data(),
+      &reflectModule
+  );
+
+  if (result != SPV_REFLECT_RESULT_SUCCESS) {
+    FILE_DEBUG_PRINT("Failed to create SPIRV-Reflect shader module for %s", name.c_str());
+    reflectionValid = false;
+    return;
+  }
+
+  reflectionValid = true;
+
+  // Enumerate descriptor sets
+  result = spvReflectEnumerateDescriptorSets(&reflectModule, &reflectionData.descriptorSetCount, nullptr);
+  if (result == SPV_REFLECT_RESULT_SUCCESS && reflectionData.descriptorSetCount > 0) {
+    reflectionData.descriptorSets.resize(reflectionData.descriptorSetCount);
+    result = spvReflectEnumerateDescriptorSets(&reflectModule, &reflectionData.descriptorSetCount, reflectionData.descriptorSets.data());
+
+    if (result == SPV_REFLECT_RESULT_SUCCESS) {
+      FILE_DEBUG_PRINT("Shader %s has %u descriptor set(s)", name.c_str(), reflectionData.descriptorSetCount);
+      for (uint32_t i = 0; i < reflectionData.descriptorSetCount; ++i) {
+        const SpvReflectDescriptorSet* set = reflectionData.descriptorSets[i];
+        FILE_DEBUG_PRINT("  Set %u: %u binding(s)", set->set, set->binding_count);
+      }
+    }
+  }
+
+  // Enumerate push constants
+  result = spvReflectEnumeratePushConstantBlocks(&reflectModule, &reflectionData.pushConstantCount, nullptr);
+  if (result == SPV_REFLECT_RESULT_SUCCESS && reflectionData.pushConstantCount > 0) {
+    reflectionData.pushConstants.resize(reflectionData.pushConstantCount);
+    result = spvReflectEnumeratePushConstantBlocks(&reflectModule, &reflectionData.pushConstantCount, reflectionData.pushConstants.data());
+
+    if (result == SPV_REFLECT_RESULT_SUCCESS) {
+      FILE_DEBUG_PRINT("Shader %s has %u push constant block(s)", name.c_str(), reflectionData.pushConstantCount);
+      for (uint32_t i = 0; i < reflectionData.pushConstantCount; ++i) {
+        const SpvReflectBlockVariable* block = reflectionData.pushConstants[i];
+        FILE_DEBUG_PRINT("  Push constant: %s, size: %u bytes", block->name, block->size);
+      }
+    }
+  }
+
+  // Enumerate input variables
+  result = spvReflectEnumerateInputVariables(&reflectModule, &reflectionData.inputVariableCount, nullptr);
+  if (result == SPV_REFLECT_RESULT_SUCCESS && reflectionData.inputVariableCount > 0) {
+    reflectionData.inputVariables.resize(reflectionData.inputVariableCount);
+    result = spvReflectEnumerateInputVariables(&reflectModule, &reflectionData.inputVariableCount, reflectionData.inputVariables.data());
+
+    if (result == SPV_REFLECT_RESULT_SUCCESS) {
+      FILE_DEBUG_PRINT("Shader %s has %u input variable(s)", name.c_str(), reflectionData.inputVariableCount);
+    }
+  }
+
+  // Enumerate output variables
+  result = spvReflectEnumerateOutputVariables(&reflectModule, &reflectionData.outputVariableCount, nullptr);
+  if (result == SPV_REFLECT_RESULT_SUCCESS && reflectionData.outputVariableCount > 0) {
+    reflectionData.outputVariables.resize(reflectionData.outputVariableCount);
+    result = spvReflectEnumerateOutputVariables(&reflectModule, &reflectionData.outputVariableCount, reflectionData.outputVariables.data());
+
+    if (result == SPV_REFLECT_RESULT_SUCCESS) {
+      FILE_DEBUG_PRINT("Shader %s has %u output variable(s)", name.c_str(), reflectionData.outputVariableCount);
+    }
+  }
 }

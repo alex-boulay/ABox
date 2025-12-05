@@ -17,6 +17,7 @@
 #include <tuple>
 #include <vector>
 #include <vulkan/vulkan_core.h>
+#include <spirv_reflect.h>
 
 #define OPENGL_CHOSEN_VERSION 450
 #define VULKAN_CHOSEN_VERSION                                                  \
@@ -121,6 +122,23 @@ DEFINE_VK_MEMORY_WRAPPER(
 )
 
 /**
+ * @brief Structure to hold SPIRV reflection data
+ */
+struct ShaderReflectionData {
+  std::vector<SpvReflectDescriptorSet*> descriptorSets;
+  std::vector<SpvReflectBlockVariable*> pushConstants;
+  std::vector<SpvReflectInterfaceVariable*> inputVariables;
+  std::vector<SpvReflectInterfaceVariable*> outputVariables;
+
+  uint32_t descriptorSetCount = 0;
+  uint32_t pushConstantCount = 0;
+  uint32_t inputVariableCount = 0;
+  uint32_t outputVariableCount = 0;
+
+  ~ShaderReflectionData() = default;
+};
+
+/**
  * @brief class used to represent a Shader data file
  * @member data contains the file data as a vector of chars
  * @member mask
@@ -132,6 +150,10 @@ class ShaderDataFile {
   [[maybe_unused]] const SourcePlatform
       platform; // in case of recompilation ?
                 // ShaderDataFile doesn't handle allocations
+  SpvReflectShaderModule reflectModule;
+  ShaderReflectionData reflectionData;
+  bool reflectionValid = false;
+
    public:
   ShaderDataFile(
       const std::string           &name_,
@@ -144,6 +166,13 @@ class ShaderDataFile {
       , stage(stage_)
       , platform(platform_)
   {
+    performReflection();
+  }
+
+  ~ShaderDataFile() {
+    if (reflectionValid) {
+      spvReflectDestroyShaderModule(&reflectModule);
+    }
   }
 
   inline operator VkShaderModuleCreateInfo() const
@@ -177,6 +206,13 @@ class ShaderDataFile {
         .pSpecializationInfo = nullptr
     };
   }
+
+  const ShaderReflectionData& getReflectionData() const { return reflectionData; }
+  bool isReflectionValid() const { return reflectionValid; }
+  const SpvReflectShaderModule& getReflectModule() const { return reflectModule; }
+
+   private:
+  void performReflection();
 };
 
 /**

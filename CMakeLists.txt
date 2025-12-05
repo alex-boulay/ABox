@@ -42,6 +42,7 @@ find_package(Threads REQUIRED)
 find_package(glslang REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(SPIRV-Tools REQUIRED)
+find_package(SPIRV-Reflect REQUIRED)
 
 # Print environment variables to verify
 message(STATUS "VULKAN_SDK: $ENV{VULKAN_SDK}")
@@ -69,13 +70,15 @@ target_include_directories(
   ABox
   PRIVATE ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/src/graphics
           ${CMAKE_SOURCE_DIR}/src/vulkan ${CMAKE_SOURCE_DIR}/src/window
-          ${CMAKE_SOURCE_DIR}/src/memory ${CMAKE_SOURCE_DIR}/src/utils)
+          ${CMAKE_SOURCE_DIR}/src/memory ${CMAKE_SOURCE_DIR}/src/utils
+          ${CMAKE_SOURCE_DIR}/src/pipelines)
 
 target_link_libraries(
   ABox
   PUBLIC Vulkan::Vulkan
          glslang::glslang
          glslang::SPIRV
+         spirv-reflect-static
          glfw3
          dl
          pthread

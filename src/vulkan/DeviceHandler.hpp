@@ -17,231 +17,194 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-namespace ABox_Utils {
+namespace ABox_Utils
+{
 
-DEFINE_VK_MEMORY_WRAPPER_SOLO(
-    VkDevice,
-    Device,
-    vkDestroyDevice
-)
+DEFINE_VK_MEMORY_WRAPPER_SOLO(VkDevice, Device, vkDestroyDevice)
 
 /**
  * @struct DeviceBoundElements
  * @brief Represents elements bounded to the Logical Device
  */
-class DeviceBoundElements {
-  DeviceWrapper            device;
-  VkPhysicalDevice         physical;
-  const QueueFamilyIndices fIndices;
-  FrameSyncArray           syncM;
-  CommandsHandler          commands;
+class DeviceBoundElements
+{
+    DeviceWrapper            device;
+    VkPhysicalDevice         physical;
+    const QueueFamilyIndices fIndices;
+    FrameSyncArray           syncM;
+    CommandsHandler          commands;
 
-   public:
-  VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
-  VkQueue presentQueue  = VK_NULL_HANDLE;
+public:
+    VkQueue                         graphicsQueue = VK_NULL_HANDLE;    // move to Queue Management ??
+    VkQueue                         presentQueue  = VK_NULL_HANDLE;
 
-  std::optional<SwapchainManager>                      swapchain;
-  std::optional<GraphicsPipeline>                      graphicsppl;
-  std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
+    std::optional<SwapchainManager> swapchain;
+    std::optional<GraphicsPipeline> graphicsppl;
+    std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
 
-  DeviceBoundElements(
-      VkDevice           logDevice,
-      VkPhysicalDevice   phyDev,
-      QueueFamilyIndices queueRoleIndices
-  )
-      : device(logDevice)
-      , physical(phyDev)
-      , fIndices(queueRoleIndices)
-      , syncM(logDevice)
-      , commands(device, fIndices)
-  {
-  }
-
-  DELETE_MOVE(DeviceBoundElements);
-  DELETE_COPY(DeviceBoundElements);
-  ~DeviceBoundElements() = default;
-
-  const DeviceWrapper &getDevice() const { return device; }
-
-  DeviceWrapper *getDevicePtr() { return &device; }
-
-  VkPhysicalDevice getPhysicalDevice() { return physical; }
-
-  QueueFamilyIndices getFamilyQueueIndices() { return fIndices; }
-
-  FrameSyncArray *getFrameSyncArray() { return &syncM; }
-
-  CommandsHandler *getCommandHandler() { return &commands; }
-
-  VkResult recordCommandBuffer(
-      uint32_t imageIndex,
-      uint32_t commandBufferIndex
-  )
-  {
-    ABOX_PER_FRAME_DEBUG_LOG(
-        "Recording commands Img "
-        << imageIndex << " commandBufferIndex : " << commandBufferIndex
-    );
-
-    if (!graphicsppl.has_value()) {
-      std::cout << "No Value in graphics ppl" << std::endl;
-      throw std::runtime_error(
-          "Wrong graphics pipeline target during recordcommandbuffer"
-      );
+    DeviceBoundElements(VkDevice logDevice, VkPhysicalDevice phyDev, QueueFamilyIndices queueRoleIndices)
+        : device(logDevice)
+        , physical(phyDev)
+        , fIndices(queueRoleIndices)
+        , syncM(logDevice)
+        , commands(device, fIndices)
+    {
     }
 
-    if (!swapchain.has_value()) {
-      std::cout << "No Value in swapchain" << std::endl;
-      throw std::runtime_error(
-          "Wrong swapchain target during recordcommandbuffer"
-      );
+    DELETE_MOVE(DeviceBoundElements);
+    DELETE_COPY(DeviceBoundElements);
+    ~DeviceBoundElements() = default;
+
+    const DeviceWrapper &getDevice() const { return device; }
+
+    DeviceWrapper       *getDevicePtr() { return &device; }
+
+    VkPhysicalDevice     getPhysicalDevice() { return physical; }
+
+    QueueFamilyIndices   getFamilyQueueIndices() { return fIndices; }
+
+    FrameSyncArray      *getFrameSyncArray() { return &syncM; }
+
+    CommandsHandler     *getCommandHandler() { return &commands; }
+
+    VkResult             recordCommandBuffer(uint32_t imageIndex, uint32_t commandBufferIndex)
+    {
+        ABOX_PER_FRAME_DEBUG_LOG("Recording commands Img " << imageIndex
+                                                           << " commandBufferIndex : " << commandBufferIndex);
+
+        if (!graphicsppl.has_value())
+        {
+            std::cout << "No Value in graphics ppl" << std::endl;
+            throw std::runtime_error("Wrong graphics pipeline target during recordcommandbuffer");
+        }
+
+        if (!swapchain.has_value())
+        {
+            std::cout << "No Value in swapchain" << std::endl;
+            throw std::runtime_error("Wrong swapchain target during recordcommandbuffer");
+        }
+        return commands.top().recordCommandBuffer(graphicsppl.value(),
+                                                  swapchain.value(),
+                                                  imageIndex,
+                                                  commandBufferIndex);
     }
-    return commands.top().recordCommandBuffer(
-        graphicsppl.value(),
-        swapchain.value(),
-        imageIndex,
-        commandBufferIndex
-    );
-  }
 };
 
 /**
  * @class DeviceHandler
  * @brief Handle specifics to logical devices and their different bindings
  */
-class DeviceHandler {
-  std::vector<VkPhysicalDevice>                phyDevices;
-  std::list<DeviceBoundElements>               devices;
-  std::map<std::string, DeviceBoundElements *> deviceNames;
+class DeviceHandler
+{
+    std::vector<VkPhysicalDevice>                phyDevices;
+    std::list<DeviceBoundElements>               devices;
+    std::map<std::string, DeviceBoundElements *> deviceNames;
 
-  std::set<uint32_t> getQueueFamilyIndices(
-      QueueFamilyIndices fi
-  ); // TODO aim for a loaded device instead
+    std::set<uint32_t>    getQueueFamilyIndices(QueueFamilyIndices fi);    // TODO aim for a loaded device instead
 
-  std::vector<uint32_t> listQueueFamilyIndices(
-      QueueFamilyIndices fi
-  ); // TODO aim for a loaded device Instead
+    std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi);    // TODO aim for a loaded device Instead
 
-   public:
-  DELETE_COPY(DeviceHandler);
-  DELETE_MOVE(DeviceHandler);
+public:
+    DELETE_COPY(DeviceHandler);
+    DELETE_MOVE(DeviceHandler);
 
-  ~DeviceHandler() = default;
+    ~DeviceHandler() = default;
 
-  VkResult listPhysicalDevices() const;
+    VkResult                                listPhysicalDevices() const;
 
-  void     waitIdle();
-  /**
-   * @brief add a Logical device while guessing which Physical Device is the
-   * best suited to do the job
-   *
-   * @param VkSurfaceKHR surface the surface which will bind presentation
-   * @return VkResult : VK_SUCCESS if succeded else a corresponding error
-   * value
-   */
-  VkResult addLogicalDevice(VkSurfaceKHR surface);
-  /**
-   *
-   * @param uint32_t index the physical device index to select
-   * @param[[VkSurfaceKHR] surface the surface which will bind presentation
-   * @return a VkResult if VK_SUCCESS if succeded else a corresponding error
-   * value
-   */
-  VkResult
-      addLogicalDevice(VkSurfaceKHR surface, std::string name, uint32_t index);
+    void                                    waitIdle();
+    /**
+     * @brief add a Logical device while guessing which Physical Device is the
+     * best suited to do the job
+     *
+     * @param VkSurfaceKHR surface the surface which will bind presentation
+     * @return VkResult : VK_SUCCESS if succeded else a corresponding error
+     * value
+     */
+    VkResult                                addLogicalDevice(VkSurfaceKHR surface);
+    /**
+     *
+     * @param uint32_t index the physical device index to select
+     * @param[[VkSurfaceKHR] surface the surface which will bind presentation
+     * @return a VkResult if VK_SUCCESS if succeded else a corresponding error
+     * value
+     */
+    VkResult                                addLogicalDevice(VkSurfaceKHR surface, std::string name, uint32_t index);
 
-  // TODO : VkResult clear();
-  uint32_t listQueueFamilies();
-  // VkResult DeviceExtensionSupport(VkPhysicalDevice device);
-  std::unordered_map<QueueRole, uint32_t>
-           loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
-  uint32_t findBestPhysicalDevice();
+    // TODO : VkResult clear();
+    uint32_t                                listQueueFamilies();
+    // VkResult DeviceExtensionSupport(VkPhysicalDevice device);
+    std::unordered_map<QueueRole, uint32_t> loadNecessaryQueueFamilies(uint32_t phyDev, VkSurfaceKHR surface);
+    uint32_t                                findBestPhysicalDevice();
 
-  DeviceHandler() {};
-  DeviceHandler(VkInstance instance);
+    DeviceHandler() {};
+    DeviceHandler(VkInstance instance);
 
-  DeviceBoundElements *getDBE(uint32_t index);
-  DeviceBoundElements *getDBE(std::string name);
-  VkDevice             getDevice(uint32_t index);
+    DeviceBoundElements *getDBE(uint32_t index);
+    DeviceBoundElements *getDBE(std::string name);
+    VkDevice             getDevice(uint32_t index);
 
-  inline bool hasDevice(
-      uint32_t index
-  ) const
-  {
-    return index < devices.size();
-  }
+    inline bool          hasDevice(uint32_t index) const { return index < devices.size(); }
 
-  // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
-  VkResult addSwapchain(
-      uint32_t      width,
-      uint32_t      height,
-      VkSurfaceKHR *surface,
-      uint_fast8_t  devIndex
-  );
+    // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
+    VkResult             addSwapchain(uint32_t width, uint32_t height, VkSurfaceKHR *surface, uint_fast8_t devIndex);
 
-  std::pair<VkResult, VkShaderModule>
-      loadShader(uint_fast16_t deviceIndex, const ShaderDataFile &sdf);
+    std::pair<VkResult, VkShaderModule> loadShader(uint_fast16_t deviceIndex, const ShaderDataFile &sdf);
 
-  /**
-   * @brief add a GraphicsPipeline to a LogicalDevice which must have a
-   * swapchain
-   */
-  VkResult addGraphicsPipeline(
-      uint32_t                         deviceIndex,
-      const std::list<ShaderDataFile> &shaderFiles
-  );
+    /**
+     * @brief add a GraphicsPipeline to a LogicalDevice which must have a
+     * swapchain
+     */
+    VkResult addGraphicsPipeline(uint32_t deviceIndex, const std::list<ShaderDataFile> &shaderFiles);
 
-  VkResult createFramebuffers(
-      uint32_t deviceIndex = 0u
-  )
-  {
-    if (devices.size() > deviceIndex) {
-      DeviceBoundElements *dbe = getDBE(deviceIndex);
-      if (dbe->swapchain.has_value() && dbe->graphicsppl.has_value()) {
-        return dbe->swapchain.value().createFramebuffers(
-            dbe->graphicsppl.value().getRenderPass(),
-            dbe->getDevice()
-        );
-      }
-      else if (!dbe->swapchain.has_value()) {
-        throw std::runtime_error(
-            "No Swapchain make Framebuffer creation impossible !"
-        );
-      }
-      else {
-        throw std::runtime_error(
-            "No Graphics Pipeline makes Framebuffer creation impossible !"
-        );
-      }
+    VkResult createFramebuffers(uint32_t deviceIndex = 0u)
+    {
+        if (devices.size() > deviceIndex)
+        {
+            DeviceBoundElements *dbe = getDBE(deviceIndex);
+            if (dbe->swapchain.has_value() && dbe->graphicsppl.has_value())
+            {
+                return dbe->swapchain.value().createFramebuffers(dbe->graphicsppl.value().getRenderPass(),
+                                                                 dbe->getDevice());
+            }
+            else if (!dbe->swapchain.has_value())
+            {
+                throw std::runtime_error("No Swapchain make Framebuffer creation impossible !");
+            }
+            else
+            {
+                throw std::runtime_error("No Graphics Pipeline makes Framebuffer creation impossible !");
+            }
+        }
+        else
+        {
+            throw std::runtime_error("No Device present at given Index !");
+        }
+        return VK_SUCCESS;
     }
-    else {
-      throw std::runtime_error("No Device present at given Index !");
-    }
-    return VK_SUCCESS;
-  }
 
-  VkResult recreateSwapchain(
-      VkExtent2D window,
-      uint32_t   deviceIndex = 0u
-  )
-  {
-    DeviceBoundElements *dbe = getDBE(deviceIndex);
-    std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
-    if (dbe->swapchain.has_value()) {
-      dbe->swapchain.value().resizeSwapChain(
-          dbe->getPhysicalDevice(),
-          dbe->getDevice().get(),
-          window
-      );
-      if (dbe->graphicsppl.has_value()) {
-        std::cout << "GP has value " << dbe->graphicsppl.has_value()
-                  << std::endl;
-        dbe->graphicsppl.value().updateExtent(window);
-      }
-      return VK_SUCCESS;
+    VkResult recreateSwapchain(VkExtent2D window, uint32_t deviceIndex = 0u)
+    {
+        DeviceBoundElements *dbe = getDBE(deviceIndex);
+        VkRenderPass         rp  = VK_NULL_HANDLE;
+        std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
+        if (dbe->swapchain.has_value())
+        {
+            if (dbe->graphicsppl.has_value())
+            {
+                std::cout << "GP has value " << dbe->graphicsppl.has_value() << std::endl;
+                dbe->graphicsppl.value().updateExtent(window);
+                rp = dbe->graphicsppl.value().getRenderPass();
+            }
+            dbe->swapchain.value().resizeSwapChain(dbe->getPhysicalDevice(),
+                                                   dbe->getDevice().get(),
+                                                   window,
+                                                   dbe->graphicsppl.value().getRenderPass());
+
+            return VK_SUCCESS;
+        }
+        return VK_ERROR_DEVICE_LOST;
     }
-    return VK_ERROR_DEVICE_LOST;
-  }
 };
 
 std::stringstream vkQueueFlagSS(const VkQueueFlags &flag);
@@ -249,5 +212,5 @@ OSTREAM_OP(const VkQueueFamilyProperties &prop);
 OSTREAM_OP(const VkExtent3D &ext);
 OSTREAM_OP(const VkPhysicalDeviceProperties &phyP);
 OSTREAM_OP(const VkPhysicalDeviceType &phyT);
-} // namespace ABox_Utils
+}    // namespace ABox_Utils
 #endif

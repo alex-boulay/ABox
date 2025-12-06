@@ -66,6 +66,8 @@ file(GLOB_RECURSE HEADER_FILES CONFIGURE_DEPENDS src/*.hpp)
 
 add_executable(ABox ${SOURCE_FILES} ${HEADER_FILES})
 
+target_compile_definitions(ABox PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H)
+
 target_include_directories(
   ABox
   PRIVATE ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/src/graphics
@@ -78,7 +80,7 @@ target_link_libraries(
   PUBLIC Vulkan::Vulkan
          glslang::glslang
          glslang::SPIRV
-         spirv-reflect-static
+         SPIRV-Reflect::spirv-reflect-static
          glfw3
          dl
          pthread

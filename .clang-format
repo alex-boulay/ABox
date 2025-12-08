@@ -7,21 +7,18 @@ AlignConsecutiveAssignments:
   AcrossEmptyLines: false
   AcrossComments: true
   AlignCompound: true
-  AlignFunctionPointers: true
   PadOperators: true
 AlignConsecutiveBitFields:
   Enabled: true
   AcrossEmptyLines: true
   AcrossComments: true
   AlignCompound: true
-  AlignFunctionPointers: true
   PadOperators: true
 AlignConsecutiveDeclarations:
   Enabled: true
   AcrossEmptyLines: false
   AcrossComments: true
   AlignCompound: true
-  AlignFunctionPointers: true
   PadOperators: true
 UseTab: Never
 Standard: Latest

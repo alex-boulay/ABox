@@ -8,90 +8,120 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 #ifdef DEBUG_VK_ABOX
-#include "DebugHandler.hpp"
+  #include "DebugHandler.hpp"
 #endif
 
-DEFINE_VK_MEMORY_WRAPPER_SOLO(VkInstance, Instance, vkDestroyInstance)
+DEFINE_VK_MEMORY_WRAPPER_SOLO(
+    VkInstance,
+    Instance,
+    vkDestroyInstance
+)
 
-DEFINE_VK_MEMORY_WRAPPER_FULL(VkSurfaceKHR, Surface, vkDestroySurfaceKHR, VkInstance)
+DEFINE_VK_MEMORY_WRAPPER_FULL(
+    VkSurfaceKHR,
+    Surface,
+    vkDestroySurfaceKHR,
+    VkInstance
+)
 
-class ResourcesManager
-{
-    InstanceWrapper instance;
+class ResourcesManager {
+  InstanceWrapper instance;
 
 #ifdef DEBUG_VK_ABOX
-    DebugHandler debugHandler;
+  DebugHandler debugHandler;
 #endif
 
-    std::list<SurfaceWrapper>                surfaces;
-    std::optional<ABox_Utils::DeviceHandler> deviceHandler;
+  std::list<SurfaceWrapper>                surfaces;
+  std::optional<ABox_Utils::DeviceHandler> deviceHandler;
 
-    std::unordered_set<const char *>         InstanceLayers = {
+  std::unordered_set<const char *> InstanceLayers = {
 #ifdef VK_ABOX_VALIDATION_LAYERS
-        "VK_LAYER_KHRONOS_validation",
+      "VK_LAYER_KHRONOS_validation",
 #endif
 #ifdef VK_ABOX_PROFILING
-        "VK_LAYER_KHRONOS_profiles",
+      "VK_LAYER_KHRONOS_profiles",
 #endif
-    };
+  };
 
-    std::unordered_set<const char *> InstanceExtensions = {
-        VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
-    };    // getExtensions was added to fetch necessary functions for glfw.
+  std::unordered_set<const char *> InstanceExtensions = {
+      VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
+  }; // getExtensions was added to fetch necessary functions for glfw.
 
-public:
-    ResourcesManager();
+   public:
+  ResourcesManager();
 
-    ~ResourcesManager() { std::cout << "ResourcesManager Destructor Call ! " << std::endl; }
-    DELETE_COPY(ResourcesManager)
+  ~ResourcesManager()
+  {
+    std::cout << "ResourcesManager Destructor Call ! " << std::endl;
+  }
+  DELETE_COPY(
+      ResourcesManager
+  )
 
-    DELETE_MOVE(ResourcesManager)
+  DELETE_MOVE(
+      ResourcesManager
+  )
 
-    std::vector<const char *>         getExtensions();
+  std::vector<const char *> getExtensions();
 
-    inline ABox_Utils::DeviceHandler *getDeviceHandler() { return &deviceHandler.value(); }
+  inline ABox_Utils::DeviceHandler *getDeviceHandler()
+  {
+    return &deviceHandler.value();
+  }
 
-    //---------------------------------------------------------------
-    VkInstance                        getInstance() { return instance.get(); }
+  //---------------------------------------------------------------
+  VkInstance getInstance() { return instance.get(); }
 
-    VkInstance                       *getInstancePtr() { return instance.ptr(); }
+  VkInstance *getInstancePtr() { return instance.ptr(); }
 
-    //---------------------------------------------------------------
+  //---------------------------------------------------------------
 
-    VkSurfaceKHR                      getWindowSurface() { return surfaces.front().get(); }
+  VkSurfaceKHR getWindowSurface() { return surfaces.front().get(); }
 
-    VkSurfaceKHR                     *getWindowSurfacePtr() { return surfaces.front().ptr(); }
+  VkSurfaceKHR *getWindowSurfacePtr() { return surfaces.front().ptr(); }
 
-    //---------------------------------------------------------------
+  //---------------------------------------------------------------
 
-    VkResult                          addLogicalDevice();
-    VkResult                          addLogicalDevice(uint32_t physicalDeviceIndex, std::string name);
+  VkResult addLogicalDevice();
+  VkResult addLogicalDevice(uint32_t physicalDeviceIndex, std::string name);
 
-    inline void                       waitIdle()
-    {
-        if (deviceHandler.has_value())
-        {
-            deviceHandler.value().waitIdle();
-        }
+  inline void waitIdle()
+  {
+    if (deviceHandler.has_value()) {
+      deviceHandler.value().waitIdle();
     }
+  }
 
-    ABox_Utils::DeviceBoundElements *getMainDevice() { return deviceHandler->getDBE(0u); }
+  ABox_Utils::DeviceBoundElements *getMainDevice()
+  {
+    return deviceHandler->getDBE(0u);
+  }
 
-    ABox_Utils::DeviceBoundElements *getDevice(uint32_t device = 0u) { return deviceHandler->getDBE(device); }
+  ABox_Utils::DeviceBoundElements *getDevice(
+      uint32_t device = 0u
+  )
+  {
+    return deviceHandler->getDBE(device);
+  }
 
-    VkResult                         VkResuladdLogicalDevice(uint32_t physicalDeviceIndex);
+  VkResult VkResuladdLogicalDevice(uint32_t physicalDeviceIndex);
 
-    VkResult                         createSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0u);
+  VkResult
+      createSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0u);
 
-    VkResult                         reCreateSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0);
+  VkResult
+      reCreateSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0);
 
-    std::vector<const char *>        getLayerNames();
+  std::vector<const char *> getLayerNames();
 
-    VkResult addGraphicsPipeline(const std::list<ShaderDataFile> &smcis, uint32_t deviceIndex = 0u);
+  VkResult addGraphicsPipeline(
+      const std::list<ShaderDataFile> &smcis,
+      uint32_t                         deviceIndex = 0u
+  );
 
-    VkResult createFramebuffers(uint32_t devIndex = 0u);
+  VkResult createFramebuffers(uint32_t devIndex = 0u);
 
-    void     drawFrame();
+  void drawFrame();
 };
 
-#endif    // RESSOURCES_MANAGER_HPP
+#endif // RESSOURCES_MANAGER_HPP

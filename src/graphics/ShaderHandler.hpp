@@ -13,11 +13,11 @@
 #include <iostream>
 #include <list>
 #include <optional>
+#include <spirv_reflect.h>
 #include <string>
 #include <tuple>
 #include <vector>
 #include <vulkan/vulkan_core.h>
-#include <spirv_reflect.h>
 
 #define OPENGL_CHOSEN_VERSION 450
 #define VULKAN_CHOSEN_VERSION                                                  \
@@ -125,14 +125,14 @@ DEFINE_VK_MEMORY_WRAPPER(
  * @brief Structure to hold SPIRV reflection data
  */
 struct ShaderReflectionData {
-  std::vector<SpvReflectDescriptorSet*> descriptorSets;
-  std::vector<SpvReflectBlockVariable*> pushConstants;
-  std::vector<SpvReflectInterfaceVariable*> inputVariables;
-  std::vector<SpvReflectInterfaceVariable*> outputVariables;
+  std::vector<SpvReflectDescriptorSet *>     descriptorSets;
+  std::vector<SpvReflectBlockVariable *>     pushConstants;
+  std::vector<SpvReflectInterfaceVariable *> inputVariables;
+  std::vector<SpvReflectInterfaceVariable *> outputVariables;
 
-  uint32_t descriptorSetCount = 0;
-  uint32_t pushConstantCount = 0;
-  uint32_t inputVariableCount = 0;
+  uint32_t descriptorSetCount  = 0;
+  uint32_t pushConstantCount   = 0;
+  uint32_t inputVariableCount  = 0;
   uint32_t outputVariableCount = 0;
 
   ~ShaderReflectionData() = default;
@@ -148,11 +148,11 @@ class ShaderDataFile {
   const std::vector<uint32_t> code;  // Spirv output
   const stageExtention *const stage; // Pipeline stage for the shader
   [[maybe_unused]] const SourcePlatform
-      platform; // in case of recompilation ?
-                // ShaderDataFile doesn't handle allocations
+                         platform; // in case of recompilation ?
+                                   // ShaderDataFile doesn't handle allocations
   SpvReflectShaderModule reflectModule;
-  ShaderReflectionData reflectionData;
-  bool reflectionValid = false;
+  ShaderReflectionData   reflectionData;
+  bool                   reflectionValid = false;
 
    public:
   ShaderDataFile(
@@ -169,7 +169,8 @@ class ShaderDataFile {
     performReflection();
   }
 
-  ~ShaderDataFile() {
+  ~ShaderDataFile()
+  {
     if (reflectionValid) {
       spvReflectDestroyShaderModule(&reflectModule);
     }
@@ -207,9 +208,15 @@ class ShaderDataFile {
     };
   }
 
-  const ShaderReflectionData& getReflectionData() const { return reflectionData; }
+  const ShaderReflectionData &getReflectionData() const
+  {
+    return reflectionData;
+  }
   bool isReflectionValid() const { return reflectionValid; }
-  const SpvReflectShaderModule& getReflectModule() const { return reflectModule; }
+  const SpvReflectShaderModule &getReflectModule() const
+  {
+    return reflectModule;
+  }
 
    private:
   void performReflection();

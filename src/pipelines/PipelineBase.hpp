@@ -31,28 +31,32 @@ DEFINE_VK_MEMORY_WRAPPER(
  * and pipeline layout creation
  */
 class PipelineBase {
-protected:
+   protected:
   VkDevice device;
 
-  PipelineObjWrapper pipeline;
+  PipelineObjWrapper    pipeline;
   PipelineLayoutWrapper pipelineLayout;
 
   std::vector<DescriptorSetLayoutWrapper> descriptorSetLayouts;
-  std::vector<VkPushConstantRange> pushConstantRanges;
+  std::vector<VkPushConstantRange>        pushConstantRanges;
 
   /**
-   * @brief Build descriptor set layouts and push constant ranges from shader reflection data
+   * @brief Build descriptor set layouts and push constant ranges from shader
+   * reflection data
    * @param shaders Vector of shader data files with reflection information
    */
-  void buildReflectionData(const std::vector<const ShaderDataFile*>& shaders);
+  void buildReflectionData(const std::vector<const ShaderDataFile *> &shaders);
 
   /**
-   * @brief Create the pipeline layout from descriptor set layouts and push constants
+   * @brief Create the pipeline layout from descriptor set layouts and push
+   * constants
    */
   void createPipelineLayout();
 
-public:
-  PipelineBase(VkDevice dev)
+   public:
+  PipelineBase(
+      VkDevice dev
+  )
       : device(dev)
       , pipeline(dev)
       , pipelineLayout(dev)
@@ -64,19 +68,22 @@ public:
   DELETE_COPY(PipelineBase);
   DELETE_MOVE(PipelineBase);
 
-  [[nodiscard]] VkPipeline getPipeline() const noexcept {
-    return pipeline;
-  }
+  [[nodiscard]] VkPipeline getPipeline() const noexcept { return pipeline; }
 
-  [[nodiscard]] VkPipelineLayout getPipelineLayout() const noexcept {
+  [[nodiscard]] VkPipelineLayout getPipelineLayout() const noexcept
+  {
     return pipelineLayout;
   }
 
-  [[nodiscard]] const std::vector<DescriptorSetLayoutWrapper>& getDescriptorSetLayouts() const noexcept {
+  [[nodiscard]] const std::vector<DescriptorSetLayoutWrapper> &
+      getDescriptorSetLayouts() const noexcept
+  {
     return descriptorSetLayouts;
   }
 
-  [[nodiscard]] const std::vector<VkPushConstantRange>& getPushConstantRanges() const noexcept {
+  [[nodiscard]] const std::vector<VkPushConstantRange> &
+      getPushConstantRanges() const noexcept
+  {
     return pushConstantRanges;
   }
 

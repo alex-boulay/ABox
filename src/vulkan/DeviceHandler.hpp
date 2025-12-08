@@ -237,7 +237,7 @@ class DeviceHandler {
           dbe->getPhysicalDevice(),
           dbe->getDevice().get(),
           window,
-          dbe->graphicsppl.value().getRenderPass()
+          rp
       );
 
       return VK_SUCCESS;

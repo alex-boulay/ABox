@@ -81,7 +81,6 @@ class SwapchainManager {
   std::list<SwapchainImage>     swapChainImages;
   std::list<FramebufferWrapper> framebuffers;
 
-  VkFormat      swapChainImageFormat;
   VkExtent2D    extent;
   VkSurfaceKHR *surface;
 
@@ -119,7 +118,7 @@ class SwapchainManager {
 
   VkExtent2D getExtent() const noexcept { return extent; }
 
-  VkFormat getFormat() const noexcept { return swapChainImageFormat; }
+  VkFormat getFormat() const noexcept { return surfaceFormat.format; }
 
   VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
 

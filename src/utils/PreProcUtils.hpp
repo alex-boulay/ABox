@@ -61,7 +61,7 @@
   #define FILE_DEBUG_PRINT(fmt, ...)
 #endif
 
-#define ABOX_LOG_PER_FRAME
+// #define ABOX_LOG_PER_FRAME
 #if defined(DEBUG_VK_ABOX) && defined(ABOX_LOG_PER_FRAME)
   #define ABOX_PER_FRAME_DEBUG_LOG(msg_expr)                                   \
     do {                                                                       \

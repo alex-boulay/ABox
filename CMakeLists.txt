@@ -78,7 +78,7 @@ target_link_libraries(
   PUBLIC Vulkan::Vulkan
          glslang::glslang
          glslang::SPIRV
-         spirv-reflect-static
+         SPIRV-Reflect::spirv-reflect-static
          glfw3
          dl
          pthread

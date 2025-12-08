@@ -28,7 +28,6 @@ DEFINE_VK_MEMORY_WRAPPER(
 )
 
 class GraphicsPipeline {
-
   PipelineWrapper       graphicsPipeline; // main object
   RenderPassWrapper     renderPass;
   PipelineLayoutWrapper pipelineLayout;

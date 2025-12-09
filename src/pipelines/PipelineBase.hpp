@@ -21,7 +21,7 @@ DEFINE_VK_MEMORY_WRAPPER(
 
 DEFINE_VK_MEMORY_WRAPPER(
     VkPipeline,
-    PipelineObj,
+    Pipeline,
     vkDestroyPipeline
 )
 
@@ -32,9 +32,7 @@ DEFINE_VK_MEMORY_WRAPPER(
  */
 class PipelineBase {
    protected:
-  VkDevice device;
-
-  PipelineObjWrapper    pipeline;
+  PipelineWrapper       pipeline;
   PipelineLayoutWrapper pipelineLayout;
 
   std::vector<DescriptorSetLayoutWrapper> descriptorSetLayouts;
@@ -43,25 +41,31 @@ class PipelineBase {
   /**
    * @brief Build descriptor set layouts and push constant ranges from shader
    * reflection data
+   * @param device Logical device handle
    * @param shaders Vector of shader data files with reflection information
    */
-  void buildReflectionData(const std::vector<const ShaderDataFile *> &shaders);
+  void buildReflectionData(
+      VkDevice                                   device,
+      const std::vector<const ShaderDataFile *> &shaders
+  );
 
   /**
    * @brief Create the pipeline layout from descriptor set layouts and push
    * constants
+   * @param device Logical device handle
    */
-  void createPipelineLayout();
+  void createPipelineLayout(VkDevice device);
 
    public:
+  /**
+   * @brief Construct pipeline base and build reflection data
+   * @param device Logical device handle
+   * @param shaders Vector of shader data files with reflection information
+   */
   PipelineBase(
-      VkDevice dev
-  )
-      : device(dev)
-      , pipeline(dev)
-      , pipelineLayout(dev)
-  {
-  }
+      VkDevice                                   device,
+      const std::vector<const ShaderDataFile *> &shaders
+  );
 
   virtual ~PipelineBase() = default;
 
@@ -85,6 +89,59 @@ class PipelineBase {
       getPushConstantRanges() const noexcept
   {
     return pushConstantRanges;
+  }
+
+  /**
+   * @brief Get the pipeline bind point (graphics or compute)
+   * @return VkPipelineBindPoint for this pipeline type
+   */
+  [[nodiscard]] virtual VkPipelineBindPoint getBindPoint() const noexcept = 0;
+
+  /**
+   * @brief Bind this pipeline to a command buffer
+   * @param commandBuffer Command buffer to bind to
+   */
+  void bind(VkCommandBuffer commandBuffer) const noexcept;
+
+  /**
+   * @brief Bind descriptor sets for this pipeline
+   * @param commandBuffer Command buffer to bind to
+   * @param descriptorSets Descriptor sets to bind
+   * @param firstSet First descriptor set index (default 0)
+   */
+  void bindDescriptorSets(
+      VkCommandBuffer                     commandBuffer,
+      const std::vector<VkDescriptorSet> &descriptorSets,
+      uint32_t                            firstSet = 0
+  ) const noexcept;
+
+  /**
+   * @brief Push constants for this pipeline (type-safe)
+   * @tparam T Type of push constant data
+   * @param commandBuffer Command buffer to push to
+   * @param data Push constant data (validates size at compile time)
+   */
+  template <typename T>
+  void pushConstants(
+      VkCommandBuffer commandBuffer,
+      const T        &data
+  ) const noexcept
+  {
+    static_assert(
+        sizeof(T) <= 128,
+        "Push constants limited to 128 bytes in most implementations"
+    );
+
+    for (const auto &range : pushConstantRanges) {
+      vkCmdPushConstants(
+          commandBuffer,
+          pipelineLayout,
+          range.stageFlags,
+          range.offset,
+          range.size,
+          reinterpret_cast<const uint8_t *>(&data) + range.offset
+      );
+    }
   }
 
   /**

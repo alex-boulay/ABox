@@ -1,59 +1,54 @@
-#include "GraphicsPipeline.hpp"
-#include <stdexcept>
+#ifndef COMPUTE_PIPELINE_HPP
+#define COMPUTE_PIPELINE_HPP
+
+#include "MemoryWrapper.hpp"
+#include "PipelineBase.hpp"
+#include "ShaderHandler.hpp"
 #include <vulkan/vulkan_core.h>
 
-class ComputePipeline {
-  // Nex two object common for every pipeline
-  PipelineWrapper       pipeline;       // main object
-  PipelineLayoutWrapper pipelineLayout; // layout
-
-  // -> Load the right queueFamily to compute
-  // VkDescriptorSetLayout for each shader Stage ?
-  // pushConstantRangeCount for each shader Stage ?
-  // how to bind them ?
-  //
+/**
+ * @brief Compute pipeline for general-purpose GPU computation
+ * Uses a single compute shader stage
+ */
+class ComputePipeline : public PipelineBase {
    public:
+  /**
+   * @brief Construct a compute pipeline
+   * @param device Logical device handle
+   * @param shaders Vector of shader data files (should contain one .comp
+   * shader)
+   */
   ComputePipeline(
-      VkDevice                                     device,
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages
-  )
-      : pipeline(device)
-      , pipelineLayout(device)
-  {
-    VkResult                   result = VK_SUCCESS;
-    VkPipelineLayoutCreateInfo plci{
-        .sType          = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-        .pNext          = nullptr,
-        .flags          = 0u,
-        .setLayoutCount = static_cast<uint32_t>(shaderStages.size()),
-        .pSetLayouts    = &computeDescriptorLayout, // TODO <- bind to each
-        .pushConstantRangeCount =
-            static_cast<uint32_t>(shaderStages.size()), // TODO <- bind to each
-        .pPushConstantRanges = 0                        // TODO <- bind to each
-    };
-    result =
-        vkCreatePipelineLayout(device, &plci, nullptr, pipelineLayout.ptr());
+      VkDevice                                   device,
+      const std::vector<const ShaderDataFile *> &shaders
+  );
 
-    if (result != VK_SUCCESS) {
-      throw std::runtime_error(
-          "Failed to create pipelineLayout for the compute pipeline !"
-      );
-    }
-    else {
-      std::cout
-          << " Success creating the pipeline layout for the compute pipeline "
-          << std::endl;
-    }
-    for (const auto &a : shaderStages) {
-      VkComputePipelineCreateInfo cpci{
-          .sType              = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
-          .pNext              = nullptr,
-          .flags              = 0u,
-          .stage              = a,
-          .layout             = pipelineLayout,
-          .basePipelineHandle = nullptr,
-          .basePipelineIndex  = 0
-      };
-    }
-  };
+  ~ComputePipeline() = default;
+
+  DELETE_COPY(ComputePipeline)
+  DELETE_MOVE(ComputePipeline)
+
+  /**
+   * @brief Get the pipeline bind point (compute)
+   */
+  [[nodiscard]] VkPipelineBindPoint getBindPoint() const noexcept override
+  {
+    return VK_PIPELINE_BIND_POINT_COMPUTE;
+  }
+
+  /**
+   * @brief Dispatch compute work
+   * @param commandBuffer Command buffer to record into
+   * @param groupCountX Number of work groups in X dimension
+   * @param groupCountY Number of work groups in Y dimension
+   * @param groupCountZ Number of work groups in Z dimension
+   */
+  void dispatch(
+      VkCommandBuffer commandBuffer,
+      uint32_t        groupCountX,
+      uint32_t        groupCountY,
+      uint32_t        groupCountZ
+  ) const noexcept;
 };
+
+#endif // COMPUTE_PIPELINE_HPP

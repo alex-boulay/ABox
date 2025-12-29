@@ -1,4 +1,5 @@
 #include "CommandsHandler.hpp"
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include <stdexcept>
 #include <unordered_map>
@@ -18,7 +19,8 @@ CommandBoundElement::CommandBoundElement(
     throw std::runtime_error("Couldn't allocate the commandPool");
   }
   else {
-    std::cout << " CommandPool allocated ! " << std::endl;
+    LOG_DEBUG("Vulkan") << "CommandPool allocated for queue role "
+                        << static_cast<int>(qRole);
   }
   createCommandBuffer(device, bufferCount);
 }
@@ -40,8 +42,8 @@ VkResult CommandBoundElement::createCommandBuffer(
   VkResult result =
       vkAllocateCommandBuffers(device, &alInfo, commandBuffers.data());
   if (result == VK_SUCCESS) {
-    std::cout << "Command Buffer allocation Sucessfull - Size : "
-              << commandBuffers.size() << std::endl;
+    LOG_DEBUG("Vulkan") << "Command Buffer allocation successful - Size: "
+                        << commandBuffers.size();
   }
   else {
     throw std::runtime_error("Couldn't allocate command buffer ! ");
@@ -86,7 +88,7 @@ VkResult CommandBoundElement::recordCommandBuffer(
       vkBeginCommandBuffer(commandBuffers.at(commandBufferIndex), &beginInfo);
 
   if (result == VK_SUCCESS) {
-    ABOX_PER_FRAME_DEBUG_LOG("Begin Command Buffer Sucessfull");
+    ABOX_LOG_PER_FRAME << "Begin Command Buffer successful";
   }
   else {
     throw std::runtime_error("Failed to do the begin command buffer ");
@@ -94,7 +96,7 @@ VkResult CommandBoundElement::recordCommandBuffer(
 
   VkClearValue clearColor = {.color = {.float32 = {0.0f, 0.0f, 0.0f, 1.0f}}};
 
-  ABOX_PER_FRAME_DEBUG_LOG("1");
+  ABOX_LOG_PER_FRAME << "Setting up render pass";
   VkRenderPassBeginInfo renderPassInfo{
       .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext           = nullptr,
@@ -104,7 +106,7 @@ VkResult CommandBoundElement::recordCommandBuffer(
       .clearValueCount = 1u,
       .pClearValues    = &clearColor
   };
-  ABOX_PER_FRAME_DEBUG_LOG("2 " << sm.frameBufferSize());
+  ABOX_LOG_PER_FRAME << "Framebuffer size: " << sm.frameBufferSize();
 
   vkCmdBeginRenderPass(
       commandBuffers.at(commandBufferIndex),
@@ -112,14 +114,14 @@ VkResult CommandBoundElement::recordCommandBuffer(
       VK_SUBPASS_CONTENTS_INLINE
   );
 
-  ABOX_PER_FRAME_DEBUG_LOG("3");
+  ABOX_LOG_PER_FRAME << "Binding pipeline";
   vkCmdBindPipeline(
       commandBuffers.at(commandBufferIndex),
       VK_PIPELINE_BIND_POINT_GRAPHICS,
       gp.getPipeline()
   );
 
-  ABOX_PER_FRAME_DEBUG_LOG("4");
+  ABOX_LOG_PER_FRAME << "Setting viewport";
   vkCmdSetViewport(
       commandBuffers.at(commandBufferIndex),
       0u,
@@ -127,7 +129,7 @@ VkResult CommandBoundElement::recordCommandBuffer(
       gp.getViewportPtr()
   );
 
-  ABOX_PER_FRAME_DEBUG_LOG("5");
+  ABOX_LOG_PER_FRAME << "Setting scissor";
   vkCmdSetScissor(
       commandBuffers.at(commandBufferIndex),
       0u,
@@ -135,17 +137,17 @@ VkResult CommandBoundElement::recordCommandBuffer(
       gp.getScissorPtr()
   );
 
-  ABOX_PER_FRAME_DEBUG_LOG("6");
+  ABOX_LOG_PER_FRAME << "Drawing";
   vkCmdDraw(commandBuffers.at(commandBufferIndex), 3u, 1u, 0u, 0u);
 
-  ABOX_PER_FRAME_DEBUG_LOG("7");
+  ABOX_LOG_PER_FRAME << "Ending render pass";
   vkCmdEndRenderPass(commandBuffers.at(commandBufferIndex));
 
-  ABOX_PER_FRAME_DEBUG_LOG("8");
+  ABOX_LOG_PER_FRAME << "Ending command buffer";
   result = vkEndCommandBuffer(commandBuffers.at(commandBufferIndex));
 
   if (result == VK_SUCCESS) {
-    ABOX_PER_FRAME_DEBUG_LOG("Call  vkEndCommandBuffer went through ! ");
+    ABOX_LOG_PER_FRAME << "vkEndCommandBuffer successful";
   }
   else {
     throw std::runtime_error("Call vkEndCommandBuffer failed");
@@ -164,10 +166,10 @@ CommandsHandler::CommandsHandler(
     VkCommandPoolCreateFlags                       createFlags
 )
 {
-  std::cout << "Start queueFamilyIndices map indexing " << std::endl;
+  LOG_DEBUG("Device") << "Start queueFamilyIndices map indexing";
   for (const auto &[role, index] : queueFamilyIndices) {
-    std::cout << "Role " << role << " - QueueFamily Index : " << index
-              << std::endl;
+    LOG_DEBUG("Device") << "Role " << static_cast<int>(role)
+                        << " - QueueFamily Index: " << index;
     if (role == QueueRole::Graphics) {
       CBEs.emplace_back(
           device,
@@ -181,6 +183,6 @@ CommandsHandler::CommandsHandler(
       CBEs.emplace_back(device, role, index, createFlags);
     }
 
-    std::cout << "New CBE size : " << CBEs.size() << std::endl;
+    LOG_DEBUG("Device") << "New CBE size: " << CBEs.size();
   }
 }

@@ -58,7 +58,7 @@
   #define RESS_DEBUG_PRINT(fmt, ...)                                           \
     printf("RESS_DEBUG: " fmt "\n", ##__VA_ARGS__)
 #else
-  #define FILE_DEBUG_PRINT(fmt, ...)
+  #define RESS_DEBUG_PRINT(fmt, ...)
 #endif
 
 // #define ABOX_LOG_PER_FRAME

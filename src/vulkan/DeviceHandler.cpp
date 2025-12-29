@@ -1,5 +1,6 @@
 #include "DeviceHandler.hpp"
 #include "CommandsHandler.hpp"
+#include "Logger.hpp"
 #include "ShaderHandler.hpp"
 #include "vectorUtils.hpp"
 #include <bitset>
@@ -28,16 +29,12 @@ std::set<VkQueueFlags> necessaryDeviceQueueFamilyFLags{
     VK_QUEUE_COMPUTE_BIT
 };
 
-bool hasGraphicQueue(
-    VkQueueFamilyProperties qfp
-)
+bool hasGraphicQueue(VkQueueFamilyProperties qfp)
 {
   return qfp.queueFlags & VK_QUEUE_GRAPHICS_BIT;
 }
 
-bool hasComputeQueue(
-    VkQueueFamilyProperties qfp
-)
+bool hasComputeQueue(VkQueueFamilyProperties qfp)
 {
   return qfp.queueFlags & VK_QUEUE_COMPUTE_BIT;
 }
@@ -61,9 +58,7 @@ bool supportsPresentation(
   return support;
 }
 
-bool isValidQueueFamily(
-    VkQueueFamilyProperties qfp
-)
+bool isValidQueueFamily(VkQueueFamilyProperties qfp)
 {
   for (auto n : necessaryDeviceQueueFamilyFLags) {
     if (!(n & qfp.queueFlags)) {
@@ -73,9 +68,7 @@ bool isValidQueueFamily(
   return true;
 }
 
-uint32_t queueFamilyQueueCount(
-    VkQueueFamilyProperties qfp
-)
+uint32_t queueFamilyQueueCount(VkQueueFamilyProperties qfp)
 {
   return std::bitset<sizeof(qfp.queueFlags) * CHAR_BIT>(qfp.queueFlags).count();
 }
@@ -85,9 +78,7 @@ struct ExtensionSupport {
   bool allRequired = true;           // false if any required ext is missing
 };
 
-ExtensionSupport filterDeviceExtensions(
-    VkPhysicalDevice phys
-)
+ExtensionSupport filterDeviceExtensions(VkPhysicalDevice phys)
 {
   uint32_t count = 0;
   vkEnumerateDeviceExtensionProperties(phys, nullptr, &count, nullptr);
@@ -121,10 +112,10 @@ ExtensionSupport filterDeviceExtensions(
   for (auto *name : optionalDeviceExtentions) {
     if (hasExt(name)) {
       result.enabled.push_back(name);
-      std::cout << "[Vulkan] Enabling optional extension: " << name << "\n";
+      LOG_INFO("Vulkan") << "Enabling optional extension: " << name;
     }
     else {
-      std::cout << "[Vulkan] Optional extension not present: " << name << "\n";
+      LOG_WARN("Vulkan") << "Optional extension not present: " << name;
     }
   }
   return result;
@@ -133,9 +124,9 @@ ExtensionSupport filterDeviceExtensions(
 uint32_t DeviceHandler::listQueueFamilies()
 {
   uint32_t queueCount;
-  std::cout << " Listing Queue Families :\n";
+  LOG_DEBUG("Device") << "Listing Queue Families:";
   for (uint16_t i = 0; i < phyDevices.size(); i++) {
-    std::cout << "Physical Device n°" << i << '\n';
+    LOG_DEBUG("Device") << "Physical Device #" << i;
     vkGetPhysicalDeviceQueueFamilyProperties(
         phyDevices.at(i),
         &queueCount,
@@ -148,23 +139,20 @@ uint32_t DeviceHandler::listQueueFamilies()
         queueFamilies.data()
     );
     for (uint16_t qi = 0; qi < queueFamilies.size(); qi++) {
-      std::cout << "\t QueueFamily n°" << qi << '\n';
-      std::cout << queueFamilies.at(qi) << '\n';
-      std::cout << "Is a valid QueueFamily : " << std::boolalpha
-                << bool(isValidQueueFamily(queueFamilies.at(qi))) << '\n';
+      LOG_DEBUG("Device") << "  QueueFamily #" << qi;
+      LOG_DEBUG("Device") << queueFamilies.at(qi);
+      LOG_DEBUG("Device") << "  Is valid QueueFamily: " << std::boolalpha
+                          << bool(isValidQueueFamily(queueFamilies.at(qi)));
     }
   }
-  std::cout << std::endl;
   return queueCount;
 }
 
-DeviceHandler::DeviceHandler(
-    VkInstance instance
-)
+DeviceHandler::DeviceHandler(VkInstance instance)
 {
   uint32_t deviceCount = 0u;
   vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
-  std::cout << "Total number of phy devices : " << deviceCount << '\n';
+  LOG_INFO("Device") << "Total number of physical devices: " << deviceCount;
   phyDevices.resize(deviceCount);
   vkEnumeratePhysicalDevices(instance, &deviceCount, phyDevices.data());
 }
@@ -246,9 +234,7 @@ std::unordered_map<QueueRole, uint32_t>
   return result;
 }
 
-std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
-    QueueFamilyIndices fi
-)
+std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(QueueFamilyIndices fi)
 {
   std::set<uint32_t> indices;
   for (auto [key, val] : fi) {
@@ -257,9 +243,8 @@ std::set<uint32_t> DeviceHandler::getQueueFamilyIndices(
   return indices;
 }
 
-std::vector<uint32_t> DeviceHandler::listQueueFamilyIndices(
-    QueueFamilyIndices fi
-)
+std::vector<uint32_t>
+    DeviceHandler::listQueueFamilyIndices(QueueFamilyIndices fi)
 {
   auto s = getQueueFamilyIndices(fi);
   return std::vector<uint32_t>(s.cbegin(), s.cend());
@@ -409,16 +394,12 @@ uint32_t DeviceHandler::findBestPhysicalDevice()
   return 0;
 }
 
-VkResult DeviceHandler::addLogicalDevice(
-    VkSurfaceKHR surface
-)
+VkResult DeviceHandler::addLogicalDevice(VkSurfaceKHR surface)
 {
   return addLogicalDevice(surface, "main", findBestPhysicalDevice());
 }
 
-DeviceBoundElements *DeviceHandler::getDBE(
-    uint32_t index
-)
+DeviceBoundElements *DeviceHandler::getDBE(uint32_t index)
 {
   if (index >= devices.size()) {
     return nullptr;
@@ -429,16 +410,12 @@ DeviceBoundElements *DeviceHandler::getDBE(
   return &(*it);
 }
 
-DeviceBoundElements *DeviceHandler::getDBE(
-    std::string name
-)
+DeviceBoundElements *DeviceHandler::getDBE(std::string name)
 {
   return deviceNames.contains(name) ? deviceNames.at(name) : nullptr;
 }
 
-VkDevice DeviceHandler::getDevice(
-    uint32_t index
-)
+VkDevice DeviceHandler::getDevice(uint32_t index)
 {
   return getDBE(index)->getDevicePtr()->get();
 }
@@ -481,45 +458,6 @@ VkResult DeviceHandler::addSwapchain(
   return VK_SUCCESS;
 }
 
-std::pair<VkResult, VkShaderModule> DeviceHandler::loadShader(
-    uint_fast16_t         deviceIndex,
-    const ShaderDataFile &sdf
-)
-{
-  VkShaderModule       sm        = {0};
-  VkResult             result    = VK_ERROR_INITIALIZATION_FAILED;
-  DeviceBoundElements *devicePtr = getDBE(deviceIndex);
-  if (devicePtr) {
-    if (!devicePtr->loadedShaders.contains(sdf.getName())) {
-      // TODO check if the shaderModule is loaded inside the map
-      VkShaderModuleCreateInfo sdm = static_cast<VkShaderModuleCreateInfo>(sdf);
-      result = vkCreateShaderModule(getDevice(deviceIndex), &sdm, nullptr, &sm);
-      if (result != VK_SUCCESS) {
-        std::cout << "error allocating the shader Module \n\t VK_ERROR CODE : "
-                  << result << std::endl;
-      }
-      else {
-        devicePtr->loadedShaders.emplace(
-            std::piecewise_construct,
-            std::forward_as_tuple(sdf.getName()),
-            std::forward_as_tuple(getDevice(deviceIndex), sm)
-        );
-        std::cout << "Allocated Shader Module " << (void *)sm << std::endl;
-      }
-    }
-    else {
-      std::cout << "Shader Module allready allocated" << std::endl;
-    }
-    sm = devicePtr->loadedShaders.at(sdf.getName()).get();
-    std::cout << "Shader Modules value : " << (void *)sm << std::endl;
-  }
-  else {
-    std::cout << "Error : Device couldn't be found !! check device Index "
-              << std::endl;
-  }
-  return {result, sm};
-}
-
 VkResult DeviceHandler::addGraphicsPipeline(
     uint32_t                         deviceIndex,
     const std::list<ShaderDataFile> &shaderFiles
@@ -536,7 +474,7 @@ VkResult DeviceHandler::addGraphicsPipeline(
         "main",
         dbe->swapchain.value(),
         shaderFiles,
-        true  // setAsMain = true
+        true // setAsMain = true
     );
     return VK_SUCCESS;
   }
@@ -546,9 +484,7 @@ VkResult DeviceHandler::addGraphicsPipeline(
 };
 
 //------DISPLAY FUNCTIONS --- Maybe Need to opacity----//
-OSTREAM_OP(
-    const VkPhysicalDeviceType &phyT
-)
+OSTREAM_OP(const VkPhysicalDeviceType &phyT)
 {
   switch (phyT) {
     case VK_PHYSICAL_DEVICE_TYPE_OTHER: return os << "other type GPU";
@@ -560,9 +496,7 @@ OSTREAM_OP(
   }
 }
 
-OSTREAM_OP(
-    const VkPhysicalDeviceProperties &phyP
-)
+OSTREAM_OP(const VkPhysicalDeviceProperties &phyP)
 {
   os << "---------- Physical Device Properties ----------\n";
   os << "\t API version : " << phyP.apiVersion << '\n';
@@ -574,9 +508,7 @@ OSTREAM_OP(
   return os;
 }
 
-std::stringstream vkQueueFlagSS(
-    const VkQueueFlags &flag
-)
+std::stringstream vkQueueFlagSS(const VkQueueFlags &flag)
 {
   std::stringstream   ss;
   const uint16_t      f_size = sizeof(VkQueueFlags) * CHAR_BIT;
@@ -604,18 +536,14 @@ std::stringstream vkQueueFlagSS(
   return ss;
 }
 
-OSTREAM_OP(
-    const VkExtent3D &ext
-)
+OSTREAM_OP(const VkExtent3D &ext)
 {
   os << " Width : " << ext.width << " - Height : " << ext.height
      << " - Depth : " << ext.depth;
   return os;
 }
 
-OSTREAM_OP(
-    const VkQueueFamilyProperties &prop
-)
+OSTREAM_OP(const VkQueueFamilyProperties &prop)
 {
   os << "VkQueueFamilyProperties : {\n\t queueCount : " << prop.queueCount
      << ",\n\t timeStampValidBits : " << prop.timestampValidBits

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ABOXAPP_HPP
+#define ABOXAPP_HPP
 
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
@@ -28,3 +29,5 @@ class ABoxApp {
   ~ABoxApp();
   void run();
 };
+
+#endif // ! ABOXAPP_HPP

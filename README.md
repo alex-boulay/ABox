@@ -11,6 +11,22 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 ### TODO
 
+#### Code Cleanup & Refactoring
+
+- Logging system (will address debug output issues)
+  - Replace scattered std::cout with unified logging interface
+  - Add log levels (DEBUG, INFO, WARN, ERROR)
+  - Optional callback system for external monitoring
+- Error handling improvements
+  - Add VkResult checking to CommandsHandler Vulkan calls (vkCreateCommandPool, vkAllocateCommandBuffers, vkBeginCommandBuffer)
+  - Verify swapchain recreation behavior without pipeline
+- Dead code removal
+  - Remove unused DeviceHandler::loadShader() method
+  - Remove unused loadedShaders map in DeviceBoundElements
+  - Remove commented graphicsppl code in DeviceHandler.hpp
+- Clean up unnecessary includes
+  - Review header dependencies (e.g., GraphicsPipeline.hpp in DeviceHandler.hpp)
+
 #### Development
 
 - Debugging Levels

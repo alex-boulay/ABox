@@ -1,20 +1,19 @@
 #include "PipelineManager.hpp"
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 
 PipelineManager::PipelineManager()
 {
-  FILE_DEBUG_PRINT("PipelineManager created");
+  LOG_DEBUG("Pipeline") << "PipelineManager created";
 }
 
 // Pipeline creation functions are now templated in the header file
 
-PipelineBase *PipelineManager::getPipeline(
-    const std::string &name
-)
+PipelineBase *PipelineManager::getPipeline(const std::string &name)
 {
   auto it = pipelineIndices.find(name);
   if (it == pipelineIndices.end()) {
-    FILE_DEBUG_PRINT("Pipeline '%s' not found", name.c_str());
+    LOG_WARN("Pipeline") << "Pipeline '" << name << "' not found";
     return nullptr;
   }
 
@@ -49,7 +48,7 @@ void PipelineManager::bindPipeline(
 {
   auto it = pipelineIndices.find(name);
   if (it == pipelineIndices.end()) {
-    FILE_DEBUG_PRINT("Cannot bind: Pipeline '%s' not found", name.c_str());
+    LOG_WARN("Pipeline") << "Cannot bind: Pipeline '" << name << "' not found";
     return;
   }
 

@@ -20,11 +20,7 @@
 
 namespace ABox_Utils {
 
-DEFINE_VK_MEMORY_WRAPPER_SOLO(
-    VkDevice,
-    Device,
-    vkDestroyDevice
-)
+DEFINE_VK_MEMORY_WRAPPER_SOLO(VkDevice, Device, vkDestroyDevice)
 
 /**
  * @struct DeviceBoundElements
@@ -41,12 +37,8 @@ class DeviceBoundElements {
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
-  std::optional<SwapchainManager>                      swapchain;
-  // PipelineManager --> main graphics ppl
-  PipelineManager                                      pipelineManager;
-  // std::optional<GraphicsPipeline>                      graphicsppl; //
-  //
-  std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
+  std::optional<SwapchainManager> swapchain;
+  PipelineManager                 pipelineManager;
 
   DeviceBoundElements(
       VkDevice           logDevice,
@@ -77,10 +69,7 @@ class DeviceBoundElements {
 
   CommandsHandler *getCommandHandler() { return &commands; }
 
-  VkResult recordCommandBuffer(
-      uint32_t imageIndex,
-      uint32_t commandBufferIndex
-  )
+  VkResult recordCommandBuffer(uint32_t imageIndex, uint32_t commandBufferIndex)
   {
     ABOX_PER_FRAME_DEBUG_LOG(
         "Recording commands Img "
@@ -133,7 +122,7 @@ class DeviceHandler {
 
   VkResult listPhysicalDevices() const;
 
-  void     waitIdle();
+  void waitIdle();
   /**
    * @brief add a Logical device while guessing which Physical Device is the
    * best suited to do the job
@@ -167,12 +156,7 @@ class DeviceHandler {
   DeviceBoundElements *getDBE(std::string name);
   VkDevice             getDevice(uint32_t index);
 
-  inline bool hasDevice(
-      uint32_t index
-  ) const
-  {
-    return index < devices.size();
-  }
+  inline bool hasDevice(uint32_t index) const { return index < devices.size(); }
 
   // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
   VkResult addSwapchain(
@@ -181,9 +165,6 @@ class DeviceHandler {
       VkSurfaceKHR *surface,
       uint_fast8_t  devIndex
   );
-
-  std::pair<VkResult, VkShaderModule>
-      loadShader(uint_fast16_t deviceIndex, const ShaderDataFile &sdf);
 
   /**
    * @brief add a GraphicsPipeline to a LogicalDevice which must have a
@@ -194,13 +175,12 @@ class DeviceHandler {
       const std::list<ShaderDataFile> &shaderFiles
   );
 
-  VkResult createFramebuffers(
-      uint32_t deviceIndex = 0u
-  )
+  VkResult createFramebuffers(uint32_t deviceIndex = 0u)
   {
     if (devices.size() > deviceIndex) {
       DeviceBoundElements *dbe = getDBE(deviceIndex);
-      GraphicsPipeline *mainPipeline = dbe->pipelineManager.getMainGraphicsPipeline();
+      GraphicsPipeline    *mainPipeline =
+          dbe->pipelineManager.getMainGraphicsPipeline();
 
       if (dbe->swapchain.has_value() && mainPipeline) {
         return dbe->swapchain.value().createFramebuffers(
@@ -225,19 +205,16 @@ class DeviceHandler {
     return VK_SUCCESS;
   }
 
-  VkResult recreateSwapchain(
-      VkExtent2D window,
-      uint32_t   deviceIndex = 0u
-  )
+  VkResult recreateSwapchain(VkExtent2D window, uint32_t deviceIndex = 0u)
   {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
     VkRenderPass         rp  = VK_NULL_HANDLE;
     std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
     if (dbe->swapchain.has_value()) {
-      GraphicsPipeline *mainPipeline = dbe->pipelineManager.getMainGraphicsPipeline();
+      GraphicsPipeline *mainPipeline =
+          dbe->pipelineManager.getMainGraphicsPipeline();
       if (mainPipeline) {
-        std::cout << "GP has value " << (mainPipeline != nullptr)
-                  << std::endl;
+        std::cout << "GP has value " << (mainPipeline != nullptr) << std::endl;
         mainPipeline->updateExtent(window);
         rp = mainPipeline->getRenderPass();
       }

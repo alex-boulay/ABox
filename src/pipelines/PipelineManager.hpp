@@ -3,6 +3,7 @@
 
 #include "ComputePipeline.hpp"
 #include "GraphicsPipeline.hpp"
+#include "Logger.hpp"
 #include "PipelineBase.hpp"
 #include "RayTracingPipeline.hpp"
 #include <deque>
@@ -35,12 +36,8 @@ class PipelineManager {
   PipelineManager();
   ~PipelineManager() = default;
 
-  DELETE_COPY(
-      PipelineManager
-  )
-  DELETE_MOVE(
-      PipelineManager
-  )
+  DELETE_COPY(PipelineManager)
+  DELETE_MOVE(PipelineManager)
 
   /**
    * @brief Create a graphics pipeline
@@ -63,10 +60,8 @@ class PipelineManager {
   )
   {
     if (pipelineIndices.contains(name)) {
-      FILE_DEBUG_PRINT(
-          "Warning: Pipeline '%s' already exists, overwriting",
-          name.c_str()
-      );
+      LOG_WARN("Pipeline") << "Pipeline '" << name
+                           << "' already exists, overwriting";
     }
 
     size_t index          = pipelines.size();
@@ -82,10 +77,10 @@ class PipelineManager {
 
     if (setAsMain) {
       mainGraphicsPipelineIndex = index;
-      FILE_DEBUG_PRINT("Set '%s' as main graphics pipeline", name.c_str());
+      LOG_DEBUG("Pipeline") << "Set '" << name << "' as main graphics pipeline";
     }
 
-    FILE_DEBUG_PRINT("Created graphics pipeline: %s", name.c_str());
+    LOG_INFO("Pipeline") << "Created graphics pipeline: " << name;
     return std::get<GraphicsPipeline>(variant);
   }
 
@@ -107,10 +102,8 @@ class PipelineManager {
   )
   {
     if (pipelineIndices.contains(name)) {
-      FILE_DEBUG_PRINT(
-          "Warning: Pipeline '%s' already exists, overwriting",
-          name.c_str()
-      );
+      LOG_WARN("Pipeline") << "Pipeline '" << name
+                           << "' already exists, overwriting";
     }
 
     size_t index          = pipelines.size();
@@ -123,10 +116,10 @@ class PipelineManager {
 
     if (setAsMain) {
       mainComputePipelineIndex = index;
-      FILE_DEBUG_PRINT("Set '%s' as main compute pipeline", name.c_str());
+      LOG_DEBUG("Pipeline") << "Set '" << name << "' as main compute pipeline";
     }
 
-    FILE_DEBUG_PRINT("Created compute pipeline: %s", name.c_str());
+    LOG_INFO("Pipeline") << "Created compute pipeline: " << name;
     return std::get<ComputePipeline>(variant);
   }
 
@@ -146,10 +139,8 @@ class PipelineManager {
   )
   {
     if (pipelineIndices.contains(name)) {
-      FILE_DEBUG_PRINT(
-          "Warning: Pipeline '%s' already exists, overwriting",
-          name.c_str()
-      );
+      LOG_WARN("Pipeline") << "Pipeline '" << name
+                           << "' already exists, overwriting";
     }
 
     size_t index          = pipelines.size();
@@ -160,7 +151,7 @@ class PipelineManager {
         shaders
     );
 
-    FILE_DEBUG_PRINT("Created ray tracing pipeline: %s", name.c_str());
+    LOG_INFO("Pipeline") << "Created ray tracing pipeline: " << name;
     return std::get<RayTracingPipeline>(variant);
   }
 
@@ -178,9 +169,7 @@ class PipelineManager {
    * @return Pointer to typed pipeline, or nullptr if not found or wrong type
    */
   template <std::derived_from<PipelineBase> T>
-  T *getPipelineAs(
-      const std::string &name
-  )
+  T *getPipelineAs(const std::string &name)
   {
     auto it = pipelineIndices.find(name);
     if (it == pipelineIndices.end()) {
@@ -220,9 +209,7 @@ class PipelineManager {
   /**
    * @brief Check if a pipeline exists
    */
-  [[nodiscard]] bool hasPipeline(
-      const std::string &name
-  ) const noexcept
+  [[nodiscard]] bool hasPipeline(const std::string &name) const noexcept
   {
     return pipelineIndices.contains(name);
   }

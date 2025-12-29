@@ -3,6 +3,7 @@
 
 #include "CommandsHandler.hpp"
 #include "GraphicsPipeline.hpp"
+#include "PipelineManager.hpp"
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
 #include "SwapchainManager.hpp"
@@ -41,7 +42,10 @@ class DeviceBoundElements {
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
   std::optional<SwapchainManager>                      swapchain;
-  std::optional<GraphicsPipeline>                      graphicsppl;
+  // PipelineManager --> main graphics ppl
+  PipelineManager                                      pipelineManager;
+  // std::optional<GraphicsPipeline>                      graphicsppl; //
+  //
   std::unordered_map<std::string, ShaderModuleWrapper> loadedShaders;
 
   DeviceBoundElements(
@@ -83,8 +87,9 @@ class DeviceBoundElements {
         << imageIndex << " commandBufferIndex : " << commandBufferIndex
     );
 
-    if (!graphicsppl.has_value()) {
-      std::cout << "No Value in graphics ppl" << std::endl;
+    GraphicsPipeline *mainPipeline = pipelineManager.getMainGraphicsPipeline();
+    if (!mainPipeline) {
+      std::cout << "No main graphics pipeline set" << std::endl;
       throw std::runtime_error(
           "Wrong graphics pipeline target during recordcommandbuffer"
       );
@@ -97,7 +102,7 @@ class DeviceBoundElements {
       );
     }
     return commands.top().recordCommandBuffer(
-        graphicsppl.value(),
+        *mainPipeline,
         swapchain.value(),
         imageIndex,
         commandBufferIndex
@@ -195,9 +200,11 @@ class DeviceHandler {
   {
     if (devices.size() > deviceIndex) {
       DeviceBoundElements *dbe = getDBE(deviceIndex);
-      if (dbe->swapchain.has_value() && dbe->graphicsppl.has_value()) {
+      GraphicsPipeline *mainPipeline = dbe->pipelineManager.getMainGraphicsPipeline();
+
+      if (dbe->swapchain.has_value() && mainPipeline) {
         return dbe->swapchain.value().createFramebuffers(
-            dbe->graphicsppl.value().getRenderPass(),
+            mainPipeline->getRenderPass(),
             dbe->getDevice()
         );
       }
@@ -227,11 +234,12 @@ class DeviceHandler {
     VkRenderPass         rp  = VK_NULL_HANDLE;
     std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
     if (dbe->swapchain.has_value()) {
-      if (dbe->graphicsppl.has_value()) {
-        std::cout << "GP has value " << dbe->graphicsppl.has_value()
+      GraphicsPipeline *mainPipeline = dbe->pipelineManager.getMainGraphicsPipeline();
+      if (mainPipeline) {
+        std::cout << "GP has value " << (mainPipeline != nullptr)
                   << std::endl;
-        dbe->graphicsppl.value().updateExtent(window);
-        rp = dbe->graphicsppl.value().getRenderPass();
+        mainPipeline->updateExtent(window);
+        rp = mainPipeline->getRenderPass();
       }
       dbe->swapchain.value().resizeSwapChain(
           dbe->getPhysicalDevice(),

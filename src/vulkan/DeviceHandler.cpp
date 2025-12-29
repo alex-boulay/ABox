@@ -525,25 +525,19 @@ VkResult DeviceHandler::addGraphicsPipeline(
     const std::list<ShaderDataFile> &shaderFiles
 )
 {
-  std::vector<VkPipelineShaderStageCreateInfo> PSSCIs;
-  PSSCIs.reserve(shaderFiles.size());
-  std::cout << "Looping over ShaderDataFiles :" << std::endl;
-  for (const auto &sf : shaderFiles) {
-    auto sm = loadShader(deviceIndex, sf);
-    if (sm.first != VK_SUCCESS) {
-      std::cerr << "couldn't load shader !!" << std::endl;
-      return sm.first;
-    }
-    else {
-      std::cout << "Shader loaded !" << std::endl;
-      PSSCIs.push_back(sf.getPSSCI(sm.second));
-    }
-  }
   DeviceBoundElements *dbe = getDBE(deviceIndex);
   if (dbe && dbe->swapchain.has_value()) {
-    std::cout << "Loading Graphics Pipeline " << std::endl;
-    dbe->graphicsppl
-        .emplace(dbe->swapchain.value(), getDevice(deviceIndex), PSSCIs);
+    std::cout << "Loading Graphics Pipeline with " << shaderFiles.size()
+              << " shaders" << std::endl;
+
+    // Create main graphics pipeline in PipelineManager
+    dbe->pipelineManager.createGraphicsPipeline(
+        getDevice(deviceIndex),
+        "main",
+        dbe->swapchain.value(),
+        shaderFiles,
+        true  // setAsMain = true
+    );
     return VK_SUCCESS;
   }
   std::cout << "Failed to initialise Graphics Pipeline in the Device Manager"

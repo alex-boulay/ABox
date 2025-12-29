@@ -1,6 +1,7 @@
 #ifndef RAY_TRACING_PIPELINE_HPP
 #define RAY_TRACING_PIPELINE_HPP
 
+#include "Logger.hpp"
 #include "MemoryWrapper.hpp"
 #include "PipelineBase.hpp"
 #include "ShaderHandler.hpp"
@@ -20,17 +21,15 @@ DEFINE_VK_MEMORY_WRAPPER(
  * shaders
  */
 struct ShaderBindingTable {
-  VkBuffer               buffer       = VK_NULL_HANDLE;
-  VkDeviceMemory         memory       = VK_NULL_HANDLE;
+  VkBuffer                        buffer         = VK_NULL_HANDLE;
+  VkDeviceMemory                  memory         = VK_NULL_HANDLE;
   VkStridedDeviceAddressRegionKHR raygenRegion   = {};
   VkStridedDeviceAddressRegionKHR missRegion     = {};
   VkStridedDeviceAddressRegionKHR hitRegion      = {};
   VkStridedDeviceAddressRegionKHR callableRegion = {};
 
   // TODO: Add proper cleanup when implemented
-  void destroy(
-      VkDevice device
-  );
+  void destroy(VkDevice device);
 };
 
 /**
@@ -54,8 +53,7 @@ class RayTracingPipeline : public PipelineBase {
    * @brief Build shader groups from shader stages
    * Groups shaders into ray gen, miss, hit groups, etc.
    */
-  template <std::ranges::range R>
-  void buildShaderGroupsImpl(const R &shaders)
+  template <std::ranges::range R> void buildShaderGroupsImpl(const R &shaders)
   {
     // Group shaders by type
     // Ray gen shaders -> one group each
@@ -63,7 +61,7 @@ class RayTracingPipeline : public PipelineBase {
     // Hit groups -> combine closest hit + any hit + intersection
 
     for (const auto &shader : shaders) {
-      const auto &reflectModule = shader.getReflectModule();
+      const auto           &reflectModule = shader.getReflectModule();
       VkShaderStageFlagBits stage =
           static_cast<VkShaderStageFlagBits>(reflectModule.shader_stage);
 
@@ -90,16 +88,15 @@ class RayTracingPipeline : public PipelineBase {
       shaderGroups.push_back(group);
     }
 
-    FILE_DEBUG_PRINT("Built %zu shader groups", shaderGroups.size());
+    LOG_DEBUG("Pipeline") << "Built " << shaderGroups.size()
+                          << " shader groups";
   }
 
   /**
    * @brief Create the shader binding table
    * Allocates and fills the SBT with shader group handles
    */
-  void createShaderBindingTable(
-      VkDevice device
-  );
+  void createShaderBindingTable(VkDevice device);
 
    public:
   /**
@@ -113,19 +110,13 @@ class RayTracingPipeline : public PipelineBase {
    * - SBT creation
    */
   template <std::ranges::range R>
-    requires std::same_as<
-        std::ranges::range_value_t<R>,
-        ShaderDataFile> || std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
-  RayTracingPipeline(
-      VkDevice device,
-      const R &shaders
-  )
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
+  RayTracingPipeline(VkDevice device, const R &shaders)
       : PipelineBase(device, shaders)
   {
-    FILE_DEBUG_PRINT(
-        "RayTracingPipeline construction started with %zu shaders",
-        std::ranges::size(shaders)
-    );
+    LOG_DEBUG("Pipeline") << "RayTracingPipeline construction started with "
+                          << std::ranges::size(shaders) << " shaders";
 
     // TODO: Check for ray tracing extension support
     // VkPhysicalDeviceRayTracingPipelinePropertiesKHR
@@ -149,12 +140,11 @@ class RayTracingPipeline : public PipelineBase {
 
     // createShaderBindingTable(device);
 
-    FILE_DEBUG_PRINT(
-        "RayTracingPipeline construction complete (STUB IMPLEMENTATION)"
-    );
-    std::cout << "WARNING: RayTracingPipeline is a stub - full implementation "
-                 "requires extension support"
-              << std::endl;
+    LOG_INFO("Pipeline"
+    ) << "RayTracingPipeline construction complete (STUB IMPLEMENTATION)";
+    LOG_WARN("Pipeline"
+    ) << "WARNING: RayTracingPipeline is a stub - full implementation "
+      << "requires extension support";
   }
 
   ~RayTracingPipeline();

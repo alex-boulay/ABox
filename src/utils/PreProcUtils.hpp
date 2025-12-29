@@ -44,21 +44,25 @@
 #define OSTREAM_OP(X) std::ostream &operator<<(std::ostream &os, X)
 
 //--- custom print functions ----
-#define ABOX_FILE_DEBUG
-// Define DEBUG_PRINT only if DEBUG is enabled
-#ifdef ABOX_FILE_DEBUG
-  #define FILE_DEBUG_PRINT(fmt, ...)                                           \
-    printf("FILE_DEBUG: " fmt "\n", ##__VA_ARGS__)
-#else
-  #define FILE_DEBUG_PRINT(fmt, ...)
-// do nothing undefined case
-#endif
+// DEPRECATED: These macros are no longer used. Use Logger.hpp instead:
+// - FILE_DEBUG_PRINT(...) -> LOG_DEBUG("Category") << ...
+// - ABOX_PER_FRAME_DEBUG_LOG(...) -> ABOX_LOG_PER_FRAME << ...
 
 #ifdef ABOX_RESSOURCES_DEBUG
   #define RESS_DEBUG_PRINT(fmt, ...)                                           \
     printf("RESS_DEBUG: " fmt "\n", ##__VA_ARGS__)
 #else
   #define RESS_DEBUG_PRINT(fmt, ...)
+#endif
+
+/*
+// DEPRECATED: Replaced by Logger system
+#define ABOX_FILE_DEBUG
+#ifdef ABOX_FILE_DEBUG
+  #define FILE_DEBUG_PRINT(fmt, ...)                                           \
+    printf("FILE_DEBUG: " fmt "\n", ##__VA_ARGS__)
+#else
+  #define FILE_DEBUG_PRINT(fmt, ...)
 #endif
 
 // #define ABOX_LOG_PER_FRAME
@@ -74,6 +78,7 @@
     do {                                                                       \
     } while (0)
 #endif
+*/
 
 #define INFLIGHT_NUMBER_OF_ELEMENTS 2
 

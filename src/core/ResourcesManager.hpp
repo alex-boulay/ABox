@@ -2,6 +2,7 @@
 #define RESSOURCES_MANAGER_HPP
 
 #include "DeviceHandler.hpp"
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
 #include <unordered_set>
@@ -11,11 +12,7 @@
   #include "DebugHandler.hpp"
 #endif
 
-DEFINE_VK_MEMORY_WRAPPER_SOLO(
-    VkInstance,
-    Instance,
-    vkDestroyInstance
-)
+DEFINE_VK_MEMORY_WRAPPER_SOLO(VkInstance, Instance, vkDestroyInstance)
 
 DEFINE_VK_MEMORY_WRAPPER_FULL(
     VkSurfaceKHR,
@@ -52,15 +49,11 @@ class ResourcesManager {
 
   ~ResourcesManager()
   {
-    std::cout << "ResourcesManager Destructor Call ! " << std::endl;
+    LOG_DEBUG("Resource") << "ResourcesManager Destructor Call!";
   }
-  DELETE_COPY(
-      ResourcesManager
-  )
+  DELETE_COPY(ResourcesManager)
 
-  DELETE_MOVE(
-      ResourcesManager
-  )
+  DELETE_MOVE(ResourcesManager)
 
   std::vector<const char *> getExtensions();
 
@@ -97,9 +90,7 @@ class ResourcesManager {
     return deviceHandler->getDBE(0u);
   }
 
-  ABox_Utils::DeviceBoundElements *getDevice(
-      uint32_t device = 0u
-  )
+  ABox_Utils::DeviceBoundElements *getDevice(uint32_t device = 0u)
   {
     return deviceHandler->getDBE(device);
   }

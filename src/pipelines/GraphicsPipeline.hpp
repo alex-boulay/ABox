@@ -1,6 +1,7 @@
 #ifndef GRAPHICS_PIPELINE_HPP
 #define GRAPHICS_PIPELINE_HPP
 
+#include "Logger.hpp"
 #include "MemoryWrapper.hpp"
 #include "PipelineBase.hpp"
 #include "SwapchainManager.hpp"
@@ -14,11 +15,7 @@ static const std::array<VkDynamicState, 2> dynamicStates = {
 };
 
 // RenderPass is Graphics-specific, not in PipelineBase
-DEFINE_VK_MEMORY_WRAPPER(
-    VkRenderPass,
-    RenderPass,
-    vkDestroyRenderPass
-)
+DEFINE_VK_MEMORY_WRAPPER(VkRenderPass, RenderPass, vkDestroyRenderPass)
 
 class GraphicsPipeline : public PipelineBase {
   RenderPassWrapper renderPass;
@@ -39,7 +36,9 @@ class GraphicsPipeline : public PipelineBase {
    * @param shaders Range of shader data files (accepts any container)
    */
   template <std::ranges::input_range R>
-    requires std::same_as<std::remove_cv_t<std::ranges::range_value_t<R>>, ShaderDataFile>
+    requires std::same_as<
+                 std::remove_cv_t<std::ranges::range_value_t<R>>,
+                 ShaderDataFile>
   GraphicsPipeline(
       VkDevice                device,
       const SwapchainManager &swapchain,
@@ -48,7 +47,7 @@ class GraphicsPipeline : public PipelineBase {
       : PipelineBase(device, shaders)
       , renderPass(device)
   {
-    std::cout << "Device value :" << (void *)device << std::endl;
+    LOG_DEBUG("Pipeline") << "Device value: " << (void *)device;
     VkResult res = CreateRenderPass(swapchain, device);
 
     // Create shader modules and stages
@@ -69,7 +68,9 @@ class GraphicsPipeline : public PipelineBase {
       );
 
       if (result != VK_SUCCESS) {
-        throw std::runtime_error("Failed to create shader module for graphics pipeline");
+        throw std::runtime_error(
+            "Failed to create shader module for graphics pipeline"
+        );
       }
 
       shaderStages.push_back(shader.getPSSCI(shaderModules.back()));
@@ -78,9 +79,9 @@ class GraphicsPipeline : public PipelineBase {
     updateExtent(swapchain.getExtent());
 
     VkPipelineDynamicStateCreateInfo dynamicState{
-        .sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
-        .pNext             = nullptr,
-        .flags             = 0u,
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u,
         .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
         .pDynamicStates    = dynamicStates.data()
     };
@@ -149,33 +150,33 @@ class GraphicsPipeline : public PipelineBase {
         .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
         .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
         .alphaBlendOp        = VK_BLEND_OP_ADD,
-        .colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
     };
 
     VkPipelineColorBlendStateCreateInfo colorBlending{
-        .sType         = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
-        .pNext         = nullptr,
-        .flags         = 0u,
-        .logicOpEnable = VK_FALSE,
-        .logicOp       = VK_LOGIC_OP_COPY,
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u,
+        .logicOpEnable   = VK_FALSE,
+        .logicOp         = VK_LOGIC_OP_COPY,
         .attachmentCount = 1u,
         .pAttachments    = &colorBlendAttachment,
         .blendConstants  = {0.0f, 0.0f, 0.0f, 0.0f}
     };
 
-    std::cout << "Shader Stages loading into Pipeline Info " << std::endl;
+    LOG_DEBUG("Pipeline") << "Shader Stages loading into Pipeline Info";
     for (const VkPipelineShaderStageCreateInfo &a : shaderStages) {
-      std::cout << "\tStage : " << a.stage << " - entry point : \"" << std::string(a.pName)
-                << "\"" << std::endl;
+      LOG_DEBUG("Pipeline") << "  Stage: " << a.stage << " - entry point: \""
+                            << std::string(a.pName) << "\"";
     }
 
     VkGraphicsPipelineCreateInfo pipelineInfo{
-        .sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
-        .pNext      = nullptr,
-        .flags      = 0u,
-        .stageCount = static_cast<uint32_t>(shaderStages.size()),
-        .pStages    = shaderStages.data(),
+        .sType               = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext               = nullptr,
+        .flags               = 0u,
+        .stageCount          = static_cast<uint32_t>(shaderStages.size()),
+        .pStages             = shaderStages.data(),
         .pVertexInputState   = &vertexInputInfo,
         .pInputAssemblyState = &inputAssembly,
         .pTessellationState  = nullptr,
@@ -203,11 +204,12 @@ class GraphicsPipeline : public PipelineBase {
 
     if (res != VK_SUCCESS) {
       std::stringstream ss;
-      ss << "Failed to create the graphics pipeline !\n\tError value : " << res << std::endl;
+      ss << "Failed to create the graphics pipeline !\n\tError value : " << res
+         << std::endl;
       throw std::runtime_error(ss.str().c_str());
     }
 
-    FILE_DEBUG_PRINT("GraphicsPipeline created successfully");
+    LOG_INFO("Pipeline") << "GraphicsPipeline created successfully";
     printReflectionInfo();
   }
 
@@ -237,12 +239,10 @@ class GraphicsPipeline : public PipelineBase {
     return &scissor;
   }
 
-  void updateExtent(
-      VkExtent2D ext
-  )
+  void updateExtent(VkExtent2D ext)
   {
-    std::cout << "Updating extend in GP width :" << ext.width << " - height "
-              << ext.height << std::endl;
+    LOG_DEBUG("Pipeline") << "Updating extent in GP width: " << ext.width
+                          << " - height " << ext.height;
     scissor = {
         .offset = {0u, 0u},
         .extent = ext

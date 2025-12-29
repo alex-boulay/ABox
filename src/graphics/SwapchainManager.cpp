@@ -1,4 +1,5 @@
 #include "SwapchainManager.hpp"
+#include "Logger.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <ios>
@@ -118,17 +119,16 @@ VkResult SwapchainManager::createSwapchain(
     throw std::runtime_error("failed to create swap chain !");
   }
   else {
-    std::cout << "Has an old swapchain ?" << (bool)(!swapChain.empty())
-              << " ptrValue : " << (void *)swapChain.ptr() << "\n";
+    LOG_DEBUG("Swapchain") << "Has an old swapchain? "
+                           << (bool)(!swapChain.empty())
+                           << " ptrValue: " << (void *)swapChain.ptr();
     swapChain.swap(newSwapchain);
-    std::cout << "Swapchain created : " << (void *)swapChain.ptr() << "\n";
+    LOG_INFO("Swapchain") << "Swapchain created: " << (void *)swapChain.ptr();
   }
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::createImageViews(
-    VkDevice device
-)
+VkResult SwapchainManager::createImageViews(VkDevice device)
 {
   uint32_t minImageCount = getMinImageCount();
   vkGetSwapchainImagesKHR(device, swapChain, &minImageCount, nullptr);
@@ -159,8 +159,8 @@ VkResult SwapchainManager::createImageViews(
       throw std::runtime_error("failed to create image views!");
     }
     else {
-      std::cout << "Image Views created - n°" << swapChainImages.size() + 1
-                << std::endl;
+      LOG_DEBUG("Swapchain")
+          << "Image Views created - #" << swapChainImages.size() + 1;
     }
     swapChainImages.emplace_back(img, _imageView, device);
   }
@@ -177,34 +177,28 @@ VkResult SwapchainManager::chooseSwapSurfaceFormat()
     }
   }
   surfaceFormat = formats.at(0);
-#ifdef DEBUG_VK_ABOX
-  std::cout << "Could not find a suitable swapSurfaceFomat."
-            << "(first one from available taken)" << std::endl;
-#endif
+  LOG_WARN("Swapchain") << "Could not find a suitable swapSurfaceFormat "
+                        << "(first one from available taken)";
   return VK_INCOMPLETE;
 }
 
 VkResult SwapchainManager::chooseSwapPresentMode()
 {
-  std::cout << "size of present mode " << presentModes.size() << std::endl;
+  LOG_DEBUG("Swapchain") << "size of present mode " << presentModes.size();
   for (const auto &availablePresentMode : presentModes) {
-    std::cout << availablePresentMode << std::endl;
+    LOG_DEBUG("Swapchain") << "Available present mode: "
+                           << availablePresentMode;
     if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) {
       presentMode = availablePresentMode;
       return VK_SUCCESS;
     }
   }
   presentMode = VK_PRESENT_MODE_FIFO_KHR;
-#ifdef DEBUG_VK_ABOX
-  std::cout << "Could not find a Mailbox Presentation Mode." << std::endl;
-#endif
+  LOG_WARN("Swapchain") << "Could not find a Mailbox Presentation Mode";
   return VK_INCOMPLETE;
 }
 
-VkResult SwapchainManager::chooseSwapExtent(
-    uint32_t width,
-    uint32_t height
-)
+VkResult SwapchainManager::chooseSwapExtent(uint32_t width, uint32_t height)
 {
   if (capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
@@ -233,10 +227,10 @@ VkResult SwapchainManager::createFramebuffers(
 )
 {
   uint32_t i = 0u;
-  std::cout << "Creating FrameBuffers - for size " << swapChainImages.size()
-            << std::endl;
+  LOG_INFO("Swapchain") << "Creating FrameBuffers - for size "
+                        << swapChainImages.size();
   for (auto &a : swapChainImages) {
-    std::cout << "FrameBuffer n°" << (++i) << std::endl;
+    LOG_DEBUG("Swapchain") << "FrameBuffer #" << (++i);
     VkFramebufferCreateInfo fbi{
         .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
         .pNext           = nullptr,
@@ -260,10 +254,10 @@ VkResult SwapchainManager::createFramebuffers(
     }
     else {
       framebuffers.emplace_back(logicalDevice, _swapchainFramebuffer);
-      std::cout << "FrameBuffer created" << std::endl;
+      LOG_DEBUG("Swapchain") << "FrameBuffer created";
     }
   }
-  std::cout << "Done with framebuffers " << std::endl;
+  LOG_INFO("Swapchain") << "Done with framebuffers";
   return VK_SUCCESS;
 }
 

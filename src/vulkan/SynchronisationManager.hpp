@@ -1,6 +1,7 @@
 #ifndef SYNCHRONISATION_MANAGER_HPP
 #define SYNCHRONISATION_MANAGER_HPP
 
+#include "Logger.hpp"
 #include "MemoryWrapper.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -10,17 +11,9 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkSemaphore,
-    Semaphore,
-    vkDestroySemaphore
-)
+DEFINE_VK_MEMORY_WRAPPER(VkSemaphore, Semaphore, vkDestroySemaphore)
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkFence,
-    Fence,
-    vkDestroyFence
-)
+DEFINE_VK_MEMORY_WRAPPER(VkFence, Fence, vkDestroyFence)
 
 class FrameSyncObject {
    public:
@@ -28,9 +21,7 @@ class FrameSyncObject {
   SemaphoreWrapper renderEnd;
   FenceWrapper     inFlight;
 
-  FrameSyncObject(
-      VkDevice dev
-  )
+  FrameSyncObject(VkDevice dev)
       : imageOk(dev)
       , renderEnd(dev)
       , inFlight(dev)
@@ -43,7 +34,7 @@ class FrameSyncObject {
     VkResult result = vkCreateFence(dev, &fci, nullptr, inFlight.ptr());
 
     if (result == VK_SUCCESS) {
-      std::cout << "Infight Fence added ! " << (void *)inFlight << std::endl;
+      LOG_DEBUG("Vulkan") << "Inflight Fence added! " << (void *)inFlight.get();
     }
     else {
       throw std::runtime_error("Couldn't create Fence");
@@ -56,7 +47,8 @@ class FrameSyncObject {
 
     result = vkCreateSemaphore(dev, &sci, nullptr, imageOk.ptr());
     if (result == VK_SUCCESS) {
-      std::cout << "Image Ok Semaphore added !" << (void *)imageOk << std::endl;
+      LOG_DEBUG("Vulkan") << "Image Ok Semaphore added! "
+                          << (void *)imageOk.get();
     }
     else {
       throw std::runtime_error("Couldn't Create Semaphore !");
@@ -64,8 +56,8 @@ class FrameSyncObject {
     result = vkCreateSemaphore(dev, &sci, nullptr, renderEnd.ptr());
 
     if (result == VK_SUCCESS) {
-      std::cout << "RenderEnd Semaphore added !" << (void *)renderEnd
-                << std::endl;
+      LOG_DEBUG("Vulkan") << "RenderEnd Semaphore added! "
+                          << (void *)renderEnd.get();
     }
     else {
       throw std::runtime_error("Couldn't Create Semaphore !");
@@ -98,9 +90,7 @@ class FrameSyncArray {
     }
   }
 
-  FrameSyncObject *getFrameSyncObject(
-      uint32_t index
-  )
+  FrameSyncObject *getFrameSyncObject(uint32_t index)
   {
     return index < framesSync.size() ? &framesSync.at(index) : nullptr;
   }
@@ -121,10 +111,7 @@ class FrameSyncArray {
 
   void resetFrameIndex() { frameIndex = 0; }
 
-  void waitAndReset(
-      VkDevice device,
-      uint64_t time = UINT64_MAX
-  )
+  void waitAndReset(VkDevice device, uint64_t time = UINT64_MAX)
   {
     vkWaitForFences(
         device,
@@ -135,9 +122,7 @@ class FrameSyncArray {
     );
     vkResetFences(device, 1, framesSync.at(frameIndex).inFlight.ptr());
   }
-  void waitAll(
-      VkDevice device
-  )
+  void waitAll(VkDevice device)
   {
     for (auto &f : framesSync) {
       // vkWaitSemaphores(device,f.imageOk, nullptr, UINT64_MAX);

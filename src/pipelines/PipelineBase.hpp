@@ -1,6 +1,7 @@
 #ifndef PIPELINE_BASE_HPP
 #define PIPELINE_BASE_HPP
 
+#include "Logger.hpp"
 #include "MemoryWrapper.hpp"
 #include "ShaderHandler.hpp"
 #include <map>
@@ -20,11 +21,7 @@ DEFINE_VK_MEMORY_WRAPPER(
     vkDestroyPipelineLayout
 )
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkPipeline,
-    Pipeline,
-    vkDestroyPipeline
-)
+DEFINE_VK_MEMORY_WRAPPER(VkPipeline, Pipeline, vkDestroyPipeline)
 
 /**
  * @brief Base class for all pipeline types (Graphics, Compute, etc.)
@@ -46,19 +43,16 @@ class PipelineBase {
    * @param shaders Range of shader data files with reflection information
    */
   template <std::ranges::range R>
-    requires std::same_as<
-        std::ranges::range_value_t<R>,
-        ShaderDataFile> || std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
-  void buildReflectionDataImpl(
-      VkDevice device,
-      const R &shaders
-  )
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
+  void buildReflectionDataImpl(VkDevice device, const R &shaders)
   {
-    std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>> setBindingsMap;
+    std::map<uint32_t, std::vector<VkDescriptorSetLayoutBinding>>
+        setBindingsMap;
 
     for (const ShaderDataFile &shader : shaders) {
       if (!shader.isReflectionValid()) {
-        FILE_DEBUG_PRINT("Skipping shader with invalid reflection data");
+        LOG_WARN("Shader") << "Skipping shader with invalid reflection data";
         continue;
       }
 
@@ -71,20 +65,18 @@ class PipelineBase {
       for (uint32_t i = 0; i < reflectionData.descriptorSetCount; ++i) {
         const SpvReflectDescriptorSet *set = reflectionData.descriptorSets[i];
 
-        FILE_DEBUG_PRINT(
-            "Processing descriptor set %u with %u bindings",
-            set->set,
-            set->binding_count
-        );
+        LOG_DEBUG("Shader") << "Processing descriptor set " << set->set
+                            << " with " << set->binding_count << " bindings";
 
         for (uint32_t j = 0; j < set->binding_count; ++j) {
           const SpvReflectDescriptorBinding *binding = set->bindings[j];
 
           VkDescriptorSetLayoutBinding layoutBinding{};
-          layoutBinding.binding         = binding->binding;
-          layoutBinding.descriptorType  = static_cast<VkDescriptorType>(binding->descriptor_type);
-          layoutBinding.descriptorCount = binding->count;
-          layoutBinding.stageFlags      = stage;
+          layoutBinding.binding = binding->binding;
+          layoutBinding.descriptorType =
+              static_cast<VkDescriptorType>(binding->descriptor_type);
+          layoutBinding.descriptorCount    = binding->count;
+          layoutBinding.stageFlags         = stage;
           layoutBinding.pImmutableSamplers = nullptr;
 
           auto &bindings        = setBindingsMap[set->set];
@@ -98,30 +90,27 @@ class PipelineBase {
 
           if (existingBinding != bindings.end()) {
             existingBinding->stageFlags |= stage;
-            FILE_DEBUG_PRINT(
-                "  Merged binding %u with existing (stages: %x)",
-                layoutBinding.binding,
-                existingBinding->stageFlags
-            );
+            LOG_DEBUG("Shader")
+                << "  Merged binding " << layoutBinding.binding
+                << " with existing (stages: 0x" << std::hex
+                << existingBinding->stageFlags << std::dec << ")";
           }
           else {
             bindings.push_back(layoutBinding);
-            FILE_DEBUG_PRINT(
-                "  Added binding %u, type: %d, count: %u",
-                layoutBinding.binding,
-                layoutBinding.descriptorType,
-                layoutBinding.descriptorCount
-            );
+            LOG_DEBUG("Shader") << "  Added binding " << layoutBinding.binding
+                                << ", type: " << layoutBinding.descriptorType
+                                << ", count: " << layoutBinding.descriptorCount;
           }
         }
       }
 
       for (uint32_t i = 0; i < reflectionData.pushConstantCount; ++i) {
-        const SpvReflectBlockVariable *pushConstant = reflectionData.pushConstants[i];
-        VkPushConstantRange            range{};
-        range.stageFlags = stage;
-        range.offset     = pushConstant->offset;
-        range.size       = pushConstant->size;
+        const SpvReflectBlockVariable *pushConstant =
+            reflectionData.pushConstants[i];
+        VkPushConstantRange range{};
+        range.stageFlags   = stage;
+        range.offset       = pushConstant->offset;
+        range.size         = pushConstant->size;
         auto existingRange = std::find_if(
             pushConstantRanges.begin(),
             pushConstantRanges.end(),
@@ -131,21 +120,17 @@ class PipelineBase {
         );
         if (existingRange != pushConstantRanges.end()) {
           existingRange->stageFlags |= stage;
-          FILE_DEBUG_PRINT(
-              "Merged push constant range (offset: %u, size: %u, stages: %x)",
-              range.offset,
-              range.size,
-              existingRange->stageFlags
-          );
+          LOG_DEBUG("Shader")
+              << "Merged push constant range (offset: " << range.offset
+              << ", size: " << range.size << ", stages: 0x" << std::hex
+              << existingRange->stageFlags << std::dec << ")";
         }
         else {
           pushConstantRanges.push_back(range);
-          FILE_DEBUG_PRINT(
-              "Added push constant range (offset: %u, size: %u, stage: %x)",
-              range.offset,
-              range.size,
-              range.stageFlags
-          );
+          LOG_DEBUG("Shader")
+              << "Added push constant range (offset: " << range.offset
+              << ", size: " << range.size << ", stage: 0x" << std::hex
+              << range.stageFlags << std::dec << ")";
         }
       }
     }
@@ -172,15 +157,14 @@ class PipelineBase {
 
       if (result != VK_SUCCESS) {
         throw std::runtime_error(
-            "Failed to create descriptor set layout for set " + std::to_string(setIndex)
+            "Failed to create descriptor set layout for set " +
+            std::to_string(setIndex)
         );
       }
 
-      FILE_DEBUG_PRINT(
-          "Created descriptor set layout for set %u with %zu bindings",
-          setIndex,
-          bindings.size()
-      );
+      LOG_DEBUG("Shader") << "Created descriptor set layout for set "
+                          << setIndex << " with " << bindings.size()
+                          << " bindings";
     }
   }
 
@@ -195,16 +179,15 @@ class PipelineBase {
   /**
    * @brief Construct pipeline base and build reflection data
    * @param device Logical device handle
-   * @param shaders Range of shader data files (accepts any container: list, vector, deque, etc.)
+   * @param shaders Range of shader data files (accepts any container: list,
+   * vector, deque, etc.)
    */
   template <std::ranges::range R>
-    requires std::same_as<
-        std::ranges::range_value_t<R>,
-        ShaderDataFile> || std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
-  PipelineBase(
-      VkDevice device,
-      const R &shaders
-  )
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+                 std::same_as<
+                     std::ranges::range_value_t<R>,
+                     const ShaderDataFile>
+  PipelineBase(VkDevice device, const R &shaders)
       : pipeline(device)
       , pipelineLayout(device)
   {
@@ -267,10 +250,8 @@ class PipelineBase {
    * @param data Push constant data (validates size at compile time)
    */
   template <typename T>
-  void pushConstants(
-      VkCommandBuffer commandBuffer,
-      const T        &data
-  ) const noexcept
+  void
+      pushConstants(VkCommandBuffer commandBuffer, const T &data) const noexcept
   {
     static_assert(
         sizeof(T) <= 128,

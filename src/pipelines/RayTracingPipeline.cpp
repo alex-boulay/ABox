@@ -1,11 +1,10 @@
 #include "RayTracingPipeline.hpp"
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include <iostream>
 #include <stdexcept>
 
-void ShaderBindingTable::destroy(
-    VkDevice device
-)
+void ShaderBindingTable::destroy(VkDevice device)
 {
   if (buffer != VK_NULL_HANDLE) {
     vkDestroyBuffer(device, buffer, nullptr);
@@ -22,7 +21,7 @@ void ShaderBindingTable::destroy(
 RayTracingPipeline::~RayTracingPipeline()
 {
   // SBT cleanup handled by wrapper destructor when implemented
-  FILE_DEBUG_PRINT("RayTracingPipeline destroyed");
+  LOG_DEBUG("Pipeline") << "RayTracingPipeline destroyed";
 }
 
 void RayTracingPipeline::createShaderBindingTable(
@@ -35,7 +34,7 @@ void RayTracingPipeline::createShaderBindingTable(
   // 3. Copy shader handles to buffer
   // 4. Set up VkStridedDeviceAddressRegionKHR for each shader type
 
-  FILE_DEBUG_PRINT("Shader Binding Table creation (STUB)");
+  LOG_DEBUG("Pipeline") << "Shader Binding Table creation (STUB)";
 }
 
 void RayTracingPipeline::traceRays(
@@ -57,11 +56,7 @@ void RayTracingPipeline::traceRays(
   //     depth
   // );
 
-  FILE_DEBUG_PRINT(
-      "RayTracingPipeline::traceRays called (%ux%ux%u) - STUB",
-      width,
-      height,
-      depth
-  );
-  std::cout << "WARNING: traceRays is not implemented yet" << std::endl;
+  LOG_DEBUG("Pipeline") << "RayTracingPipeline::traceRays called (" << width
+                        << "x" << height << "x" << depth << ") - STUB";
+  LOG_WARN("Pipeline") << "WARNING: traceRays is not implemented yet";
 }

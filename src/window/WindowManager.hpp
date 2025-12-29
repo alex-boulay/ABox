@@ -1,6 +1,7 @@
 #ifndef WINDOW_MANAGER_HPP
 #define WINDOW_MANAGER_HPP
 
+#include "Logger.hpp"
 #include "ResourcesManager.hpp"
 #include <GLFW/glfw3.h>
 #include <atomic>
@@ -34,18 +35,11 @@ class WindowManager {
 
   uint32_t getHeight() const { return extent.height; }
 
-  void setExtent(
-      VkExtent2D ext
-  )
-  {
-    extent = ext;
-  }
+  void setExtent(VkExtent2D ext) { extent = ext; }
 
-  void setFramebufferResized(
-      bool status
-  )
+  void setFramebufferResized(bool status)
   {
-    std::cout << "was set to " << std::boolalpha << status << std::endl;
+    LOG_DEBUG("Window") << "was set to " << std::boolalpha << status;
     framebufferResized.store(status);
   }
 
@@ -53,7 +47,7 @@ class WindowManager {
   {
     bool wasResized = framebufferResized.exchange(false);
     if (wasResized) {
-      std::cout << "Was consummed " << std::endl;
+      LOG_DEBUG("Window") << "Was consumed";
     }
     return wasResized;
   }

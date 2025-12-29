@@ -1,6 +1,7 @@
 #ifndef SHADER_HANDLER_HPP
 #define SHADER_HANDLER_HPP
 
+#include "Logger.hpp"
 #include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
 #include <algorithm>
@@ -56,27 +57,20 @@ class StageExtentionHandler {
   };
 
    public:
-  template <typename T>
-  inline static constexpr auto at(
-      T key
-  )
+  template <typename T> inline static constexpr auto at(T key)
   {
     return std::find_if(map.begin(), map.end(), [key](const auto &v) {
       return key == std::get<T>(v);
     });
   }
 
-  template <typename T>
-  inline static constexpr bool contains(
-      T key
-  )
+  template <typename T> inline static constexpr bool contains(T key)
   {
     return map.end() != at(key);
   }
 
-  [[nodiscard]] inline std::optional<EShLanguage> getStageExt(
-      std::string stageExt
-  ) noexcept
+  [[nodiscard]] inline std::optional<EShLanguage>
+      getStageExt(std::string stageExt) noexcept
   {
     return StageExtentionHandler::contains(stageExt)
                ? std::optional<EShLanguage>{std::get<EShLanguage>(
@@ -115,11 +109,7 @@ typedef enum VkFileResult {
   VK_FILE_NOT_A_SHADER    = 6
 } VkFileResult;
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkShaderModule,
-    ShaderModule,
-    vkDestroyShaderModule
-)
+DEFINE_VK_MEMORY_WRAPPER(VkShaderModule, ShaderModule, vkDestroyShaderModule)
 
 /**
  * @brief Structure to hold SPIRV reflection data
@@ -148,8 +138,8 @@ class ShaderDataFile {
   const std::vector<uint32_t> code;  // Spirv output
   const stageExtention *const stage; // Pipeline stage for the shader
   [[maybe_unused]] const SourcePlatform
-                         platform; // in case of recompilation ?
-                                   // ShaderDataFile doesn't handle allocations
+      platform; // in case of recompilation ?
+                // ShaderDataFile doesn't handle allocations
   SpvReflectShaderModule reflectModule;
   ShaderReflectionData   reflectionData;
   bool                   reflectionValid = false;
@@ -179,10 +169,10 @@ class ShaderDataFile {
   inline operator VkShaderModuleCreateInfo() const
   {
     return {
-        .sType    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
-        .pNext    = nullptr,
-        .flags    = 0u, // maybe more than one in the future ? to overload
-                        // with Shader creation.
+        .sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u, // maybe more than one in the future ? to overload
+                     // with Shader creation.
         .codeSize = code.size() * sizeof(uint32_t),
         .pCode    = code.data()
     };
@@ -193,9 +183,8 @@ class ShaderDataFile {
 
   std::string getName() const { return name; }
 
-  [[nodiscard]] inline VkPipelineShaderStageCreateInfo getPSSCI(
-      VkShaderModule shm
-  ) const
+  [[nodiscard]] inline VkPipelineShaderStageCreateInfo
+      getPSSCI(VkShaderModule shm) const
   {
     return {
         .sType  = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
@@ -254,27 +243,23 @@ class ShaderHandler {
       : ShaderHandler(SHADER_DIR)
   {
   }
-  ShaderHandler(
-      std::filesystem::path folder
-  )
+  ShaderHandler(std::filesystem::path folder)
       : ShaderHandler({folder})
   {
   }
 
-  ShaderHandler(
-      std::initializer_list<std::filesystem::path> folderNames
-  )
+  ShaderHandler(std::initializer_list<std::filesystem::path> folderNames)
   {
     initGlsLang();
     for (const std::filesystem::path &folder : folderNames) {
       loadShaderDataFromFolder(folder);
     }
-    std::cout << "-- " << sDatas.size() << " Shaders Loaded !" << std::endl;
+    LOG_INFO("Shader") << "-- " << sDatas.size() << " Shaders Loaded!";
   }
 
   ~ShaderHandler()
   {
-    std::cout << "Destruction of the Shader Handler" << std::endl;
+    LOG_DEBUG("Shader") << "Destruction of the Shader Handler";
     finalizeGlsLang();
   }
 
@@ -289,7 +274,7 @@ class ShaderHandler {
    * @param filesystem::path the directory to load from
    * @return uint16_t the number of loaded files into the vector
    */
-  uint32_t       loadShaderDataFromFolder(const std::filesystem::path &dirPath);
+  uint32_t loadShaderDataFromFolder(const std::filesystem::path &dirPath);
 
   /**
    * @brief
@@ -323,7 +308,7 @@ class ShaderHandler {
 
   inline const std::list<ShaderDataFile> &getShaderHandlers() const
   {
-    std::cout << " Loading sDatas - Size :" << sDatas.size() << std::endl;
+    LOG_DEBUG("Shader") << " Loading sDatas - Size: " << sDatas.size();
     return sDatas;
   }
 };

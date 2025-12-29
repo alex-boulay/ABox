@@ -1,4 +1,5 @@
 #include "DebugHandler.hpp"
+#include "Logger.hpp"
 #include <bitset>
 #include <cassert>
 #include <iostream>
@@ -17,8 +18,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
   std::bitset<sizeof(messageType)> bMessageType(messageType);
 
   if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-    std::cerr << "Type :" << bMessageType
-              << "| validation layer: " << pCallbackData->pMessage << '\n';
+    LOG_WARN("Vulkan") << "Type:" << bMessageType
+                       << " | validation layer: " << pCallbackData->pMessage;
     // assert(false);
   }
 
@@ -51,9 +52,8 @@ void DestroyDebugUtilsMessengerEXT(
     func(instance, debugMessenger, pAllocator);
   }
   else {
-    std::cout << "vkDestroyDebugUtilsMessengerExt wasn't destroyed : "
-                 "vkGetInstanceProcAddr == nullptr"
-              << std::endl;
+    LOG_WARN("Vulkan") << "vkDestroyDebugUtilsMessengerExt wasn't destroyed: "
+                       << "vkGetInstanceProcAddr == nullptr";
   }
 }
 
@@ -87,37 +87,35 @@ void DebugHandler::setupDebugMessenger()
       &debugMessenger
   );
   if (result != VK_SUCCESS) {
-    std::cout << "Error setting up Debug Messenger - result value : " << result
-              << '\n';
+    LOG_ERROR("Vulkan") << "Error setting up Debug Messenger - result value: "
+                        << result;
     throw std::runtime_error("failed to set up debug messenger!");
   }
   else {
-    std::cout << "Validation Layers Enabled !" << '\n';
+    LOG_INFO("Vulkan") << "Validation Layers Enabled!";
   }
 }
 
-DebugHandler::DebugHandler(
-    VkInstance instance
-)
+DebugHandler::DebugHandler(VkInstance instance)
     : instance(instance)
 {
 }
 
 DebugHandler::~DebugHandler()
 {
-  std::cout << "DebugHandler destructor entry : "
-            << (instance != VK_NULL_HANDLE) << std::endl;
+  LOG_DEBUG("Vulkan") << "DebugHandler destructor entry: "
+                      << (instance != VK_NULL_HANDLE);
   if (instance != VK_NULL_HANDLE) {
-    std::cout << "Destroying debug dependencies" << std::endl;
+    LOG_DEBUG("Vulkan") << "Destroying debug dependencies";
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT
     )vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if (func != nullptr) {
       func(instance, debugMessenger, nullptr);
     }
     instance = VK_NULL_HANDLE;
-    std::cout << "Debughandler external ressources freeing Done " << std::endl;
+    LOG_DEBUG("Vulkan") << "Debughandler external resources freeing Done";
   }
   else {
-    std::cout << "Debug handler : no external ressources to free" << std::endl;
+    LOG_DEBUG("Vulkan") << "Debug handler: no external resources to free";
   }
 }

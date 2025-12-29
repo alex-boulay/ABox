@@ -1,5 +1,6 @@
 #include "ResourcesManager.hpp"
 #include "DeviceHandler.hpp"
+#include "Logger.hpp"
 #include "ShaderHandler.hpp"
 #include <vulkan/vulkan_core.h>
 #define GLFW_INCLUDE_VULKAN
@@ -26,8 +27,7 @@ std::vector<const char *> ResourcesManager::getLayerNames()
        ++it) {
     const char *const layer = *it;
     const uint32_t    index = std::distance(InstanceLayers.cbegin(), it);
-    std::cout << "Layer number : " << index << " layer name " << layer
-              << std::endl;
+    LOG_DEBUG("Vulkan") << "Layer number: " << index << " layer name " << layer;
     bool found = false;
     for (const VkLayerProperties &lp : avail) {
       if (strcmp(lp.layerName, layer) == 0) {
@@ -36,11 +36,11 @@ std::vector<const char *> ResourcesManager::getLayerNames()
       }
     }
     if (found) {
-      std::cout << "Was found !" << std::endl;
+      LOG_INFO("Vulkan") << "Layer found: " << layer;
       result.push_back(layer);
     }
     else {
-      std::cerr << "[Vulkan] Skipping missing layer: " << layer << "\n";
+      LOG_WARN("Vulkan") << "Skipping missing layer: " << layer;
     }
   }
   return result;
@@ -60,7 +60,7 @@ std::vector<const char *> &requested)
 
 ResourcesManager::ResourcesManager()
 {
-  std::cout << "before app Info " << std::endl;
+  LOG_DEBUG("Resource") << "Creating VkApplicationInfo";
   VkApplicationInfo appInfo{
       .sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO,
       .pNext              = nullptr,
@@ -70,24 +70,24 @@ ResourcesManager::ResourcesManager()
       .engineVersion      = 10000,
       .apiVersion         = VK_API_VERSION_1_3
   };
-  std::cout << "after app info " << &appInfo << std::endl;
+  LOG_DEBUG("Resource") << "VkApplicationInfo created at " << (void *)&appInfo;
 
   std::vector<const char *> extBuffer   = getExtensions();
   std::vector<const char *> layerBuffer = getLayerNames();
 
   for (auto a : extBuffer) {
-    std::cout << "Extension : " << a << '\n';
+    LOG_DEBUG("Vulkan") << "Extension: " << a;
   }
 
   for (auto a : layerBuffer) {
-    std::cout << "Layer : " << a << '\n';
+    LOG_DEBUG("Vulkan") << "Layer: " << a;
   }
 
-  std::cout << "before debug Create info " << std::endl;
+  LOG_DEBUG("Resource") << "Creating debug messenger info";
   VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo =
       debugHandler.populateDebugMessenger();
 
-  std::cout << "after debug Create info " << std::endl;
+  LOG_DEBUG("Resource") << "Creating VkInstanceCreateInfo";
   VkInstanceCreateInfo instanceCreateInfo{
       .sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
       .pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo,
@@ -99,8 +99,8 @@ ResourcesManager::ResourcesManager()
       .ppEnabledExtensionNames = extBuffer.data()
   };
 
-  std::cout << "after create instance info " << &instanceCreateInfo
-            << std::endl;
+  LOG_DEBUG("Resource") << "VkInstanceCreateInfo created at "
+                        << (void *)&instanceCreateInfo;
   VkResult res = vkCreateInstance(&instanceCreateInfo, nullptr, instance.ptr());
   if (res != VK_SUCCESS) {
     std::stringstream ss;
@@ -120,9 +120,9 @@ std::vector<const char *> ResourcesManager::getExtensions()
   uint32_t     glfwExtensionCount = 0;
   const char **glfwExtensions;
   glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-  std::cout << "glfwExtensionCount : " << glfwExtensionCount << std::endl;
+  LOG_INFO("Vulkan") << "glfwExtensionCount: " << glfwExtensionCount;
   for (uint32_t i = 0; i < glfwExtensionCount; i++) {
-    std::cout << "\t-- Extension : " << glfwExtensions[i] << std::endl;
+    LOG_DEBUG("Vulkan") << "  -- Extension: " << glfwExtensions[i];
     InstanceExtensions.insert(glfwExtensions[i]);
   }
 
@@ -177,18 +177,17 @@ VkResult ResourcesManager::addGraphicsPipeline(
     uint32_t                         devIndex
 )
 {
-  std::cout << " devIndex : " << devIndex << " Instance Loaded DeviceHandler ? "
-            << deviceHandler.has_value() << " - device exists  "
-            << deviceHandler.value().hasDevice(devIndex) << std::endl;
-  std::cout << "ShaderDataFiles size : " << smcis.size() << std::endl;
+  LOG_DEBUG("Resource") << "devIndex: " << devIndex
+                        << " Instance Loaded DeviceHandler? "
+                        << deviceHandler.has_value() << " - device exists "
+                        << deviceHandler.value().hasDevice(devIndex);
+  LOG_DEBUG("Resource") << "ShaderDataFiles size: " << smcis.size();
   return deviceHandler.value().hasDevice(devIndex)
              ? deviceHandler.value().addGraphicsPipeline(devIndex, smcis)
              : VK_ERROR_DEVICE_LOST;
 }
 
-VkResult ResourcesManager::createFramebuffers(
-    uint32_t devIndex
-)
+VkResult ResourcesManager::createFramebuffers(uint32_t devIndex)
 {
   if (deviceHandler.has_value()) {
     return deviceHandler.value().createFramebuffers(devIndex);
@@ -204,9 +203,9 @@ void ResourcesManager::drawFrame()
 {
   uint32_t                         imageIndex;
   ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE("main");
-  ABOX_PER_FRAME_DEBUG_LOG("Got main deviceHandler");
+  ABOX_LOG_PER_FRAME << "Got main deviceHandler";
   dbe->getFrameSyncArray()->waitAndReset(dbe->getDevice());
-  ABOX_PER_FRAME_DEBUG_LOG("Wait and reset done");
+  ABOX_LOG_PER_FRAME << "Wait and reset done";
 
   VkResult result = vkAcquireNextImageKHR(
       dbe->getDevice(),
@@ -218,19 +217,19 @@ void ResourcesManager::drawFrame()
   );
   if (result == VK_ERROR_OUT_OF_DATE_KHR) {
     // dbe->swapchain.recreateSwapChain();
-    std::cout << "Need to recreate Swapchain ! " << std::endl;
+    LOG_WARN("Vulkan") << "Need to recreate Swapchain!";
     return;
   }
   else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
     throw std::runtime_error("failed to acquire swap chain image!");
   }
   const uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
-  ABOX_PER_FRAME_DEBUG_LOG("ImageIndex " << imageIndex);
-  ABOX_PER_FRAME_DEBUG_LOG("FrameIndex " << frameIndex);
+  ABOX_LOG_PER_FRAME << "ImageIndex " << imageIndex;
+  ABOX_LOG_PER_FRAME << "FrameIndex " << frameIndex;
 
   dbe->recordCommandBuffer(imageIndex, frameIndex);
 
-  ABOX_PER_FRAME_DEBUG_LOG("recordCommandBuffer done : ");
+  ABOX_LOG_PER_FRAME << "recordCommandBuffer done";
 
   VkPipelineStageFlags waitStages[] = {
       VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT

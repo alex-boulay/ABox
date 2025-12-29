@@ -1,4 +1,5 @@
 #include "ShaderHandler.hpp"
+#include "Logger.hpp"
 #include <algorithm>
 #include <fstream>
 #include <glslang/Public/ResourceLimits.h>
@@ -33,17 +34,14 @@ struct ExtensionFileResult {
 };
 
 //----------------Static Functions-----------------
-[[nodiscard]] inline SourcePlatform getPlatformExt(
-    std::string platExt
-)
+[[nodiscard]] inline SourcePlatform getPlatformExt(std::string platExt)
 {
   return extensionToPlatform.contains(platExt) ? extensionToPlatform.at(platExt)
                                                : SourcePlatform::Unknown;
 }
 
-[[nodiscard]] inline glslang::EShSource getEShSource(
-    SourcePlatform sourcePlatform
-)
+[[nodiscard]] inline glslang::EShSource
+    getEShSource(SourcePlatform sourcePlatform)
 {
   switch (sourcePlatform) {
     case (SourcePlatform::GLSL): return glslang::EShSourceGlsl;
@@ -52,9 +50,7 @@ struct ExtensionFileResult {
   }
 }
 
-[[nodiscard]] ExtensionFileResult readExtentions(
-    std::filesystem::path path
-)
+[[nodiscard]] ExtensionFileResult readExtentions(std::filesystem::path path)
 {
   std::vector<std::string> extensions;
   auto                     filename = path.filename();
@@ -64,18 +60,16 @@ struct ExtensionFileResult {
            .stage    = nullptr
   };
 
-  FILE_DEBUG_PRINT(" readExtensions - Filename : %s", filename.c_str());
+  LOG_DEBUG("Shader") << " readExtensions - Filename: " << filename.string();
   while (filename.has_extension() && extensions.size() < 2) {
-    FILE_DEBUG_PRINT("Extension : %s", filename.extension().c_str());
+    LOG_DEBUG("Shader") << "Extension: " << filename.extension().string();
     extensions.push_back(filename.extension().string());
     filename = filename.stem();
   }
   if (!extensions.size() ||
       !StageExtentionHandler::contains(extensions.back())) {
-    FILE_DEBUG_PRINT(
-        "File ignored due to unsuported extension : %s",
-        extensions.back().c_str()
-    );
+    LOG_WARN("Shader") << "File ignored due to unsupported extension: "
+                       << extensions.back();
     return result; //.status = VK_FILE_EXTENSION ERROR
   }
   else {
@@ -84,7 +78,7 @@ struct ExtensionFileResult {
     if (extensions.size() && extensionToPlatform.contains(extensions.back())) {
       result.platform = extensionToPlatform.at(extensions.back());
     }
-    FILE_DEBUG_PRINT("readExtensions Success");
+    LOG_DEBUG("Shader") << "readExtensions Success";
     result.status = VK_FILE_SUCCESS;
   }
   return result;
@@ -92,65 +86,63 @@ struct ExtensionFileResult {
 }; // namespace
 //--------------- ShaderHandler -----------------
 
-[[nodiscard]] VkFileResult ShaderHandler::loadShaderDataFile(
-    const std::filesystem::path &filePath
-)
+[[nodiscard]] VkFileResult
+    ShaderHandler::loadShaderDataFile(const std::filesystem::path &filePath)
 {
   if (std::filesystem::exists(filePath)) {
-    FILE_DEBUG_PRINT("Given path found : %s", filePath.string().c_str());
+    LOG_DEBUG("Shader") << "Given path found: " << filePath.string();
     ExtensionFileResult extFileResult = readExtentions(filePath);
     if (extFileResult.status == VK_FILE_SUCCESS) {
-      FILE_DEBUG_PRINT("Extension(s) Loaded");
+      LOG_DEBUG("Shader") << "Extension(s) Loaded";
       std::string shaderF = loadShaderFromFile(filePath);
-      FILE_DEBUG_PRINT("Shader Loaded");
+      LOG_DEBUG("Shader") << "Shader Loaded";
       std::vector<uint32_t> code =
           compileGLSLToSPIRV(shaderF, get<EShLanguage>(*extFileResult.stage));
-      FILE_DEBUG_PRINT("Compiled total number of uint32_t : %lu", code.size());
+      LOG_DEBUG("Shader") << "Compiled total number of uint32_t: "
+                          << code.size();
       sDatas.emplace_back(
           filePath.filename(),
           code,
           extFileResult.stage,
           extFileResult.platform
       );
-      FILE_DEBUG_PRINT("ShaderData added");
+      LOG_DEBUG("Shader") << "ShaderData added";
       return VK_FILE_SUCCESS;
     }
     else {
-      FILE_DEBUG_PRINT("Extension couldn't be loaded : %s ", filePath.c_str());
+      LOG_WARN("Shader") << "Extension couldn't be loaded: "
+                         << filePath.string();
       return VK_FILE_NOT_A_SHADER;
     }
   }
   else {
-    FILE_DEBUG_PRINT(
-        "At given path : %s - No shader elements found : ERROR ",
-        filePath.string().c_str()
-    );
+    LOG_ERROR("Shader") << "At given path: " << filePath.string()
+                        << " - No shader elements found: ERROR";
     return VK_FILE_UNKNOWN_ERROR;
   }
 }
 
-uint32_t ShaderHandler::loadShaderDataFromFolder(
-    const std::filesystem::path &dirPath
-)
+uint32_t
+    ShaderHandler::loadShaderDataFromFolder(const std::filesystem::path &dirPath
+    )
 {
   uint32_t count = 0;
 
   if (!std::filesystem::is_directory(dirPath)) {
-    FILE_DEBUG_PRINT("The path is not a directory or does not exist.");
+    LOG_WARN("Shader") << "The path is not a directory or does not exist";
   }
 
   for (auto f : std::filesystem::directory_iterator(dirPath)) {
-    std::cout << " count : " << count
-              << " filename:  " << f.path().filename().string() << '\n';
+    LOG_DEBUG("Shader") << " count: " << count
+                        << " filename: " << f.path().filename().string();
     count += std::filesystem::is_regular_file(f) &&
              loadShaderDataFile(f) == VK_FILE_SUCCESS;
   }
   return const_cast<uint32_t &>(count);
 }
 
-const std::string ShaderHandler::loadShaderFromFile(
-    const std::filesystem::path &shaderFile
-)
+const std::string
+    ShaderHandler::loadShaderFromFile(const std::filesystem::path &shaderFile)
 {
   std::ifstream file(shaderFile);
   if (!file.is_open()) {
@@ -183,8 +175,10 @@ const std::vector<uint32_t> ShaderHandler::compileGLSLToSPIRV(
   shader.setEnvTarget(glslang::EShTargetSpv, SPIRV_CHOSEN_VERSION);
 
   if (!shader.parse(GetDefaultResources(), 100, false, EShMsgDefault)) {
-    FILE_DEBUG_PRINT("GLSL Parsing Failed for shader stage: %d ", shaderStage);
-    FILE_DEBUG_PRINT("%s\n%s", shader.getInfoLog(), shader.getInfoDebugLog());
+    LOG_ERROR("Shader") << "GLSL Parsing Failed for shader stage: "
+                        << shaderStage;
+    LOG_ERROR("Shader") << shader.getInfoLog() << "\n"
+                        << shader.getInfoDebugLog();
     return {};
   }
 
@@ -192,15 +186,15 @@ const std::vector<uint32_t> ShaderHandler::compileGLSLToSPIRV(
   program.addShader(&shader);
 
   if (!program.link(EShMsgDefault)) {
-    FILE_DEBUG_PRINT("GLSL Linking Failed : %s", program.getInfoLog());
-    FILE_DEBUG_PRINT("%s", program.getInfoDebugLog());
+    LOG_ERROR("Shader") << "GLSL Linking Failed: " << program.getInfoLog();
+    LOG_ERROR("Shader") << program.getInfoDebugLog();
     return {};
   }
 
   std::vector<uint32_t>   spirv;
   glslang::TIntermediate *intermediate = program.getIntermediate(shaderStage);
   if (!intermediate) {
-    FILE_DEBUG_PRINT("Failed to get intermediate representation");
+    LOG_ERROR("Shader") << "Failed to get intermediate representation";
   }
 
   glslang::SpvOptions spvOptions;
@@ -208,7 +202,7 @@ const std::vector<uint32_t> ShaderHandler::compileGLSLToSPIRV(
   glslang::GlslangToSpv(*intermediate, spirv, &logger, &spvOptions);
 
   if (logger.getAllMessages().size()) {
-    FILE_DEBUG_PRINT("Spirv Logger : %s", logger.getAllMessages().c_str());
+    LOG_DEBUG("Shader") << "Spirv Logger: " << logger.getAllMessages();
   }
 
   return spirv;
@@ -226,9 +220,7 @@ std::string ShaderHandler::listAllShaders() const
   );
 }
 
-const ShaderDataFile *ShaderHandler::getShader(
-    std::string name
-) const
+const ShaderDataFile *ShaderHandler::getShader(std::string name) const
 {
   std::list<ShaderDataFile>::const_iterator result = std::find_if(
       sDatas.cbegin(),
@@ -258,10 +250,8 @@ void ShaderDataFile::performReflection()
   );
 
   if (result != SPV_REFLECT_RESULT_SUCCESS) {
-    FILE_DEBUG_PRINT(
-        "Failed to create SPIRV-Reflect shader module for %s",
-        name.c_str()
-    );
+    LOG_ERROR("Shader") << "Failed to create SPIRV-Reflect shader module for "
+                        << name;
     reflectionValid = false;
     return;
   }
@@ -284,18 +274,13 @@ void ShaderDataFile::performReflection()
     );
 
     if (result == SPV_REFLECT_RESULT_SUCCESS) {
-      FILE_DEBUG_PRINT(
-          "Shader %s has %u descriptor set(s)",
-          name.c_str(),
-          reflectionData.descriptorSetCount
-      );
+      LOG_DEBUG("Shader") << "Shader " << name << " has "
+                          << reflectionData.descriptorSetCount
+                          << " descriptor set(s)";
       for (uint32_t i = 0; i < reflectionData.descriptorSetCount; ++i) {
         const SpvReflectDescriptorSet *set = reflectionData.descriptorSets[i];
-        FILE_DEBUG_PRINT(
-            "  Set %u: %u binding(s)",
-            set->set,
-            set->binding_count
-        );
+        LOG_DEBUG("Shader") << "  Set " << set->set << ": "
+                            << set->binding_count << " binding(s)";
       }
     }
   }
@@ -316,18 +301,13 @@ void ShaderDataFile::performReflection()
     );
 
     if (result == SPV_REFLECT_RESULT_SUCCESS) {
-      FILE_DEBUG_PRINT(
-          "Shader %s has %u push constant block(s)",
-          name.c_str(),
-          reflectionData.pushConstantCount
-      );
+      LOG_DEBUG("Shader") << "Shader " << name << " has "
+                          << reflectionData.pushConstantCount
+                          << " push constant block(s)";
       for (uint32_t i = 0; i < reflectionData.pushConstantCount; ++i) {
         const SpvReflectBlockVariable *block = reflectionData.pushConstants[i];
-        FILE_DEBUG_PRINT(
-            "  Push constant: %s, size: %u bytes",
-            block->name,
-            block->size
-        );
+        LOG_DEBUG("Shader") << "  Push constant: " << block->name
+                            << ", size: " << block->size << " bytes";
       }
     }
   }
@@ -348,11 +328,9 @@ void ShaderDataFile::performReflection()
     );
 
     if (result == SPV_REFLECT_RESULT_SUCCESS) {
-      FILE_DEBUG_PRINT(
-          "Shader %s has %u input variable(s)",
-          name.c_str(),
-          reflectionData.inputVariableCount
-      );
+      LOG_DEBUG("Shader") << "Shader " << name << " has "
+                          << reflectionData.inputVariableCount
+                          << " input variable(s)";
     }
   }
 
@@ -372,11 +350,9 @@ void ShaderDataFile::performReflection()
     );
 
     if (result == SPV_REFLECT_RESULT_SUCCESS) {
-      FILE_DEBUG_PRINT(
-          "Shader %s has %u output variable(s)",
-          name.c_str(),
-          reflectionData.outputVariableCount
-      );
+      LOG_DEBUG("Shader") << "Shader " << name << " has "
+                          << reflectionData.outputVariableCount
+                          << " output variable(s)";
     }
   }
 }

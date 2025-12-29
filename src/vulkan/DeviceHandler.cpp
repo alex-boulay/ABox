@@ -49,10 +49,11 @@ bool supportsPresentation(
   VkResult result =
       vkGetPhysicalDeviceSurfaceSupportKHR(pD, qFamIndex, surface, &support);
   if (result != VK_SUCCESS) {
-    std::cerr << "Error Querying Physical Device Support for KHR Surfaces !\n";
-    std::cerr << "Phy " << pD << " - Surface" << surface << " - qFamIndex "
-              << qFamIndex << std::endl;
-    std::cerr << " VK_ERROR Value : " << result << std::endl;
+    LOG_ERROR("Vulkan"
+    ) << "Error Querying Physical Device Support for KHR Surfaces!";
+    LOG_ERROR("Vulkan") << "Phy " << (void *)pD << " - Surface "
+                        << (void *)surface << " - qFamIndex " << qFamIndex;
+    LOG_ERROR("Vulkan") << "VK_ERROR Value: " << result;
     return false;
   }
   return support;
@@ -102,8 +103,7 @@ ExtensionSupport filterDeviceExtensions(VkPhysicalDevice phys)
       result.enabled.push_back(name);
     }
     else {
-      std::cerr << "[Vulkan] Missing REQUIRED device extension: " << name
-                << "\n";
+      LOG_ERROR("Vulkan") << "Missing REQUIRED device extension: " << name;
       result.allRequired = false;
     }
   }
@@ -139,10 +139,12 @@ uint32_t DeviceHandler::listQueueFamilies()
         queueFamilies.data()
     );
     for (uint16_t qi = 0; qi < queueFamilies.size(); qi++) {
-      LOG_DEBUG("Device") << "  QueueFamily #" << qi;
-      LOG_DEBUG("Device") << queueFamilies.at(qi);
+      const auto &qf = queueFamilies.at(qi);
+      LOG_DEBUG("Device") << "  QueueFamily #" << qi
+                          << " - Count: " << qf.queueCount
+                          << " - Flags: " << qf.queueFlags;
       LOG_DEBUG("Device") << "  Is valid QueueFamily: " << std::boolalpha
-                          << bool(isValidQueueFamily(queueFamilies.at(qi)));
+                          << bool(isValidQueueFamily(qf));
     }
   }
   return queueCount;
@@ -171,9 +173,8 @@ availableExtensions.data());
     std::set<std::string> requiredExtensions(deviceExtensions.begin(),
 deviceExtensions.end()); for (const auto &extension : availableExtensions)
     {
-#ifdef DEBUG_VK_ABOX
-        std::cout << "Dev extension : " << extension.extensionName << " -
-Version : " << extension.specVersion << '\n'; #endif
+        LOG_DEBUG("Vulkan") << "Dev extension: " << extension.extensionName
+                            << " - Version: " << extension.specVersion;
         requiredExtensions.erase(extension.extensionName);
     }
     return requiredExtensions.empty() ? VK_SUCCESS :
@@ -187,9 +188,9 @@ VkResult DeviceHandler::listPhysicalDevices() const
   VkPhysicalDeviceFeatures   phyFeat = {};
   for (auto physical : phyDevices) {
     vkGetPhysicalDeviceProperties(physical, &phyProp);
-#ifdef DEBUG_VK_ABOX
-    std::cout << "Device n°" << index << " : \n" << phyProp;
-#endif
+    LOG_DEBUG("Device") << "Device #" << index << ": " << phyProp.deviceName
+                        << " (API " << VK_VERSION_MAJOR(phyProp.apiVersion)
+                        << "." << VK_VERSION_MINOR(phyProp.apiVersion) << ")";
     vkGetPhysicalDeviceFeatures(physical, &phyFeat);
     index++;
   }
@@ -269,7 +270,7 @@ VkResult DeviceHandler::addLogicalDevice(
 
   std::vector<VkDeviceQueueCreateInfo> qCI;
 
-  std::cout << "Logical Device before for " << std::endl;
+  LOG_DEBUG("Device") << "Creating queue create infos";
   for (uint32_t famIndex : listQueueFamilyIndices(fIndices)) {
     qCI.push_back(VkDeviceQueueCreateInfo{
         .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -280,7 +281,7 @@ VkResult DeviceHandler::addLogicalDevice(
         .pQueuePriorities = &queuePriority
     });
   }
-  std::cout << "Step Logical device after for " << std::endl;
+  LOG_DEBUG("Device") << "Preparing logical device creation";
   std::vector<const char *> devExtVect = filterDeviceExtensions(phydev).enabled;
   listQueueFamilies();
   VkDeviceCreateInfo devInfo{
@@ -300,22 +301,22 @@ VkResult DeviceHandler::addLogicalDevice(
   VkResult res = vkCreateDevice(phydev, &devInfo, nullptr, &dev);
 
   if (res == VK_SUCCESS) {
-    std::cout << "Logical Device Assignment success ! '\n'";
+    LOG_INFO("Device") << "Logical Device Assignment success!";
     devices.emplace_back(dev, phydev, fIndices);
     if (deviceNames.contains(name)) {
-      std::cout << "Overlaping the device name : " << name
-                << " - Device : " << (void *)deviceNames.at(name)->getDevice()
-                << " Might not have been freed" << std::endl;
+      LOG_WARN("Device") << "Overlapping device name: " << name << " - Device: "
+                         << (void *)deviceNames.at(name)->getDevice()
+                         << " Might not have been freed";
     }
     deviceNames[name] = &devices.back();
   }
   else {
-    std::cout << "Logical Device Assignment Failure, Result Code : " << res
-              << '\n';
+    LOG_ERROR("Device") << "Logical Device Assignment Failure, Result Code: "
+                        << res;
   }
-  std::cout << "fIndices size " << fIndices.size() << std::endl;
+  LOG_DEBUG("Device") << "fIndices size: " << fIndices.size();
   for (const auto &[key, value] : fIndices) {
-    std::cout << "key " << key << " val " << value << std::endl;
+    LOG_DEBUG("Device") << "key " << static_cast<int>(key) << " val " << value;
   }
   vkGetDeviceQueue(
       dev,
@@ -374,16 +375,12 @@ uint32_t DeviceHandler::findBestPhysicalDevice()
     vkGetPhysicalDeviceFeatures(phyDevices.at(devIndex), &phyFeat);
     uint32_t score = rateDeviceSuitability(phyProp, phyFeat);
     candidates.insert(std::make_pair(score, devIndex));
-#ifdef DEBUG_VK_ABOX
-    std::cout << "Score : " << score << "\tdevIndex : " << devIndex << '\n';
-#endif
+    LOG_DEBUG("Device") << "Score: " << score << "\tdevIndex: " << devIndex;
   }
 
   if (candidates.rbegin()->first > 0) {
-#ifdef DEBUG_VK_ABOX
-    std::cout << "Physical Device selected is PhyDevice n°"
-              << candidates.rbegin()->second << "\n";
-#endif
+    LOG_INFO("Device") << "Physical Device selected is PhyDevice #"
+                       << candidates.rbegin()->second;
     return candidates.rbegin()->second;
   }
   else {
@@ -432,17 +429,19 @@ VkResult DeviceHandler::addSwapchain(
   }
 
   DeviceBoundElements *devicePtr = getDBE(devIndex);
-  std::cout << "DBE maping " << '\n';
-  std::cout << "DBE Physical " << (void *)devicePtr->getPhysicalDevice()
-            << '\n';
-  std::cout << "DBE logical " << (void *)getDevice(devIndex) << '\n';
-  std::cout << "DBE surface " << (void *)surface << '\n';
-  std::cout << "DBE rQDI " << std::boolalpha
-            << devicePtr->getFamilyQueueIndices().at(QueueRole::Present)
-            << '\n';
-  std::cout << "DBE gQDI " << std::boolalpha
-            << devicePtr->getFamilyQueueIndices().at(QueueRole::Graphics)
-            << '\n';
+  LOG_DEBUG("Device") << "DBE mapping";
+  LOG_DEBUG("Device") << "DBE Physical: "
+                      << (void *)devicePtr->getPhysicalDevice();
+  LOG_DEBUG("Device") << "DBE logical: " << (void *)getDevice(devIndex);
+  LOG_DEBUG("Device") << "DBE surface: " << (void *)surface;
+  LOG_DEBUG("Device"
+  ) << "DBE rQDI: "
+    << std::boolalpha
+    << devicePtr->getFamilyQueueIndices().at(QueueRole::Present);
+  LOG_DEBUG("Device"
+  ) << "DBE gQDI: "
+    << std::boolalpha
+    << devicePtr->getFamilyQueueIndices().at(QueueRole::Graphics);
 
   getDBE(devIndex)->swapchain.emplace(
       devicePtr->getPhysicalDevice(),
@@ -453,7 +452,7 @@ VkResult DeviceHandler::addSwapchain(
       width,
       height
   );
-  std::cout << "SwapchainMapping done " << std::endl;
+  LOG_INFO("Device") << "SwapchainMapping done";
 
   return VK_SUCCESS;
 }
@@ -465,8 +464,8 @@ VkResult DeviceHandler::addGraphicsPipeline(
 {
   DeviceBoundElements *dbe = getDBE(deviceIndex);
   if (dbe && dbe->swapchain.has_value()) {
-    std::cout << "Loading Graphics Pipeline with " << shaderFiles.size()
-              << " shaders" << std::endl;
+    LOG_INFO("Pipeline") << "Loading Graphics Pipeline with "
+                         << shaderFiles.size() << " shaders";
 
     // Create main graphics pipeline in PipelineManager
     dbe->pipelineManager.createGraphicsPipeline(
@@ -478,8 +477,8 @@ VkResult DeviceHandler::addGraphicsPipeline(
     );
     return VK_SUCCESS;
   }
-  std::cout << "Failed to initialise Graphics Pipeline in the Device Manager"
-            << std::endl;
+  LOG_ERROR("Pipeline"
+  ) << "Failed to initialise Graphics Pipeline in the Device Manager";
   return VK_ERROR_INITIALIZATION_FAILED;
 };
 

@@ -1,6 +1,7 @@
 #ifndef MEMORY_WRAPPER
 #define MEMORY_WRAPPER
 
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include <vulkan/vulkan_core.h>
 
@@ -15,27 +16,22 @@ class MemoryWrapper {
 
   void Destroy()
   {
-#ifdef DEBUG_VK_ABOX
-    std::cout << " ---- Destruction of Memory wrapper -- container : "
-              << (void *)this->get() << std::endl;
-#endif
+    LOG_DEBUG("Memory") << " ---- Destruction of Memory wrapper -- container: "
+                        << (void *)this->get();
 
     if (this->get() != VK_NULL_HANDLE) {
       if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
 
-#ifdef DEBUG_VK_ABOX
-        std::cout << " ---- Destruction of Memory wrapper -> no parent"
-                  << std::endl;
-#endif
+        LOG_DEBUG("Memory")
+            << " ---- Destruction of Memory wrapper -> no parent";
 
         vulkanDestructionFunction(container, pAllocator);
       }
       else {
 
-#ifdef DEBUG_VK_ABOX
-        std::cout << " ---- Destruction of Memory wrapper -> parent state : "
-                  << (void *)vulkanParent << std::endl;
-#endif
+        LOG_DEBUG("Memory")
+            << " ---- Destruction of Memory wrapper -> parent state: "
+            << (void *)vulkanParent;
         if (vulkanParent != VK_NULL_HANDLE) {
           vulkanDestructionFunction(vulkanParent, container, pAllocator);
         }
@@ -61,9 +57,7 @@ class MemoryWrapper {
 
   DELETE_COPY(MemoryWrapper);
 
-  MemoryWrapper(
-      MemoryWrapper &&other
-  ) noexcept
+  MemoryWrapper(MemoryWrapper &&other) noexcept
       : container(other.container)
       , vulkanParent(other.vulkanParent)
       , vulkanDestructionFunction(other.vulkanDestructionFunction)
@@ -73,18 +67,16 @@ class MemoryWrapper {
     other.vulkanParent              = VK_NULL_HANDLE;
     other.vulkanDestructionFunction = nullptr;
     other.pAllocator                = nullptr;
-#ifdef DEBUG_VK_ABOX
-    std::cout << "Dangerous -> Memory Moved (reference) \n"
-              << "previous parent value " << (void *)other.vulkanParent
-              << "previous container value " << (void *)other.container << "\n"
-              << "current parent value " << (void *)vulkanParent
-              << "previous container value " << (void *)container << std::endl;
-#endif
+    LOG_DEBUG("Memory") << "Dangerous -> Memory Moved (reference)\n"
+                        << "previous parent value "
+                        << (void *)other.vulkanParent
+                        << " previous container value "
+                        << (void *)other.container << "\n"
+                        << "current parent value " << (void *)vulkanParent
+                        << " current container value " << (void *)container;
   }
 
-  MemoryWrapper &operator=(
-      MemoryWrapper &&other
-  ) noexcept
+  MemoryWrapper &operator=(MemoryWrapper &&other) noexcept
   {
     if (this != &other) {
       container                 = other.container;
@@ -98,22 +90,20 @@ class MemoryWrapper {
       other.pAllocator                = nullptr;
     }
 
-#ifdef DEBUG_VK_ABOX
-    std::cout << "Dangerous -> Memory Moved (assigned)"
-              << "\nprevious parent value " << (void *)other.vulkanParent
-              << "\nprevious container value " << (void *)other.container
-              << "\nnew parent value " << (void *)vulkanParent
-              << "\nnew container value " << (void *)container << std::endl;
-#endif
+    LOG_DEBUG("Memory") << "Dangerous -> Memory Moved (assigned)"
+                        << "\nprevious parent value "
+                        << (void *)other.vulkanParent
+                        << "\nprevious container value "
+                        << (void *)other.container << "\nnew parent value "
+                        << (void *)vulkanParent << "\nnew container value "
+                        << (void *)container;
     return *this;
   }
   T      get() const { return container; }
   T     *ptr() { return &container; }
   inline operator T() const { return container; }
 
-  void swap(
-      const T &item
-  )
+  void swap(const T &item)
   {
     Destroy();
     container = item;

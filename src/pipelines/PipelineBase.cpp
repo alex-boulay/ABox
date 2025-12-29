@@ -1,4 +1,5 @@
 #include "PipelineBase.hpp"
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include <iostream>
 #include <spirv_reflect.h>
@@ -6,9 +7,7 @@
 
 // PipelineBase constructor is now templated in the header file
 
-void PipelineBase::createPipelineLayout(
-    VkDevice device
-)
+void PipelineBase::createPipelineLayout(VkDevice device)
 {
   std::vector<VkDescriptorSetLayout> layouts;
   layouts.reserve(descriptorSetLayouts.size());
@@ -39,17 +38,12 @@ void PipelineBase::createPipelineLayout(
     throw std::runtime_error("Failed to create pipeline layout!");
   }
 
-  FILE_DEBUG_PRINT(
-      "Created pipeline layout with %zu descriptor sets and %zu push constant "
-      "ranges",
-      layouts.size(),
-      pushConstantRanges.size()
-  );
+  LOG_DEBUG("Pipeline") << "Created pipeline layout with " << layouts.size()
+                        << " descriptor sets and " << pushConstantRanges.size()
+                        << " push constant ranges";
 }
 
-void PipelineBase::bind(
-    VkCommandBuffer commandBuffer
-) const noexcept
+void PipelineBase::bind(VkCommandBuffer commandBuffer) const noexcept
 {
   vkCmdBindPipeline(commandBuffer, getBindPoint(), pipeline);
 }
@@ -76,15 +70,15 @@ void PipelineBase::bindDescriptorSets(
 
 void PipelineBase::printReflectionInfo() const
 {
-  std::cout << "=== Pipeline Reflection Info ===" << std::endl;
-  std::cout << "Descriptor Sets: " << descriptorSetLayouts.size() << std::endl;
-  std::cout << "Push Constant Ranges: " << pushConstantRanges.size()
-            << std::endl;
+  LOG_INFO("Pipeline") << "=== Pipeline Reflection Info ===";
+  LOG_INFO("Pipeline") << "Descriptor Sets: " << descriptorSetLayouts.size();
+  LOG_INFO("Pipeline") << "Push Constant Ranges: " << pushConstantRanges.size();
 
   for (size_t i = 0; i < pushConstantRanges.size(); ++i) {
     const auto &range = pushConstantRanges[i];
-    std::cout << "  Push Constant " << i << ": offset=" << range.offset
-              << ", size=" << range.size << ", stages=0x" << std::hex
-              << range.stageFlags << std::dec << std::endl;
+    LOG_DEBUG("Pipeline") << "  Push Constant " << i
+                          << ": offset=" << range.offset
+                          << ", size=" << range.size << ", stages=0x"
+                          << std::hex << range.stageFlags << std::dec;
   }
 }

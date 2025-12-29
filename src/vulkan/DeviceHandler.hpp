@@ -3,6 +3,7 @@
 
 #include "CommandsHandler.hpp"
 #include "GraphicsPipeline.hpp"
+#include "Logger.hpp"
 #include "PipelineManager.hpp"
 #include "PreProcUtils.hpp"
 #include "ShaderHandler.hpp"
@@ -71,21 +72,19 @@ class DeviceBoundElements {
 
   VkResult recordCommandBuffer(uint32_t imageIndex, uint32_t commandBufferIndex)
   {
-    ABOX_PER_FRAME_DEBUG_LOG(
-        "Recording commands Img "
-        << imageIndex << " commandBufferIndex : " << commandBufferIndex
-    );
+    ABOX_LOG_PER_FRAME << "Recording commands Img " << imageIndex
+                       << " commandBufferIndex: " << commandBufferIndex;
 
     GraphicsPipeline *mainPipeline = pipelineManager.getMainGraphicsPipeline();
     if (!mainPipeline) {
-      std::cout << "No main graphics pipeline set" << std::endl;
+      LOG_ERROR("Pipeline") << "No main graphics pipeline set";
       throw std::runtime_error(
           "Wrong graphics pipeline target during recordcommandbuffer"
       );
     }
 
     if (!swapchain.has_value()) {
-      std::cout << "No Value in swapchain" << std::endl;
+      LOG_ERROR("Vulkan") << "No Value in swapchain";
       throw std::runtime_error(
           "Wrong swapchain target during recordcommandbuffer"
       );
@@ -209,12 +208,12 @@ class DeviceHandler {
   {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
     VkRenderPass         rp  = VK_NULL_HANDLE;
-    std::cout << "SC has value " << dbe->swapchain.has_value() << std::endl;
+    LOG_DEBUG("Device") << "SC has value " << dbe->swapchain.has_value();
     if (dbe->swapchain.has_value()) {
       GraphicsPipeline *mainPipeline =
           dbe->pipelineManager.getMainGraphicsPipeline();
       if (mainPipeline) {
-        std::cout << "GP has value " << (mainPipeline != nullptr) << std::endl;
+        LOG_DEBUG("Pipeline") << "GP has value " << (mainPipeline != nullptr);
         mainPipeline->updateExtent(window);
         rp = mainPipeline->getRenderPass();
       }

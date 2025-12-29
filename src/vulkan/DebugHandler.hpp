@@ -1,3 +1,4 @@
+#include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include <iostream>
 #include <vulkan/vulkan.h>
@@ -16,20 +17,16 @@ class DebugHandler {
   ~DebugHandler();
 
   // Move constructor
-  DebugHandler(
-      DebugHandler &&other
-  ) noexcept
+  DebugHandler(DebugHandler &&other) noexcept
       : debugMessenger(other.debugMessenger)
       , instance(other.instance)
   {
-    std::cout << "DebugHandler Move constructor " << std::endl;
+    LOG_DEBUG("Vulkan") << "DebugHandler Move constructor";
     other.instance       = VK_NULL_HANDLE;
     other.debugMessenger = {};
   }
   // Move assignment operator
-  DebugHandler &operator=(
-      DebugHandler &&other
-  ) noexcept
+  DebugHandler &operator=(DebugHandler &&other) noexcept
   {
     if (this != &other) {
       this->instance       = other.instance;

@@ -1,3 +1,4 @@
+#include "Logger.hpp"
 #include "ResourcesManager.hpp"
 #include <cstdint>
 #include <sstream>
@@ -8,9 +9,7 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
-WindowManager::WindowManager(
-    VkExtent2D ext
-)
+WindowManager::WindowManager(VkExtent2D ext)
     : extent(ext)
 {
   if (!glfwInit()) {
@@ -36,7 +35,7 @@ WindowManager::WindowManager(
 
 WindowManager::~WindowManager()
 {
-  std::cout << "destroying window manager" << std::endl;
+  LOG_DEBUG("Window") << "destroying window manager";
   glfwDestroyWindow(window);
   glfwTerminate();
 }
@@ -55,16 +54,12 @@ void WindowManager::framebufferResizeCallback(
   };
   wm->setFramebufferResized(true);
 
-#ifdef DEBUG_VK_ABOX
-  std::cout << "Resizing has been called \n"
-            << "\tNew Width : " << wm->getWidth() << '\n'
-            << "\tNew Height : " << wm->getHeight() << std::endl;
-#endif
+  LOG_DEBUG("Window") << "Resizing has been called\n"
+                      << "\tNew Width: " << wm->getWidth() << '\n'
+                      << "\tNew Height: " << wm->getHeight();
 }
 
-VkResult WindowManager::createSurface(
-    ResourcesManager &rm
-) const
+VkResult WindowManager::createSurface(ResourcesManager &rm) const
 {
   VkResult res = glfwCreateWindowSurface(
       rm.getInstance(),
@@ -74,7 +69,7 @@ VkResult WindowManager::createSurface(
   );
   if (res != VK_SUCCESS) {
     std::stringstream ss;
-    std::cout << "getInstance value " << rm.getInstance() << std::endl;
+    LOG_ERROR("Vulkan") << "getInstance value " << (void *)rm.getInstance();
     ss << "Failed to create Vulkan surface! res value : " << (int32_t)res
        << std::endl;
     throw std::runtime_error(ss.str().c_str());

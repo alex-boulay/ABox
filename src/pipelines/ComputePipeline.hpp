@@ -1,6 +1,7 @@
 #ifndef COMPUTE_PIPELINE_HPP
 #define COMPUTE_PIPELINE_HPP
 
+#include "Logger.hpp"
 #include "MemoryWrapper.hpp"
 #include "PipelineBase.hpp"
 #include "ShaderHandler.hpp"
@@ -18,13 +19,9 @@ class ComputePipeline : public PipelineBase {
    * @param shaders Range of shader data files (should contain one .comp shader)
    */
   template <std::ranges::range R>
-    requires std::same_as<
-        std::ranges::range_value_t<R>,
-        ShaderDataFile> || std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
-  ComputePipeline(
-      VkDevice device,
-      const R &shaders
-  )
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
+  ComputePipeline(VkDevice device, const R &shaders)
       : PipelineBase(device, shaders)
   {
     if (std::ranges::empty(shaders)) {
@@ -96,7 +93,7 @@ class ComputePipeline : public PipelineBase {
       throw std::runtime_error("Failed to create compute pipeline!");
     }
 
-    FILE_DEBUG_PRINT("ComputePipeline created successfully");
+    LOG_INFO("Pipeline") << "ComputePipeline created successfully";
     printReflectionInfo();
   }
 

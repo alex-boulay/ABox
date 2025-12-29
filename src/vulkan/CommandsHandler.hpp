@@ -7,21 +7,14 @@
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkCommandPool,
-    CommandPool,
-    vkDestroyCommandPool
-)
+DEFINE_VK_MEMORY_WRAPPER(VkCommandPool, CommandPool, vkDestroyCommandPool)
 
 // Bind Queue Roles To Shaders Management too ?
 // This enum should be in the queueManager but trough dependencies calls ends
 // here for the moment
 enum class QueueRole { Graphics, Present, Compute, Transfer };
 
-inline std::ostream &operator<<(
-    std::ostream &os,
-    QueueRole     role
-)
+inline std::ostream &operator<<(std::ostream &os, QueueRole role)
 {
   switch (role) {
     case QueueRole::Graphics: os << "Graphics"; break;
@@ -72,16 +65,12 @@ class CommandBoundElement {
       uint32_t          commandBufferIndex
   );
 
-  VkCommandBuffer getCommandBuffer(
-      uint32_t index
-  )
+  VkCommandBuffer getCommandBuffer(uint32_t index)
   {
     return commandBuffers.at(index);
   }
 
-  VkCommandBuffer *getCommandBufferPtr(
-      uint32_t index
-  )
+  VkCommandBuffer *getCommandBufferPtr(uint32_t index)
   {
     return &commandBuffers.at(index);
   }
@@ -98,11 +87,7 @@ class CommandsHandler {
           VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT
   );
 
-  CommandBoundElement &top()
-  {
-    // std::cout << "Top from CommandsHandler called " << std::endl;
-    return CBEs.back();
-  }
+  CommandBoundElement &top() { return CBEs.back(); }
 };
 
 #endif // COMMANDS_HANDLER_HPP

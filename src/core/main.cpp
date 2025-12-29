@@ -1,7 +1,6 @@
 #include "ABoxApp.hpp"
 #include "Logger.hpp"
 #include <exception>
-#include <iostream>
 
 int main()
 {

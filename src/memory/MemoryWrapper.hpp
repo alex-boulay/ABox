@@ -6,6 +6,7 @@
 #include <vulkan/vulkan_core.h>
 
 #include <iostream> // Used in MACRO so no direct call but mandatory
+#include <typeinfo> // For typeid
 
 template <typename T, typename VkD, typename VkP = std::nullptr_t>
 class MemoryWrapper {
@@ -16,22 +17,24 @@ class MemoryWrapper {
 
   void Destroy()
   {
-    LOG_DEBUG("Memory") << " ---- Destruction of Memory wrapper -- container: "
-                        << (void *)this->get();
+    if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
+      LOG_DEBUG("Memory") << " ---- Destruction of Memory wrapper ["
+                          << typeid(T).name() << " | no parent] -- container: "
+                          << (void *)this->get();
+    }
+    else {
+      LOG_DEBUG("Memory") << " ---- Destruction of Memory wrapper ["
+                          << typeid(T).name()
+                          << " | parent: " << typeid(VkP).name()
+                          << "] -- container: " << (void *)this->get()
+                          << " -- parent: " << (void *)vulkanParent;
+    }
 
     if (this->get() != VK_NULL_HANDLE) {
       if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
-
-        LOG_DEBUG("Memory")
-            << " ---- Destruction of Memory wrapper -> no parent";
-
         vulkanDestructionFunction(container, pAllocator);
       }
       else {
-
-        LOG_DEBUG("Memory")
-            << " ---- Destruction of Memory wrapper -> parent state: "
-            << (void *)vulkanParent;
         if (vulkanParent != VK_NULL_HANDLE) {
           vulkanDestructionFunction(vulkanParent, container, pAllocator);
         }
@@ -51,6 +54,18 @@ class MemoryWrapper {
       , vulkanDestructionFunction(destructionFunction)
       , pAllocator(pAllocator)
   {
+    if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
+      LOG_DEBUG("Memory") << " ++++ Construction of Memory wrapper ["
+                          << typeid(T).name() << "] (no parent) -- container: "
+                          << (void *)this->get();
+    }
+    else {
+      LOG_DEBUG("Memory") << " ++++ Construction of Memory wrapper ["
+                          << typeid(T).name()
+                          << " | parent: " << typeid(VkP).name()
+                          << "] -- container: " << (void *)this->get()
+                          << " -- parent: " << (void *)vulkanParent;
+    }
   }
 
   ~MemoryWrapper() { Destroy(); }
@@ -67,13 +82,24 @@ class MemoryWrapper {
     other.vulkanParent              = VK_NULL_HANDLE;
     other.vulkanDestructionFunction = nullptr;
     other.pAllocator                = nullptr;
-    LOG_DEBUG("Memory") << "Dangerous -> Memory Moved (reference)\n"
-                        << "previous parent value "
-                        << (void *)other.vulkanParent
-                        << " previous container value "
-                        << (void *)other.container << "\n"
-                        << "current parent value " << (void *)vulkanParent
-                        << " current container value " << (void *)container;
+
+    if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
+      LOG_DEBUG("Memory") << "Dangerous -> Memory Moved [" << typeid(T).name()
+                          << " | no parent] (move constructor)\n"
+                          << "previous container: " << (void *)other.container
+                          << "\n"
+                          << "current container: " << (void *)container;
+    }
+    else {
+      LOG_DEBUG("Memory") << "Dangerous -> Memory Moved [" << typeid(T).name()
+                          << " | parent: " << typeid(VkP).name()
+                          << "] (move constructor)\n"
+                          << "previous parent: " << (void *)other.vulkanParent
+                          << " previous container: " << (void *)other.container
+                          << "\n"
+                          << "current parent: " << (void *)vulkanParent
+                          << " current container: " << (void *)container;
+    }
   }
 
   MemoryWrapper &operator=(MemoryWrapper &&other) noexcept
@@ -90,13 +116,23 @@ class MemoryWrapper {
       other.pAllocator                = nullptr;
     }
 
-    LOG_DEBUG("Memory") << "Dangerous -> Memory Moved (assigned)"
-                        << "\nprevious parent value "
-                        << (void *)other.vulkanParent
-                        << "\nprevious container value "
-                        << (void *)other.container << "\nnew parent value "
-                        << (void *)vulkanParent << "\nnew container value "
-                        << (void *)container;
+    if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
+      LOG_DEBUG("Memory") << "Dangerous -> Memory Moved [" << typeid(T).name()
+                          << " | no parent] (move assignment)\n"
+                          << "previous container: " << (void *)other.container
+                          << "\n"
+                          << "new container: " << (void *)container;
+    }
+    else {
+      LOG_DEBUG("Memory") << "Dangerous -> Memory Moved [" << typeid(T).name()
+                          << " | parent: " << typeid(VkP).name()
+                          << "] (move assignment)\n"
+                          << "previous parent: " << (void *)other.vulkanParent
+                          << " previous container: " << (void *)other.container
+                          << "\n"
+                          << "new parent: " << (void *)vulkanParent
+                          << " new container: " << (void *)container;
+    }
     return *this;
   }
   T      get() const { return container; }

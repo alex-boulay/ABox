@@ -127,19 +127,9 @@ LogStream createLogStream(LogLevel level, const char *category);
 #define ABOX_LOG_PER_FRAME ABOX_LOG("PER_FRAME", ABox::LogLevel::DEBUG)
 #define ABOX_LOG_VERBOSE ABOX_LOG("VERBOSE", ABox::LogLevel::DEBUG)
 
-// Convenience macros with level
-#ifdef DEBUG_VK_ABOX
-  #define LOG_DEBUG(category) ABOX_LOG(category, ABox::LogLevel::DEBUG)
-  #define LOG_INFO(category) ABOX_LOG(category, ABox::LogLevel::INFO)
-#else
-  #define LOG_DEBUG(category)                                                  \
-    if (false)                                                                 \
-    ABOX_LOG(category, ABox::LogLevel::DEBUG)
-  #define LOG_INFO(category)                                                   \
-    if (false)                                                                 \
-    ABOX_LOG(category, ABox::LogLevel::INFO)
-#endif
-
+// Convenience macros with level (always compiled, filtered at runtime)
+#define LOG_DEBUG(category) ABOX_LOG(category, ABox::LogLevel::DEBUG)
+#define LOG_INFO(category) ABOX_LOG(category, ABox::LogLevel::INFO)
 #define LOG_WARN(category) ABOX_LOG(category, ABox::LogLevel::WARN)
 #define LOG_ERROR(category) ABOX_LOG(category, ABox::LogLevel::ERROR)
 

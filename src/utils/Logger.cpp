@@ -8,8 +8,10 @@ namespace ABox {
 // Global state
 static LogCallback                     g_logCallback = nullptr;
 static LogLevel                        g_minLogLevel = LogLevel::DEBUG;
-static std::unordered_set<std::string> g_enabledCategories;
-static bool g_whitelistMode = false; // false = all enabled by default
+static std::unordered_set<std::string> g_enabledCategories{"PER_FRAME"
+}; // PER_FRAME disabled by default
+static bool                            g_whitelistMode =
+    false; // false = all enabled by default (blacklist mode)
 
 // ANSI color codes for terminal output
 namespace Color {

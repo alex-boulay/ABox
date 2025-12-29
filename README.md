@@ -13,17 +13,24 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 #### Development
 
-- Add clang-format file to avoid code moving around when commiting from different IDE.
 - Debugging Levels
   - Global one
   - Per Frame activate/deactivate
-- Compute Pipelines
-  - Deploy
-  - Make them able to leave alongside GraphicsPipeline
-  - QueueFamilies optimisations (maxload)
+- PipelineManager improvements
+  - Add pipeline naming/retrieval system validation
+  - Support for multiple graphics pipelines (materials, post-processing)
+- SPIRV-Reflect integration
+  - Automatic descriptor set layout generation (partially done in PipelineBase)
+  - Push constant reflection
+  - Validation of shader interface compatibility
+- QueueFamilies optimisations (maxload)
 
 #### Platform
 
+- Logging system
+  - Replace scattered std::cout with unified logging interface
+  - Add log levels (DEBUG, INFO, WARN, ERROR)
+  - Optional callback system for external monitoring
 - load tracy :
   - mem tracking
   - performance
@@ -57,3 +64,11 @@ glslang-dev glslang-tools spirv-tools GLFW
 - Queues
 - ResourcesManager
   - WaitIdle on all devices
+- Add clang-format file to avoid code moving around when commiting from different IDE
+- Compute Pipelines
+  - Deploy ComputePipeline class
+  - Make them able to coexist alongside GraphicsPipeline via PipelineManager
+- PipelineManager
+  - Unified management of Graphics, Compute, and RayTracing pipelines
+  - Variant-based heterogeneous storage without heap allocation
+  - C++20 ranges support for shader loading

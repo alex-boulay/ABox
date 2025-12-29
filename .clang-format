@@ -19,7 +19,6 @@ IndentPPDirectives: BeforeHash
 IndentCaseLabels: true
 FixNamespaceComments: true
 BreakInheritanceList: BeforeComma
-BreakFunctionDefinitionParameters: true
 BreakConstructorInitializers: BeforeComma
 BreakBeforeTernaryOperators: true
 BreakBeforeBraces: Stroustrup
@@ -31,5 +30,4 @@ PackConstructorInitializers: BinPack
 AllowShortFunctionsOnASingleLine: All
 AllowAllArgumentsOnNextLine: false
 AllowShortCaseLabelsOnASingleLine: true
-AllowShortCompoundRequirementOnASingleLine: true
 AllowShortEnumsOnASingleLine: true

@@ -2,24 +2,9 @@
 AccessModifierOffset: 1
 AlignAfterOpenBracket: BlockIndent
 AlignArrayOfStructures: Right
-AlignConsecutiveAssignments:
-  Enabled: true
-  AcrossEmptyLines: false
-  AcrossComments: true
-  AlignCompound: true
-  PadOperators: true
-AlignConsecutiveBitFields:
-  Enabled: true
-  AcrossEmptyLines: true
-  AcrossComments: true
-  AlignCompound: true
-  PadOperators: true
-AlignConsecutiveDeclarations:
-  Enabled: true
-  AcrossEmptyLines: false
-  AcrossComments: true
-  AlignCompound: true
-  PadOperators: true
+AlignConsecutiveAssignments: Consecutive
+AlignConsecutiveBitFields: Consecutive
+AlignConsecutiveDeclarations: Consecutive
 UseTab: Never
 Standard: Latest
 NamespaceIndentation: Inner

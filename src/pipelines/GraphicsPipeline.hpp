@@ -2,6 +2,7 @@
 #define GRAPHICS_PIPELINE_HPP
 
 #include "MemoryWrapper.hpp"
+#include "PipelineBase.hpp"
 #include "SwapchainManager.hpp"
 #include <array>
 #include <vulkan/vulkan.h>
@@ -11,26 +12,16 @@ static const std::array<VkDynamicState, 2> dynamicStates = {
     VK_DYNAMIC_STATE_VIEWPORT,
     VK_DYNAMIC_STATE_SCISSOR
 };
+
+// RenderPass is Graphics-specific, not in PipelineBase
 DEFINE_VK_MEMORY_WRAPPER(
     VkRenderPass,
     RenderPass,
     vkDestroyRenderPass
 )
-DEFINE_VK_MEMORY_WRAPPER(
-    VkPipelineLayout,
-    PipelineLayout,
-    vkDestroyPipelineLayout
-)
-DEFINE_VK_MEMORY_WRAPPER(
-    VkPipeline,
-    Pipeline,
-    vkDestroyPipeline
-)
 
-class GraphicsPipeline {
-  PipelineWrapper       graphicsPipeline; // main object
-  RenderPassWrapper     renderPass;
-  PipelineLayoutWrapper pipelineLayout;
+class GraphicsPipeline : public PipelineBase {
+  RenderPassWrapper renderPass;
 
   VkViewport viewport;
   VkRect2D   scissor;
@@ -38,35 +29,198 @@ class GraphicsPipeline {
   VkResult CreateRenderPass(const SwapchainManager &sm, VkDevice device);
 
    public:
-  DELETE_MOVE(
-      GraphicsPipeline
-  )
+  DELETE_MOVE(GraphicsPipeline)
+  DELETE_COPY(GraphicsPipeline)
 
-  DELETE_COPY(
-      GraphicsPipeline
-  )
-
+  /**
+   * @brief Construct a graphics pipeline
+   * @param device Logical device handle
+   * @param swapchain Swapchain manager for render pass configuration
+   * @param shaders Range of shader data files (accepts any container)
+   */
+  template <std::ranges::input_range R>
+    requires std::same_as<std::remove_cv_t<std::ranges::range_value_t<R>>, ShaderDataFile>
   GraphicsPipeline(
-      const SwapchainManager                      &sm,
-      VkDevice                                     device,
-      std::vector<VkPipelineShaderStageCreateInfo> shaderStages
-  );
+      VkDevice                device,
+      const SwapchainManager &swapchain,
+      const R                &shaders
+  )
+      : PipelineBase(device, shaders)
+      , renderPass(device)
+  {
+    std::cout << "Device value :" << (void *)device << std::endl;
+    VkResult res = CreateRenderPass(swapchain, device);
+
+    // Create shader modules and stages
+    std::vector<ShaderModuleWrapper>             shaderModules;
+    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    shaderModules.reserve(std::ranges::size(shaders));
+    shaderStages.reserve(std::ranges::size(shaders));
+
+    for (const auto &shader : shaders) {
+      VkShaderModuleCreateInfo moduleInfo = shader;
+      shaderModules.emplace_back(device);
+
+      VkResult result = vkCreateShaderModule(
+          device,
+          &moduleInfo,
+          nullptr,
+          shaderModules.back().ptr()
+      );
+
+      if (result != VK_SUCCESS) {
+        throw std::runtime_error("Failed to create shader module for graphics pipeline");
+      }
+
+      shaderStages.push_back(shader.getPSSCI(shaderModules.back()));
+    }
+
+    updateExtent(swapchain.getExtent());
+
+    VkPipelineDynamicStateCreateInfo dynamicState{
+        .sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO,
+        .pNext             = nullptr,
+        .flags             = 0u,
+        .dynamicStateCount = static_cast<uint32_t>(dynamicStates.size()),
+        .pDynamicStates    = dynamicStates.data()
+    };
+
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u,
+        .vertexBindingDescriptionCount   = 0u,
+        .pVertexBindingDescriptions      = nullptr,
+        .vertexAttributeDescriptionCount = 0u,
+        .pVertexAttributeDescriptions    = nullptr,
+    };
+
+    VkPipelineInputAssemblyStateCreateInfo inputAssembly{
+        .sType    = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
+        .pNext    = nullptr,
+        .flags    = 0u,
+        .topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
+        .primitiveRestartEnable = VK_FALSE
+    };
+
+    VkPipelineViewportStateCreateInfo viewportState{
+        .sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
+        .pNext         = nullptr,
+        .flags         = 0u,
+        .viewportCount = 1u,
+        .pViewports    = &viewport,
+        .scissorCount  = 1u,
+        .pScissors     = &scissor
+    };
+
+    VkPipelineRasterizationStateCreateInfo rasterizer{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u,
+        .depthClampEnable        = VK_FALSE,
+        .rasterizerDiscardEnable = VK_FALSE,
+        .polygonMode             = VK_POLYGON_MODE_FILL,
+        .cullMode                = 0u,
+        .frontFace               = VK_FRONT_FACE_COUNTER_CLOCKWISE,
+        .depthBiasEnable         = VK_FALSE,
+        .depthBiasConstantFactor = 0.0f,
+        .depthBiasClamp          = 0.0f,
+        .depthBiasSlopeFactor    = 0.0f,
+        .lineWidth               = 1.0f
+    };
+
+    VkPipelineMultisampleStateCreateInfo multisampling{
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,
+        .pNext = nullptr,
+        .flags = 0u,
+        .rasterizationSamples  = VK_SAMPLE_COUNT_1_BIT,
+        .sampleShadingEnable   = VK_FALSE,
+        .minSampleShading      = 1.0f,
+        .pSampleMask           = nullptr,
+        .alphaToCoverageEnable = VK_FALSE,
+        .alphaToOneEnable      = VK_FALSE
+    };
+
+    VkPipelineColorBlendAttachmentState colorBlendAttachment{
+        .blendEnable         = VK_FALSE,
+        .srcColorBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstColorBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .colorBlendOp        = VK_BLEND_OP_ADD,
+        .srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE,
+        .dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO,
+        .alphaBlendOp        = VK_BLEND_OP_ADD,
+        .colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                          VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
+
+    VkPipelineColorBlendStateCreateInfo colorBlending{
+        .sType         = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO,
+        .pNext         = nullptr,
+        .flags         = 0u,
+        .logicOpEnable = VK_FALSE,
+        .logicOp       = VK_LOGIC_OP_COPY,
+        .attachmentCount = 1u,
+        .pAttachments    = &colorBlendAttachment,
+        .blendConstants  = {0.0f, 0.0f, 0.0f, 0.0f}
+    };
+
+    std::cout << "Shader Stages loading into Pipeline Info " << std::endl;
+    for (const VkPipelineShaderStageCreateInfo &a : shaderStages) {
+      std::cout << "\tStage : " << a.stage << " - entry point : \"" << std::string(a.pName)
+                << "\"" << std::endl;
+    }
+
+    VkGraphicsPipelineCreateInfo pipelineInfo{
+        .sType      = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
+        .pNext      = nullptr,
+        .flags      = 0u,
+        .stageCount = static_cast<uint32_t>(shaderStages.size()),
+        .pStages    = shaderStages.data(),
+        .pVertexInputState   = &vertexInputInfo,
+        .pInputAssemblyState = &inputAssembly,
+        .pTessellationState  = nullptr,
+        .pViewportState      = &viewportState,
+        .pRasterizationState = &rasterizer,
+        .pMultisampleState   = &multisampling,
+        .pDepthStencilState  = nullptr,
+        .pColorBlendState    = &colorBlending,
+        .pDynamicState       = &dynamicState,
+        .layout              = pipelineLayout,
+        .renderPass          = renderPass,
+        .subpass             = 0,
+        .basePipelineHandle  = VK_NULL_HANDLE,
+        .basePipelineIndex   = -1,
+    };
+
+    res = vkCreateGraphicsPipelines(
+        device,
+        VK_NULL_HANDLE,
+        1,
+        &pipelineInfo,
+        nullptr,
+        pipeline.ptr()
+    );
+
+    if (res != VK_SUCCESS) {
+      std::stringstream ss;
+      ss << "Failed to create the graphics pipeline !\n\tError value : " << res << std::endl;
+      throw std::runtime_error(ss.str().c_str());
+    }
+
+    FILE_DEBUG_PRINT("GraphicsPipeline created successfully");
+    printReflectionInfo();
+  }
 
   ~GraphicsPipeline() = default;
 
-  [[nodiscard]] VkPipeline getPipeline() const noexcept
+  [[nodiscard]] VkPipelineBindPoint getBindPoint() const noexcept override
   {
-    return graphicsPipeline;
+    return VK_PIPELINE_BIND_POINT_GRAPHICS;
   }
 
   [[nodiscard]] VkRenderPass getRenderPass() const noexcept
   {
     return renderPass;
-  }
-
-  [[nodiscard]] VkPipelineLayout getPipelineLayout() const noexcept
-  {
-    return pipelineLayout;
   }
 
   [[nodiscard]] VkViewport getViewport() const noexcept { return viewport; }

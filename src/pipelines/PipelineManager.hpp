@@ -21,12 +21,9 @@ class PipelineManager {
     requires(std::derived_from<Ts, PipelineBase> && ...)
   using PipelineVariant = std::variant<Ts...>;
 
-  using AllPipelines = PipelineVariant<
-      GraphicsPipeline,
-      ComputePipeline,
-      RayTracingPipeline>;
+  using AllPipelines =
+      PipelineVariant<GraphicsPipeline, ComputePipeline, RayTracingPipeline>;
 
-  VkDevice                                device;
   std::deque<AllPipelines>                pipelines;
   std::unordered_map<std::string, size_t> pipelineIndices;
 
@@ -35,61 +32,144 @@ class PipelineManager {
   size_t mainComputePipelineIndex  = static_cast<size_t>(-1);
 
    public:
-  PipelineManager(
-      VkDevice device
-  );
+  PipelineManager();
   ~PipelineManager() = default;
 
-  DELETE_COPY(PipelineManager)
-  DELETE_MOVE(PipelineManager)
+  DELETE_COPY(
+      PipelineManager
+  )
+  DELETE_MOVE(
+      PipelineManager
+  )
 
   /**
    * @brief Create a graphics pipeline
    * @param name Unique identifier for the pipeline
    * @param swapchain Swapchain manager for render pass configuration
-   * @param shaders Vector of shader data files
+   * @param shaders Range of shader data files (accepts any container: list,
+   * vector, etc.)
    * @param setAsMain If true, sets this as the main graphics pipeline
    * @return Reference to the created pipeline
    */
+  template <std::ranges::range R>
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
   GraphicsPipeline &createGraphicsPipeline(
-      const std::string                         &name,
-      const SwapchainManager                    &swapchain,
-      const std::vector<const ShaderDataFile *> &shaders,
-      bool                                       setAsMain = false
-  );
+      VkDevice                device,
+      const std::string      &name,
+      const SwapchainManager &swapchain,
+      const R                &shaders,
+      bool                    setAsMain = false
+  )
+  {
+    if (pipelineIndices.contains(name)) {
+      FILE_DEBUG_PRINT(
+          "Warning: Pipeline '%s' already exists, overwriting",
+          name.c_str()
+      );
+    }
+
+    size_t index          = pipelines.size();
+    pipelineIndices[name] = index;
+
+    // GraphicsPipeline constructor handles shader module creation internally
+    auto &variant = pipelines.emplace_back(
+        std::in_place_type<GraphicsPipeline>,
+        device,
+        swapchain,
+        shaders
+    );
+
+    if (setAsMain) {
+      mainGraphicsPipelineIndex = index;
+      FILE_DEBUG_PRINT("Set '%s' as main graphics pipeline", name.c_str());
+    }
+
+    FILE_DEBUG_PRINT("Created graphics pipeline: %s", name.c_str());
+    return std::get<GraphicsPipeline>(variant);
+  }
 
   /**
    * @brief Create a compute pipeline
    * @param name Unique identifier for the pipeline
-   * @param shaders Vector of shader data files
+   * @param shaders Range of shader data files (accepts any container)
    * @param setAsMain If true, sets this as the main compute pipeline
    * @return Reference to the created pipeline
    */
+  template <std::ranges::range R>
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
   ComputePipeline &createComputePipeline(
-      const std::string                         &name,
-      const std::vector<const ShaderDataFile *> &shaders,
-      bool                                       setAsMain = false
-  );
+      VkDevice           device,
+      const std::string &name,
+      const R           &shaders,
+      bool               setAsMain = false
+  )
+  {
+    if (pipelineIndices.contains(name)) {
+      FILE_DEBUG_PRINT(
+          "Warning: Pipeline '%s' already exists, overwriting",
+          name.c_str()
+      );
+    }
+
+    size_t index          = pipelines.size();
+    pipelineIndices[name] = index;
+    auto &variant         = pipelines.emplace_back(
+        std::in_place_type<ComputePipeline>,
+        device,
+        shaders
+    );
+
+    if (setAsMain) {
+      mainComputePipelineIndex = index;
+      FILE_DEBUG_PRINT("Set '%s' as main compute pipeline", name.c_str());
+    }
+
+    FILE_DEBUG_PRINT("Created compute pipeline: %s", name.c_str());
+    return std::get<ComputePipeline>(variant);
+  }
 
   /**
    * @brief Create a ray tracing pipeline
    * @param name Unique identifier for the pipeline
-   * @param shaders Vector of shader data files (rgen, rchit, rmiss, etc.)
+   * @param shaders Range of shader data files (rgen, rchit, rmiss, etc.)
    * @return Reference to the created pipeline
    */
+  template <std::ranges::range R>
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
   RayTracingPipeline &createRayTracingPipeline(
-      const std::string                         &name,
-      const std::vector<const ShaderDataFile *> &shaders
-  );
+      VkDevice           device,
+      const std::string &name,
+      const R           &shaders
+  )
+  {
+    if (pipelineIndices.contains(name)) {
+      FILE_DEBUG_PRINT(
+          "Warning: Pipeline '%s' already exists, overwriting",
+          name.c_str()
+      );
+    }
+
+    size_t index          = pipelines.size();
+    pipelineIndices[name] = index;
+    auto &variant         = pipelines.emplace_back(
+        std::in_place_type<RayTracingPipeline>,
+        device,
+        shaders
+    );
+
+    FILE_DEBUG_PRINT("Created ray tracing pipeline: %s", name.c_str());
+    return std::get<RayTracingPipeline>(variant);
+  }
 
   /**
    * @brief Get a pipeline by name (returns base type pointer)
    * @param name Pipeline identifier
    * @return Pointer to pipeline base, or nullptr if not found
    */
-  PipelineBase *getPipeline(
-      const std::string &name
-  );
+  PipelineBase *getPipeline(const std::string &name);
 
   /**
    * @brief Get a typed pipeline by name
@@ -103,8 +183,9 @@ class PipelineManager {
   )
   {
     auto it = pipelineIndices.find(name);
-    if (it == pipelineIndices.end())
+    if (it == pipelineIndices.end()) {
       return nullptr;
+    }
 
     return std::get_if<T>(&pipelines[it->second]);
   }
@@ -126,10 +207,7 @@ class PipelineManager {
    * @param name Pipeline identifier
    * @param commandBuffer Command buffer to bind to
    */
-  void bindPipeline(
-      const std::string &name,
-      VkCommandBuffer    commandBuffer
-  );
+  void bindPipeline(const std::string &name, VkCommandBuffer commandBuffer);
 
   /**
    * @brief Get total number of pipelines

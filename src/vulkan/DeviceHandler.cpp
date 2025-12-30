@@ -11,7 +11,6 @@
 #include <map>
 #include <ostream>
 #include <stdexcept>
-#include <tuple>
 #include <utility>
 #include <vulkan/vulkan_core.h>
 
@@ -142,7 +141,7 @@ uint32_t DeviceHandler::listQueueFamilies()
       const auto &qf = queueFamilies.at(qi);
       LOG_DEBUG("Device") << "  QueueFamily #" << qi
                           << " - Count: " << qf.queueCount
-                          << " - Flags: " << qf.queueFlags;
+                          << vkQueueFlagSS(qf.queueFlags).str();
       LOG_DEBUG("Device") << "  Is valid QueueFamily: " << std::boolalpha
                           << bool(isValidQueueFamily(qf));
     }
@@ -516,22 +515,29 @@ std::stringstream vkQueueFlagSS(const VkQueueFlags &flag)
   for (uint32_t i = 0; i < f_size; i++) {
     ss << bits[f_size - 1 - i] << (i % CHAR_BIT == (CHAR_BIT - 1) ? " " : "");
   }
-  ss << std::boolalpha
-     << "\nVK_QUEUE_GRAPHICS_BIT - 0x1 : " << bool(flag & VK_QUEUE_GRAPHICS_BIT)
-     << "\nVK_QUEUE_COMPUTE_BIT - 0x2 : " << bool(flag & VK_QUEUE_COMPUTE_BIT)
-     << "\nVK_QUEUE_TRANSFER_BIT - 0x4 : " << bool(flag & VK_QUEUE_TRANSFER_BIT)
-     << "\nVK_QUEUE_SPARSE_BINDING_BIT - 0x8: "
-     << bool(flag & VK_QUEUE_SPARSE_BINDING_BIT)
-     << "\nVK_QUEUE_PROTECTED_BIT - 0x10: "
-     << bool(flag & VK_QUEUE_PROTECTED_BIT)
-     << "\nVK_QUEUE_VIDEO_DECODE_BIT_KHR - 0x20: "
-     << bool(flag & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
-     << "\nVK_QUEUE_VIDEO_ENCODE_BIT_KHR - 0x40: "
-     << bool(flag & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
-     << "\nVK_QUEUE_OPTICAL_FLOW_BIT_NV - 0x100: "
-     << bool(flag & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
-     << "\nVK_QUEUE_FLAG_BITS_MAX_ENUM - 0x7FFFFFFF: "
-     << bool(flag & VK_QUEUE_FLAG_BITS_MAX_ENUM);
+  ss << (bool(flag & VK_QUEUE_GRAPHICS_BIT) ? "\nVK_QUEUE_GRAPHICS_BIT - 0x1"
+                                            : "")
+     << (bool(flag & VK_QUEUE_COMPUTE_BIT) ? "\nVK_QUEUE_COMPUTE_BIT - 0x2" : ""
+        )
+     << (bool(flag & VK_QUEUE_TRANSFER_BIT) ? "\nVK_QUEUE_TRANSFER_BIT - 0x4"
+                                            : "")
+     << (bool(flag & VK_QUEUE_SPARSE_BINDING_BIT)
+             ? "\nVK_QUEUE_SPARSE_BINDING_BIT - 0x8"
+             : "")
+     << (bool(flag & VK_QUEUE_PROTECTED_BIT) ? "\nVK_QUEUE_PROTECTED_BIT - 0x10"
+                                             : "")
+     << (bool(flag & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+             ? "\nVK_QUEUE_VIDEO_DECODE_BIT_KHR - 0x20"
+             : "")
+     << (bool(flag & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+             ? "\nVK_QUEUE_VIDEO_ENCODE_BIT_KHR - 0x40"
+             : "")
+     << (bool(flag & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+             ? "\nVK_QUEUE_OPTICAL_FLOW_BIT_NV - 0x100"
+             : "")
+     << (static_cast<uint32_t>(flag) == VK_QUEUE_FLAG_BITS_MAX_ENUM
+             ? "\nVK_QUEUE_FLAG_BITS_MAX_ENUM - 0x7FFFFFFF"
+             : "");
   return ss;
 }
 

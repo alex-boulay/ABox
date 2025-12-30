@@ -2,7 +2,6 @@
 #define DEVICE_HANDLER_HPP
 
 #include "CommandsHandler.hpp"
-#include "GraphicsPipeline.hpp"
 #include "Logger.hpp"
 #include "PipelineManager.hpp"
 #include "PreProcUtils.hpp"

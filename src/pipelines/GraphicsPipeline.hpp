@@ -47,6 +47,9 @@ class GraphicsPipeline : public PipelineBase {
       : PipelineBase(device, shaders)
       , renderPass(device)
   {
+    // Validate shader interfaces for graphics pipeline
+    validateGraphicsShaderInterfaces(shaders);
+
     LOG_DEBUG("Pipeline") << "Device value: " << (void *)device;
     VkResult res = CreateRenderPass(swapchain, device);
 

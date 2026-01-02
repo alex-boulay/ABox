@@ -37,8 +37,8 @@ class DeviceBoundElements {
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
-  std::optional<SwapchainManager> swapchain;
   PipelineManager                 pipelineManager;
+  std::optional<SwapchainManager> swapchain;
 
   DeviceBoundElements(
       VkDevice           logDevice,

@@ -41,4 +41,4 @@ ABoxApp::ABoxApp()
   LOG_INFO("App") << "\n -- Frame Buffers Created --";
 }
 
-ABoxApp::~ABoxApp() { glfwTerminate(); };
+ABoxApp::~ABoxApp() { rs.waitIdle(); };

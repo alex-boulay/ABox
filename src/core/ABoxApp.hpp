@@ -21,8 +21,8 @@ class ABoxApp {
   };
 
   WindowManager    wm{baseWindowDimention};
-  ResourcesManager rs;
   ShaderHandler    shaderHandler{SHADER_DIR};
+  ResourcesManager rs;
 
    public:
   ABoxApp();

@@ -30,11 +30,10 @@ DEFINE_VK_MEMORY_WRAPPER(VkPipeline, Pipeline, vkDestroyPipeline)
  */
 class PipelineBase {
    protected:
-  PipelineWrapper       pipeline;
-  PipelineLayoutWrapper pipelineLayout;
-
-  std::vector<DescriptorSetLayoutWrapper> descriptorSetLayouts;
   std::vector<VkPushConstantRange>        pushConstantRanges;
+  std::vector<DescriptorSetLayoutWrapper> descriptorSetLayouts;
+  PipelineLayoutWrapper                   pipelineLayout;
+  PipelineWrapper                         pipeline;
 
   /**
    * @brief Build descriptor set layouts and push constant ranges from shader

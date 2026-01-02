@@ -26,13 +26,19 @@ glslang-dev glslang-tools spirv-tools GLFW
 - VMA ?
 - Custom Memmory allocators overloaded with tracy for CPU too ?
 - Make a config file ? - Handle external compilation ?
-- inlude ImGui loading interface ?
 - Make everything pickable from a menu ? then save it into a config xml/json ?
+
+#### Yes
+
+#### No
+
+- inlude ImGui loading interface ? - No just a lib with execution possibilities
 
 ### Done
 
 - Automanage Malloc/Free Vulkan Structure dependencies
-- tracy part of the makefile (might have to change the download to local archive for stability and offline purposes)
+- tracy part of the makefile (might have to change the download to local
+archive for stability and offline purposes)
 - VkShader Loading and binding
 - ResourcesManager Instance Loading
 - Device Manager
@@ -50,7 +56,8 @@ glslang-dev glslang-tools spirv-tools GLFW
 - Queues
 - ResourcesManager
   - WaitIdle on all devices
-- Add clang-format file to avoid code moving around when commiting from different IDE
+- Add clang-format file to avoid code moving around when commiting
+from different IDE
 - Compute Pipelines
   - Deploy ComputePipeline class
   - Make them able to coexist alongside GraphicsPipeline via PipelineManager
@@ -80,7 +87,8 @@ glslang-dev glslang-tools spirv-tools GLFW
   - Add log levels (DEBUG, INFO, WARN, ERROR)
   - Optional callback system for external monitoring
 - Error handling improvements
-  - Add VkResult checking to CommandsHandler Vulkan calls (vkCreateCommandPool, vkAllocateCommandBuffers, vkBeginCommandBuffer)
+  - Add VkResult checking to CommandsHandler Vulkan calls (vkCreateCommandPool,
+  vkAllocateCommandBuffers, vkBeginCommandBuffer)
   - Verify swapchain recreation behavior without pipeline
 - Dead code removal
   - Remove unused DeviceHandler::loadShader() method

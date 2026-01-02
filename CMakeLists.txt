@@ -19,7 +19,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
 
-set(SHADER_DIR "${CMAKE_SOURCE_DIR}/shaders")
+set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
 add_compile_definitions(SHADER_DIR="${SHADER_DIR}")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
@@ -82,10 +82,10 @@ target_compile_definitions(
 
 target_include_directories(
   ${LIBRARY_NAME}
-  PRIVATE ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/src/graphics
-          ${CMAKE_SOURCE_DIR}/src/vulkan ${CMAKE_SOURCE_DIR}/src/window
-          ${CMAKE_SOURCE_DIR}/src/memory ${CMAKE_SOURCE_DIR}/src/utils
-          ${CMAKE_SOURCE_DIR}/src/pipelines)
+  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/core ${CMAKE_CURRENT_SOURCE_DIR}/src/graphics
+          ${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan ${CMAKE_CURRENT_SOURCE_DIR}/src/window
+          ${CMAKE_CURRENT_SOURCE_DIR}/src/memory ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+          ${CMAKE_CURRENT_SOURCE_DIR}/src/pipelines)
 
 target_link_libraries(
   ${LIBRARY_NAME}
@@ -111,10 +111,10 @@ if(BUILD_APP)
 
   target_include_directories(
     ${EXECUTABLE_NAME}
-    PRIVATE ${CMAKE_SOURCE_DIR}/src/core ${CMAKE_SOURCE_DIR}/src/graphics
-            ${CMAKE_SOURCE_DIR}/src/vulkan ${CMAKE_SOURCE_DIR}/src/window
-            ${CMAKE_SOURCE_DIR}/src/memory ${CMAKE_SOURCE_DIR}/src/utils
-            ${CMAKE_SOURCE_DIR}/src/pipelines
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/core ${CMAKE_CURRENT_SOURCE_DIR}/src/graphics
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan ${CMAKE_CURRENT_SOURCE_DIR}/src/window
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/memory ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/pipelines
   )
   target_compile_definitions(
     ${EXECUTABLE_NAME}
@@ -132,7 +132,7 @@ if(BUILD_APP)
   TARGET ${EXECUTABLE_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           "${CMAKE_BINARY_DIR}/compile_commands.json"
-          "${CMAKE_SOURCE_DIR}/compile_commands.json"
+          "${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json"
   )
 else()
   message(STATUS "Building in LIBRARY-ONLY mode...")
@@ -140,7 +140,7 @@ else()
     TARGET ${LIBRARY_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_BINARY_DIR}/compile_commands.json"
-            "${CMAKE_SOURCE_DIR}/compile_commands.json"
+            "${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json"
     COMMENT "Copying compilation database to source root for LSP support"
   )
 endif()

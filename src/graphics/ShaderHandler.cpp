@@ -85,7 +85,6 @@ struct ExtensionFileResult {
 }
 }; // namespace
 //--------------- ShaderHandler -----------------
-
 [[nodiscard]] VkFileResult
     ShaderHandler::loadShaderDataFile(const std::filesystem::path &filePath)
 {

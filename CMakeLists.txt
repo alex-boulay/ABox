@@ -19,8 +19,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH /usr/local ${CMAKE_PREFIX_PATH})
 
-set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
-add_compile_definitions(SHADER_DIR="${SHADER_DIR}")
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
 
@@ -61,7 +59,7 @@ find_package(SPIRV-Reflect REQUIRED)
 file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 file(GLOB_RECURSE ALL_HEADERS CONFIGURE_DEPENDS src/*.hpp)
 
-set(EXCLUDE_NAMES "main.cpp" "AboxApp.cpp" "AboxApp.hpp")
+set(EXCLUDE_NAMES "main.cpp" "ABoxApp.cpp" "ABoxApp.hpp")
 
 foreach(FILE_PATH ${ALL_SOURCES} ${ALL_HEADERS})
   get_filename_component(FILE_NAME ${FILE_PATH} NAME)
@@ -107,6 +105,8 @@ target_link_libraries(
 if(BUILD_APP)
   message(STATUS "Building in EXE mode...")
 
+  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
+
   add_executable(${EXECUTABLE_NAME} ${APP_FILES})
 
   target_include_directories(
@@ -119,6 +119,7 @@ if(BUILD_APP)
   target_compile_definitions(
     ${EXECUTABLE_NAME}
     PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H
+    PRIVATE SHADER_DIR="${SHADER_DIR}"
   )
   target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})
 
@@ -136,6 +137,15 @@ if(BUILD_APP)
   )
 else()
   message(STATUS "Building in LIBRARY-ONLY mode...")
+
+  install(TARGETS ${LIBRARY_NAME}
+          LIBRARY DESTINATION lib
+          ARCHIVE DESTINATION lib)
+
+  install(DIRECTORY src/
+          DESTINATION include/ABox
+          FILES_MATCHING PATTERN "*.hpp")
+
   add_custom_command(
     TARGET ${LIBRARY_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different

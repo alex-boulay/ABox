@@ -240,9 +240,10 @@ class ShaderHandler {
 
    public:
   ShaderHandler()
-      : ShaderHandler(SHADER_DIR)
+      : ShaderHandler({})
   {
   }
+
   ShaderHandler(std::filesystem::path folder)
       : ShaderHandler({folder})
   {

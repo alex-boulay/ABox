@@ -59,6 +59,14 @@ class PipelineManager {
       bool                    setAsMain = false
   )
   {
+    if (std::ranges::empty(shaders)) {
+      LOG_ERROR("Pipeline") << "Cannot create graphics pipeline '" << name
+                            << "': no shaders provided";
+      throw std::runtime_error(
+          "Cannot create graphics pipeline with empty shader list"
+      );
+    }
+
     if (pipelineIndices.contains(name)) {
       LOG_WARN("Pipeline") << "Pipeline '" << name
                            << "' already exists, overwriting";
@@ -101,6 +109,14 @@ class PipelineManager {
       bool               setAsMain = false
   )
   {
+    if (std::ranges::empty(shaders)) {
+      LOG_ERROR("Pipeline") << "Cannot create compute pipeline '" << name
+                            << "': no shaders provided";
+      throw std::runtime_error(
+          "Cannot create compute pipeline with empty shader list"
+      );
+    }
+
     if (pipelineIndices.contains(name)) {
       LOG_WARN("Pipeline") << "Pipeline '" << name
                            << "' already exists, overwriting";
@@ -138,6 +154,14 @@ class PipelineManager {
       const R           &shaders
   )
   {
+    if (std::ranges::empty(shaders)) {
+      LOG_ERROR("Pipeline") << "Cannot create ray tracing pipeline '" << name
+                            << "': no shaders provided";
+      throw std::runtime_error(
+          "Cannot create ray tracing pipeline with empty shader list"
+      );
+    }
+
     if (pipelineIndices.contains(name)) {
       LOG_WARN("Pipeline") << "Pipeline '" << name
                            << "' already exists, overwriting";

@@ -50,6 +50,35 @@ class RayTracingPipeline : public PipelineBase {
   std::vector<VkRayTracingShaderGroupCreateInfoKHR> shaderGroups;
 
   /**
+   * @brief Validate that required shader stages are present for ray tracing
+   * pipeline
+   * @param shaders Range of shader data files
+   * @throws std::runtime_error if required stages are missing
+   */
+  template <std::ranges::range R>
+    requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
+             std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
+  static void validateRayTracingShaderStages(const R &shaders)
+  {
+    bool hasRayGen = false;
+
+    for (const auto &shader : shaders) {
+      const auto           &reflectModule = shader.getReflectModule();
+      VkShaderStageFlagBits stage =
+          static_cast<VkShaderStageFlagBits>(reflectModule.shader_stage);
+      if (stage == VK_SHADER_STAGE_RAYGEN_BIT_KHR) {
+        hasRayGen = true;
+        break;
+      }
+    }
+
+    if (!hasRayGen) {
+      throw std::runtime_error("RayTracingPipeline requires at least one ray "
+                               "generation shader (.rgen)");
+    }
+  }
+
+  /**
    * @brief Build shader groups from shader stages
    * Groups shaders into ray gen, miss, hit groups, etc.
    */
@@ -117,6 +146,8 @@ class RayTracingPipeline : public PipelineBase {
   {
     LOG_DEBUG("Pipeline") << "RayTracingPipeline construction started with "
                           << std::ranges::size(shaders) << " shaders";
+
+    validateRayTracingShaderStages(shaders);
 
     // TODO: Check for ray tracing extension support
     // VkPhysicalDeviceRayTracingPipelinePropertiesKHR

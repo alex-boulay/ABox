@@ -2,10 +2,10 @@
 #define GRAPHICS_PIPELINE_HPP
 
 #include "Logger.hpp"
-#include "MemoryWrapper.hpp"
 #include "PipelineBase.hpp"
 #include "SwapchainManager.hpp"
 #include <array>
+#include <graphics/RenderPassManager.hpp>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 
@@ -15,15 +15,11 @@ static const std::array<VkDynamicState, 2> dynamicStates = {
 };
 
 // RenderPass is Graphics-specific, not in PipelineBase
-DEFINE_VK_MEMORY_WRAPPER(VkRenderPass, RenderPass, vkDestroyRenderPass)
 
 class GraphicsPipeline : public PipelineBase {
-  RenderPassWrapper renderPass;
 
   VkViewport viewport;
   VkRect2D   scissor;
-
-  VkResult CreateRenderPass(const SwapchainManager &sm, VkDevice device);
 
   /**
    * @brief Validate that required shader stages are present for graphics
@@ -286,22 +282,20 @@ class GraphicsPipeline : public PipelineBase {
    * @param shaders Range of shader data files (accepts any container)
    */
   template <std::ranges::input_range R>
-    requires std::same_as<
-                 std::remove_cv_t<std::ranges::range_value_t<R>>,
-                 ShaderDataFile>
-  GraphicsPipeline(
-      VkDevice                device,
-      const SwapchainManager &swapchain,
-      const R                &shaders
-  )
+    requires std::
+        same_as<std::remove_cv_t<std::ranges::range_value_t<R>>, ShaderDataFile>
+      GraphicsPipeline(
+          VkDevice                device,
+          const SwapchainManager &swapchain,
+          const R                &shaders,
+          VkRenderPass            renderPass
+      )
       : PipelineBase(device, shaders)
-      , renderPass(device)
   {
     validateGraphicsShaderStages(shaders);
     validateGraphicsShaderInterfaces(shaders);
 
     LOG_DEBUG("Pipeline") << "Device value: " << (void *)device;
-    VkResult res = CreateRenderPass(swapchain, device);
 
     // Create shader modules and stages
     std::vector<ShaderModuleWrapper>             shaderModules;
@@ -446,7 +440,7 @@ class GraphicsPipeline : public PipelineBase {
         .basePipelineIndex   = -1,
     };
 
-    res = vkCreateGraphicsPipelines(
+    VkResult res = vkCreateGraphicsPipelines(
         device,
         VK_NULL_HANDLE,
         1,
@@ -471,11 +465,6 @@ class GraphicsPipeline : public PipelineBase {
   [[nodiscard]] VkPipelineBindPoint getBindPoint() const noexcept override
   {
     return VK_PIPELINE_BIND_POINT_GRAPHICS;
-  }
-
-  [[nodiscard]] VkRenderPass getRenderPass() const noexcept
-  {
-    return renderPass;
   }
 
   [[nodiscard]] VkViewport getViewport() const noexcept { return viewport; }

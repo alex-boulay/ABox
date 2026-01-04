@@ -11,40 +11,20 @@
 
 class GraphicsPipeline;
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkImageView,
-    ImageView,
-    vkDestroyImageView
-)
+DEFINE_VK_MEMORY_WRAPPER(VkImageView, ImageView, vkDestroyImageView)
 
-DEFINE_VK_MEMORY_WRAPPER(
-    VkSwapchainKHR,
-    Swapchain,
-    vkDestroySwapchainKHR
-)
-
-DEFINE_VK_MEMORY_WRAPPER(
-    VkFramebuffer,
-    Framebuffer,
-    vkDestroyFramebuffer
-)
+DEFINE_VK_MEMORY_WRAPPER(VkSwapchainKHR, Swapchain, vkDestroySwapchainKHR)
 
 class DisplayQueueIndices {
   std::array<uint32_t, 2u> indices{0, 0};
 
    public:
-  DisplayQueueIndices(
-      uint32_t rQDI,
-      uint32_t gQDI
-  )
+  DisplayQueueIndices(uint32_t rQDI, uint32_t gQDI)
       : indices{rQDI, gQDI}
   {
   }
 
-  void setIndices(
-      uint32_t rQDI_,
-      uint32_t gQDI_
-  )
+  void setIndices(uint32_t rQDI_, uint32_t gQDI_)
   {
     indices[0] = rQDI_;
     indices[1] = gQDI_;
@@ -64,11 +44,7 @@ class SwapchainImage {
   VkImage          image;
   ImageViewWrapper imageViewWrapper;
 
-  SwapchainImage(
-      VkImage     image,
-      VkImageView imageView,
-      VkDevice    device
-  )
+  SwapchainImage(VkImage image, VkImageView imageView, VkDevice device)
       : image(image)
       , imageViewWrapper(device, imageView)
   {
@@ -77,9 +53,9 @@ class SwapchainImage {
 
 class SwapchainManager {
   // Main Utils
-  SwapchainWrapper              swapChain;
-  std::list<SwapchainImage>     swapChainImages;
-  std::list<FramebufferWrapper> framebuffers;
+  SwapchainWrapper          swapChain;
+  std::list<SwapchainImage> swapChainImages;
+  // std::list<FramebufferWrapper> framebuffers;
 
   VkExtent2D    extent;
   VkSurfaceKHR *surface;
@@ -120,17 +96,6 @@ class SwapchainManager {
 
   VkFormat getFormat() const noexcept { return surfaceFormat.format; }
 
-  VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice);
-
-  VkFramebuffer getFrameBuffer(
-      uint32_t index
-  )
-  {
-    std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
-    std::advance(it, index);
-    return it->get();
-  }
-
   uint32_t getRenderQueueDeviceIndice() const
   {
     return queueFamilyIndices.getRenderQueueDeviceIndice();
@@ -145,10 +110,7 @@ class SwapchainManager {
 
   VkResult createImageViews(VkDevice device);
 
-  uint32_t acquireNextImage(
-      VkDevice    device,
-      VkSemaphore imgSemaphore
-  )
+  uint32_t acquireNextImage(VkDevice device, VkSemaphore imgSemaphore)
   {
     uint32_t imageIndex;
     vkAcquireNextImageKHR(

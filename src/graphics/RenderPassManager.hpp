@@ -1,3 +1,6 @@
+#ifndef RENDER_PASS_MANAGER_HPP
+#define RENDER_PASS_MANAGER_HPP
+
 #include <deque>
 #include <graphics/SwapchainManager.hpp>
 #include <map>
@@ -9,17 +12,20 @@ DEFINE_VK_MEMORY_WRAPPER(VkRenderPass, RenderPass, vkDestroyRenderPass)
 
 class RenderPassManager {
 
-  std::deque<RenderPassWrapper>              rPasses;
-  std::map<std::string, RenderPassWrapper &> rpMap;
+  std::deque<RenderPassWrapper> rPasses;
+  // std::map<std::string, RenderPassWrapper &> rpMap;
 
    public:
   RenderPassManager() {}
 
-  VkResult CreateRenderPass(const SwapchainManager &sm, VkDevice device)
+  VkResult CreateRenderPass(
+      VkDevice device,
+      VkFormat format
+  ) // format should be the swapchain one
   {
     VkAttachmentDescription colorAttachment{
         .flags          = 0u,
-        .format         = sm.getFormat(),
+        .format         = format,
         .samples        = VK_SAMPLE_COUNT_1_BIT,
         .loadOp         = VK_ATTACHMENT_LOAD_OP_CLEAR,
         .storeOp        = VK_ATTACHMENT_STORE_OP_STORE,
@@ -70,3 +76,5 @@ class RenderPassManager {
     return res;
   }
 };
+
+#endif

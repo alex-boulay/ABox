@@ -1,4 +1,5 @@
 #include "SwapchainManager.hpp"
+#include "FrameBufferBroker.hpp"
 #include "Logger.hpp"
 #include <algorithm>
 #include <cstdint>
@@ -139,19 +140,20 @@ VkResult SwapchainManager::createImageViews(VkDevice device)
   VkResult                     return_value = VK_SUCCESS;
   for (const auto &img : _images) {
     VkImageViewCreateInfo createInfo = {
-        .sType      = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
-        .pNext      = nullptr,
-        .flags      = 0,
-        .image      = img,
-        .viewType   = VK_IMAGE_VIEW_TYPE_2D,
-        .format     = surfaceFormat.format,
-        .components = {sid, sid, sid, sid},
-        .subresourceRange =
-            {.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
-                       .baseMipLevel   = 0,
-                       .levelCount     = 1,
-                       .baseArrayLayer = 0,
-                       .layerCount     = 1}
+        .sType            = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+        .pNext            = nullptr,
+        .flags            = 0,
+        .image            = img,
+        .viewType         = VK_IMAGE_VIEW_TYPE_2D,
+        .format           = surfaceFormat.format,
+        .components       = {sid, sid, sid, sid},
+        .subresourceRange = {
+                             .aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT,
+                             .baseMipLevel   = 0,
+                             .levelCount     = 1,
+                             .baseArrayLayer = 0,
+                             .layerCount     = 1
+        }
     };
     VkImageView _imageView;
     return_value = vkCreateImageView(device, &createInfo, nullptr, &_imageView);
@@ -221,58 +223,19 @@ VkResult SwapchainManager::chooseSwapExtent(uint32_t width, uint32_t height)
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::createFramebuffers(
-    VkRenderPass renderPass,
-    VkDevice     logicalDevice
-)
-{
-  uint32_t i = 0u;
-  LOG_INFO("Swapchain") << "Creating FrameBuffers - for size "
-                        << swapChainImages.size();
-  for (auto &a : swapChainImages) {
-    LOG_DEBUG("Swapchain") << "FrameBuffer #" << (++i);
-    VkFramebufferCreateInfo fbi{
-        .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
-        .pNext           = nullptr,
-        .flags           = 0u,
-        .renderPass      = renderPass,
-        .attachmentCount = 1u,
-        .pAttachments    = a.imageViewWrapper.ptr(),
-        .width           = extent.width,
-        .height          = extent.height,
-        .layers          = 1u
-    };
-    VkFramebuffer _swapchainFramebuffer;
-    VkResult      creation_return_value = vkCreateFramebuffer(
-        logicalDevice,
-        &fbi,
-        nullptr,
-        &_swapchainFramebuffer
-    );
-    if (creation_return_value != VK_SUCCESS) {
-      throw std::runtime_error("failed to create framebuffer !");
-    }
-    else {
-      framebuffers.emplace_back(logicalDevice, _swapchainFramebuffer);
-      LOG_DEBUG("Swapchain") << "FrameBuffer created";
-    }
-  }
-  LOG_INFO("Swapchain") << "Done with framebuffers";
-  return VK_SUCCESS;
-}
-
 VkResult SwapchainManager::resizeSwapChain(
-    VkPhysicalDevice phyDev,
-    VkDevice         device,
-    VkRenderPass     rp
+    VkPhysicalDevice  phyDev,
+    VkDevice          device,
+    VkRenderPass      rp,
+    FrameBufferBroker fbb
 )
 {
-  framebuffers.clear();
+  fbb.clear(swapChain, rp);
   swapChainImages.clear();
 
   createSwapchain(phyDev, device);
   createImageViews(device);
-  createFramebuffers(rp, device);
+  fbb.createFramebuffers(device, rp, swapChain);
   return VK_SUCCESS;
 }
 

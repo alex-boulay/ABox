@@ -2,19 +2,18 @@
 #define DEVICE_HANDLER_HPP
 
 #include "CommandsHandler.hpp"
+#include "FrameBufferBroker.hpp"
 #include "Logger.hpp"
 #include "PipelineManager.hpp"
 #include "PreProcUtils.hpp"
+#include "RenderPassManager.hpp"
 #include "ShaderHandler.hpp"
 #include "SwapchainManager.hpp"
 #include "SynchronisationManager.hpp"
 #include <cstdint>
 #include <map>
-#include <optional>
-#include <set>
 #include <sstream>
 #include <stdexcept>
-#include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -37,8 +36,10 @@ class DeviceBoundElements {
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
-  std::optional<SwapchainManager> swapchain;
-  PipelineManager                 pipelineManager;
+  SwapchainManager  swapchain;
+  RenderPassManager renderpass;
+  FrameBufferBroker fbb;
+  PipelineManager   pipelineManager;
 
   DeviceBoundElements(
       VkDevice           logDevice,
@@ -106,10 +107,12 @@ class DeviceHandler {
   std::list<DeviceBoundElements>               devices;
   std::map<std::string, DeviceBoundElements *> deviceNames;
 
-  std::set<uint32_t> getQueueFamilyIndices(QueueFamilyIndices fi
+  std::set<uint32_t> getQueueFamilyIndices(
+      QueueFamilyIndices fi
   ); // TODO aim for a loaded device instead
 
-  std::vector<uint32_t> listQueueFamilyIndices(QueueFamilyIndices fi
+  std::vector<uint32_t> listQueueFamilyIndices(
+      QueueFamilyIndices fi
   ); // TODO aim for a loaded device Instead
 
    public:

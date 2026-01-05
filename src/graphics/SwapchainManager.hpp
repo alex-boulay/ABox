@@ -150,8 +150,6 @@ class SwapchainManager {
       VkExtent2D       window
   );
 
-  inline uint32_t frameBufferSize() { return framebuffers.size(); }
-
   inline uint32_t getMinImageCount() const
   {
     const uint32_t SCSC_Mi = capabilities.minImageCount + 1;

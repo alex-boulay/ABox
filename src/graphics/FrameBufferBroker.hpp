@@ -1,3 +1,6 @@
+#ifndef FRAME_BUFFER_BROKER_HPP
+#define FRAME_BUFFER_BROKER_HPP
+
 #include <map>
 #include <memory/MemoryWrapper.hpp>
 #include <vector>
@@ -59,3 +62,5 @@ class FrameBufferBroker {
     return it->get();
   }
 };
+
+#endif

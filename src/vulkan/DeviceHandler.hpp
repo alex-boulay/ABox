@@ -36,7 +36,7 @@ class DeviceBoundElements {
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
-  SwapchainManager  swapchain;
+  SwapchainPool     swapchains;
   RenderPassManager renderpass;
   FrameBufferBroker fbb;
   PipelineManager   pipelineManager;
@@ -211,7 +211,7 @@ class DeviceHandler {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
     VkRenderPass         rp  = VK_NULL_HANDLE;
     LOG_DEBUG("Device") << "SC has value " << dbe->swapchain.has_value();
-    if (dbe->swapchain.has_value()) {
+    if (dbe->swapchains.top()) {
       GraphicsPipeline *mainPipeline =
           dbe->pipelineManager.getMainGraphicsPipeline();
       if (mainPipeline) {

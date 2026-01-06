@@ -1,6 +1,7 @@
 #ifndef FRAME_BUFFER_BROKER_HPP
 #define FRAME_BUFFER_BROKER_HPP
 
+#include "SwapchainManager.hpp"
 #include <map>
 #include <memory/MemoryWrapper.hpp>
 #include <vector>
@@ -18,11 +19,15 @@ class FrameBufferBroker {
 
   std::map<frameBufferKey, std::vector<FramebufferWrapper>> framebuffer;
 
-  VkResult createFramebuffers(VkRenderPass renderPass, VkDevice logicalDevice)
+  VkResult createFramebuffers(
+      VkDevice        logicalDevice,
+      VkRenderPass    renderPass,
+      VkExtent2D      extent,
+      SwapchainBundle sb
+  )
   {
     uint32_t i = 0u;
-    LOG_INFO("Swapchain") << "Creating FrameBuffers - for size "
-                          << swapChainImages.size();
+    LOG_INFO("Swapchain") << "Creating FrameBuffers - for size " << imagesCount;
     for (auto &a : swapChainImages) {
       LOG_DEBUG("Swapchain") << "FrameBuffer #" << (++i);
       VkFramebufferCreateInfo fbi{

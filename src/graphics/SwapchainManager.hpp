@@ -51,11 +51,10 @@ class SwapchainImage {
   }
 };
 
-class SwapchainManager {
+class Swapchain {
   // Main Utils
   SwapchainWrapper          swapChain;
   std::list<SwapchainImage> swapChainImages;
-  // std::list<FramebufferWrapper> framebuffers;
 
   VkExtent2D    extent;
   VkSurfaceKHR *surface;
@@ -76,7 +75,7 @@ class SwapchainManager {
   VkResult chooseSwapExtent(uint32_t width, uint32_t height);
 
    public:
-  SwapchainManager(
+  Swapchain(
       VkPhysicalDevice phyDev,
       VkSurfaceKHR    *surface,
       VkDevice         logicalDevice,
@@ -86,11 +85,9 @@ class SwapchainManager {
       uint32_t         height
   );
 
-  //~SwapchainManager() = default;
-
   // Move constructor
-  DELETE_COPY(SwapchainManager);
-  DELETE_MOVE(SwapchainManager);
+  DELETE_COPY(Swapchain);
+  DELETE_MOVE(Swapchain);
 
   VkExtent2D getExtent() const noexcept { return extent; }
 
@@ -156,6 +153,10 @@ class SwapchainManager {
     const uint32_t SCSC_Ma = capabilities.maxImageCount;
     return std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi);
   }
+};
+
+class SwapchainPool { // TODO
+  std::vector<Swapchain> swapchains;
 };
 
 #endif

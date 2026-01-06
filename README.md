@@ -11,6 +11,13 @@ glslang-dev glslang-tools spirv-tools GLFW
 
 ### TODO
 
+#### Architecture
+
+- Make visual documentation
+  - Plan of how all is interacting
+- Make textual documentation
+  - Text example on how to use it and load different contexts
+
 #### Development
 
 - QueueFamilies optimisations (maxload)

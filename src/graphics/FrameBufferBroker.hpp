@@ -11,8 +11,8 @@
 DEFINE_VK_MEMORY_WRAPPER(VkFramebuffer, Framebuffer, vkDestroyFramebuffer)
 
 typedef struct frameBufferKey {
-  VkSwapchainKHR &swapchain;
-  VkRenderPass   &renderpass;
+  const VkSwapchainKHR &swapchain;
+  const VkRenderPass   &renderpass;
 } frameBufferKey;
 
 class FrameBufferBroker {
@@ -20,15 +20,19 @@ class FrameBufferBroker {
   std::map<frameBufferKey, std::vector<FramebufferWrapper>> framebuffer;
 
   VkResult createFramebuffers(
-      VkDevice        logicalDevice,
-      VkRenderPass    renderPass,
-      VkExtent2D      extent,
-      SwapchainBundle sb
+      VkDevice     logicalDevice,
+      VkRenderPass renderPass,
+      Swapchain    swapchain
   )
   {
     uint32_t i = 0u;
-    LOG_INFO("Swapchain") << "Creating FrameBuffers - for size " << imagesCount;
-    for (auto &a : swapChainImages) {
+
+    frameBufferKey                  key{swapchain.getSwapchain(), renderPass};
+    std::vector<framebufferWrapper> fbw;
+    fbw.reserve() VkExtent2D        extent = swapchain.getExtent();
+    LOG_INFO("Swapchain") << "Creating FrameBuffers - for size "
+                          << swapchain.getImagesCount();
+    for (auto &a : swapchain.getImages()) {
       LOG_DEBUG("Swapchain") << "FrameBuffer #" << (++i);
       VkFramebufferCreateInfo fbi{
           .sType           = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
@@ -60,11 +64,20 @@ class FrameBufferBroker {
     return VK_SUCCESS;
   }
 
-  VkFramebuffer getFrameBuffer(uint32_t index)
+  VkFramebuffer getFrameBuffer(
+      const VkSwapchainKHR &sc,
+      const VkRenderPass   &rp,
+      uint32_t              index
+  )
   {
-    std::list<FramebufferWrapper>::iterator it = framebuffers.begin();
-    std::advance(it, index);
-    return it->get();
+    frameBufferKey key{sc, rp};
+
+    if (framebuffer.contains(key)) {
+      std::vector<FramebufferWrapper> &fbw = framebuffer.at(key);
+      if (fbw.size() < index) {
+        return fbw.at(index);
+      }
+    }
   }
 };
 

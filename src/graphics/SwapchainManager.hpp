@@ -153,6 +153,16 @@ class Swapchain {
     const uint32_t SCSC_Ma = capabilities.maxImageCount;
     return std::min(SCSC_Ma, SCSC_Mi) + !(SCSC_Ma) * (SCSC_Mi);
   }
+
+  [[nodiscard]] inline uint32_t getImagesCount() const
+  {
+    return static_cast<uint32_t>(swapChainImages.size());
+  }
+
+  [[nodiscard]] inline std::list<SwapchainImage> &getImages()
+  {
+    return swapChainImages;
+  }
 };
 
 class SwapchainPool { // TODO

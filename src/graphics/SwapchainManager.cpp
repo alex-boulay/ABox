@@ -11,7 +11,7 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
-SwapchainManager::SwapchainManager(
+Swapchain::Swapchain(
     VkPhysicalDevice phyDev,
     VkSurfaceKHR    *surface,
     VkDevice         logicalDevice,
@@ -74,10 +74,8 @@ SwapchainManager::SwapchainManager(
   createImageViews(logicalDevice);
 }
 
-VkResult SwapchainManager::createSwapchain(
-    VkPhysicalDevice phyDev,
-    VkDevice         logicalDevice
-)
+VkResult
+    Swapchain::createSwapchain(VkPhysicalDevice phyDev, VkDevice logicalDevice)
 {
   VkSwapchainKHR newSwapchain = VK_NULL_HANDLE;
   ;
@@ -129,7 +127,7 @@ VkResult SwapchainManager::createSwapchain(
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::createImageViews(VkDevice device)
+VkResult Swapchain::createImageViews(VkDevice device)
 {
   uint32_t minImageCount = getMinImageCount();
   vkGetSwapchainImagesKHR(device, swapChain, &minImageCount, nullptr);
@@ -169,7 +167,7 @@ VkResult SwapchainManager::createImageViews(VkDevice device)
   return return_value;
 }
 
-VkResult SwapchainManager::chooseSwapSurfaceFormat()
+VkResult Swapchain::chooseSwapSurfaceFormat()
 {
   for (const auto &availableFormat : formats) {
     if (availableFormat.format == VK_FORMAT_B8G8R8A8_SRGB &&
@@ -184,7 +182,7 @@ VkResult SwapchainManager::chooseSwapSurfaceFormat()
   return VK_INCOMPLETE;
 }
 
-VkResult SwapchainManager::chooseSwapPresentMode()
+VkResult Swapchain::chooseSwapPresentMode()
 {
   LOG_DEBUG("Swapchain") << "size of present mode " << presentModes.size();
   for (const auto &availablePresentMode : presentModes) {
@@ -200,7 +198,7 @@ VkResult SwapchainManager::chooseSwapPresentMode()
   return VK_INCOMPLETE;
 }
 
-VkResult SwapchainManager::chooseSwapExtent(uint32_t width, uint32_t height)
+VkResult Swapchain::chooseSwapExtent(uint32_t width, uint32_t height)
 {
   if (capabilities.currentExtent.width !=
       std::numeric_limits<uint32_t>::max()) {
@@ -223,7 +221,7 @@ VkResult SwapchainManager::chooseSwapExtent(uint32_t width, uint32_t height)
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::resizeSwapChain(
+VkResult Swapchain::resizeSwapChain(
     VkPhysicalDevice  phyDev,
     VkDevice          device,
     VkRenderPass      rp,
@@ -235,17 +233,18 @@ VkResult SwapchainManager::resizeSwapChain(
 
   createSwapchain(phyDev, device);
   createImageViews(device);
-  fbb.createFramebuffers(device, rp, swapChain);
+  fbb.createFramebuffers(device, rp, this);
   return VK_SUCCESS;
 }
 
-VkResult SwapchainManager::resizeSwapChain(
-    VkPhysicalDevice phyDev,
-    VkDevice         device,
-    VkExtent2D       window,
-    VkRenderPass     rp
+VkResult Swapchain::resizeSwapChain(
+    VkPhysicalDevice  phyDev,
+    VkDevice          device,
+    VkExtent2D        window,
+    VkRenderPass      rp,
+    FrameBufferBroker fbb
 )
 {
   extent = window;
-  return resizeSwapChain(phyDev, device, rp);
+  return resizeSwapChain(phyDev, device, rp, fbb);
 }

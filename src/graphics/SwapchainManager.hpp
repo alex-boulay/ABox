@@ -1,6 +1,7 @@
 #ifndef SWAPCHAIN_MANAGER_HPP
 #define SWAPCHAIN_MANAGER_HPP
 
+#include "FrameBufferBroker.hpp"
 #include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
 #include <array>
@@ -10,6 +11,7 @@
 #include <vulkan/vulkan_core.h>
 
 class GraphicsPipeline;
+class FrameBufferBroker;
 
 DEFINE_VK_MEMORY_WRAPPER(VkImageView, ImageView, vkDestroyImageView)
 
@@ -126,25 +128,18 @@ class Swapchain {
   VkSwapchainKHR *swapchainPtr() { return swapChain.ptr(); }
 
   VkResult resizeSwapChain(
-      VkPhysicalDevice phyDev,
-      VkDevice         device,
-      VkRenderPass     rp
+      VkPhysicalDevice  phyDev,
+      VkDevice          device,
+      VkRenderPass      rp,
+      FrameBufferBroker fbb
   );
 
   VkResult resizeSwapChain(
-      VkPhysicalDevice phyDev,
-      VkDevice         device,
-      VkExtent2D       window,
-      VkRenderPass     rp
-  );
-
-  // TODO:
-  // Latter implementation for windowcallback
-  // windowManager::resize(SwapchainManager sm): VkResult
-  VkResult resizeSwapChain(
-      VkPhysicalDevice phyDev,
-      VkDevice         device,
-      VkExtent2D       window
+      VkPhysicalDevice  phyDev,
+      VkDevice          device,
+      VkExtent2D        window,
+      VkRenderPass      rp,
+      FrameBufferBroker fbb
   );
 
   inline uint32_t getMinImageCount() const

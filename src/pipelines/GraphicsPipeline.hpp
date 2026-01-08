@@ -80,7 +80,8 @@ class GraphicsPipeline : public PipelineBase {
   {
     std::vector<const ShaderDataFile *> ordered;
 
-    auto findStage = [&shaders](VkShaderStageFlagBits targetStage
+    auto findStage = [&shaders](
+                         VkShaderStageFlagBits targetStage
                      ) -> const ShaderDataFile * {
       for (const auto &shader : shaders) {
         if (!shader.isReflectionValid()) {
@@ -148,14 +149,15 @@ class GraphicsPipeline : public PipelineBase {
         for (uint32_t i = 0; i < reflectionData.outputVariableCount; ++i) {
           const SpvReflectInterfaceVariable *var =
               reflectionData.outputVariables[i];
-          LOG_DEBUG("Shader"
-          ) << "  Output "
-            << i << ": name=" << (var->name ? var->name : "<null>")
-            << ", location=" << var->location
-            << ", built_in=" << static_cast<int>(var->built_in) << " (hex: 0x"
-            << std::hex << static_cast<uint32_t>(var->built_in) << std::dec
-            << ")"
-            << ", SpvBuiltInPosition=" << static_cast<int>(SpvBuiltInPosition);
+          LOG_DEBUG("Shader")
+              << "  Output " << i
+              << ": name=" << (var->name ? var->name : "<null>")
+              << ", location=" << var->location
+              << ", built_in=" << static_cast<int>(var->built_in) << " (hex: 0x"
+              << std::hex << static_cast<uint32_t>(var->built_in) << std::dec
+              << ")"
+              << ", SpvBuiltInPosition="
+              << static_cast<int>(SpvBuiltInPosition);
 
           // Check if this is gl_Position (could be identified by built_in OR by
           // having no/empty name with invalid location)
@@ -285,10 +287,10 @@ class GraphicsPipeline : public PipelineBase {
     requires std::
         same_as<std::remove_cv_t<std::ranges::range_value_t<R>>, ShaderDataFile>
       GraphicsPipeline(
-          VkDevice                device,
-          const SwapchainManager &swapchain,
-          const R                &shaders,
-          VkRenderPass            renderPass
+          VkDevice         device,
+          const Swapchain &swapchain,
+          const R         &shaders,
+          VkRenderPass     renderPass
       )
       : PipelineBase(device, shaders)
   {

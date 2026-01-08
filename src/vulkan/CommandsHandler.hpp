@@ -60,7 +60,7 @@ class CommandBoundElement {
 
   VkResult recordCommandBuffer(
       GraphicsPipeline &gp,
-      SwapchainManager &sm,
+      Swapchain        &sm,
       uint32_t          imageIndex,
       uint32_t          commandBufferIndex
   );

@@ -52,11 +52,11 @@ class PipelineManager {
     requires std::same_as<std::ranges::range_value_t<R>, ShaderDataFile> ||
              std::same_as<std::ranges::range_value_t<R>, const ShaderDataFile>
   GraphicsPipeline &createGraphicsPipeline(
-      VkDevice                device,
-      const std::string      &name,
-      const SwapchainManager &swapchain,
-      const R                &shaders,
-      bool                    setAsMain = false
+      VkDevice           device,
+      const std::string &name,
+      const Swapchain   &swapchain,
+      const R           &shaders,
+      bool               setAsMain = false
   )
   {
     if (std::ranges::empty(shaders)) {

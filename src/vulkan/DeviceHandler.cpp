@@ -10,6 +10,7 @@
 #include <iostream>
 #include <map>
 #include <ostream>
+#include <set>
 #include <stdexcept>
 #include <utility>
 #include <vulkan/vulkan_core.h>
@@ -48,7 +49,8 @@ bool supportsPresentation(
   VkResult result =
       vkGetPhysicalDeviceSurfaceSupportKHR(pD, qFamIndex, surface, &support);
   if (result != VK_SUCCESS) {
-    LOG_ERROR("Vulkan"
+    LOG_ERROR(
+        "Vulkan"
     ) << "Error Querying Physical Device Support for KHR Surfaces!";
     LOG_ERROR("Vulkan") << "Phy " << (void *)pD << " - Surface "
                         << (void *)surface << " - qFamIndex " << qFamIndex;
@@ -271,14 +273,16 @@ VkResult DeviceHandler::addLogicalDevice(
 
   LOG_DEBUG("Device") << "Creating queue create infos";
   for (uint32_t famIndex : listQueueFamilyIndices(fIndices)) {
-    qCI.push_back(VkDeviceQueueCreateInfo{
-        .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-        .pNext            = nullptr,
-        .flags            = 0u,
-        .queueFamilyIndex = famIndex,
-        .queueCount       = 1u,
-        .pQueuePriorities = &queuePriority
-    });
+    qCI.push_back(
+        VkDeviceQueueCreateInfo{
+            .sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+            .pNext            = nullptr,
+            .flags            = 0u,
+            .queueFamilyIndex = famIndex,
+            .queueCount       = 1u,
+            .pQueuePriorities = &queuePriority
+        }
+    );
   }
   LOG_DEBUG("Device") << "Preparing logical device creation";
   std::vector<const char *> devExtVect = filterDeviceExtensions(phydev).enabled;
@@ -433,14 +437,14 @@ VkResult DeviceHandler::addSwapchain(
                       << (void *)devicePtr->getPhysicalDevice();
   LOG_DEBUG("Device") << "DBE logical: " << (void *)getDevice(devIndex);
   LOG_DEBUG("Device") << "DBE surface: " << (void *)surface;
-  LOG_DEBUG("Device"
-  ) << "DBE rQDI: "
-    << std::boolalpha
-    << devicePtr->getFamilyQueueIndices().at(QueueRole::Present);
-  LOG_DEBUG("Device"
-  ) << "DBE gQDI: "
-    << std::boolalpha
-    << devicePtr->getFamilyQueueIndices().at(QueueRole::Graphics);
+  LOG_DEBUG("Device") << "DBE rQDI: " << std::boolalpha
+                      << devicePtr->getFamilyQueueIndices().at(
+                             QueueRole::Present
+                         );
+  LOG_DEBUG("Device") << "DBE gQDI: " << std::boolalpha
+                      << devicePtr->getFamilyQueueIndices().at(
+                             QueueRole::Graphics
+                         );
 
   getDBE(devIndex)->swapchain.emplace(
       devicePtr->getPhysicalDevice(),
@@ -462,7 +466,7 @@ VkResult DeviceHandler::addGraphicsPipeline(
 )
 {
   DeviceBoundElements *dbe = getDBE(deviceIndex);
-  if (dbe && dbe->swapchain.has_value()) {
+  if (dbe && dbe->swapchains.front() {
     LOG_INFO("Pipeline") << "Loading Graphics Pipeline with "
                          << shaderFiles.size() << " shaders";
 
@@ -470,7 +474,7 @@ VkResult DeviceHandler::addGraphicsPipeline(
     dbe->pipelineManager.createGraphicsPipeline(
         getDevice(deviceIndex),
         "main",
-        dbe->swapchain.value(),
+        dbe->swapchains.front(),
         shaderFiles,
         true // setAsMain = true
     );
@@ -517,8 +521,8 @@ std::stringstream vkQueueFlagSS(const VkQueueFlags &flag)
   }
   ss << (bool(flag & VK_QUEUE_GRAPHICS_BIT) ? "\nVK_QUEUE_GRAPHICS_BIT - 0x1"
                                             : "")
-     << (bool(flag & VK_QUEUE_COMPUTE_BIT) ? "\nVK_QUEUE_COMPUTE_BIT - 0x2" : ""
-        )
+     << (bool(flag & VK_QUEUE_COMPUTE_BIT) ? "\nVK_QUEUE_COMPUTE_BIT - 0x2"
+                                           : "")
      << (bool(flag & VK_QUEUE_TRANSFER_BIT) ? "\nVK_QUEUE_TRANSFER_BIT - 0x4"
                                             : "")
      << (bool(flag & VK_QUEUE_SPARSE_BINDING_BIT)

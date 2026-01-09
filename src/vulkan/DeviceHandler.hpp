@@ -12,6 +12,7 @@
 #include "SynchronisationManager.hpp"
 #include <cstdint>
 #include <map>
+#include <set>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
@@ -83,7 +84,7 @@ class DeviceBoundElements {
       );
     }
 
-    if (!swapchain.has_value()) {
+    if (swapchains.empty()) {
       LOG_ERROR("Vulkan") << "No Value in swapchain";
       throw std::runtime_error(
           "Wrong swapchain target during recordcommandbuffer"
@@ -91,7 +92,7 @@ class DeviceBoundElements {
     }
     return commands.top().recordCommandBuffer(
         *mainPipeline,
-        swapchain.value(),
+        swapchains.front(),
         imageIndex,
         commandBufferIndex
     );
@@ -183,13 +184,14 @@ class DeviceHandler {
       GraphicsPipeline    *mainPipeline =
           dbe->pipelineManager.getMainGraphicsPipeline();
 
-      if (dbe->swapchain.has_value() && mainPipeline) {
-        return dbe->swapchain.value().createFramebuffers(
+      if (!dbe->swapchains.empty() && mainPipeline) {
+        return dbe->fbb.createFramebuffers(
             mainPipeline->getRenderPass(),
-            dbe->getDevice()
+            dbe->getDevice(),
+            dbe->swapchains.front()
         );
       }
-      else if (!dbe->swapchain.has_value()) {
+      else if (dbe->swapchains.empty()) {
         throw std::runtime_error(
             "No Swapchain make Framebuffer creation impossible !"
         );
@@ -210,8 +212,8 @@ class DeviceHandler {
   {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
     VkRenderPass         rp  = VK_NULL_HANDLE;
-    LOG_DEBUG("Device") << "SC has value " << dbe->swapchain.has_value();
-    if (dbe->swapchains.top()) {
+    LOG_DEBUG("Device") << "SC has value " << !dbe->swapchains.empty();
+    if (!dbe->swapchains.empty()) {
       GraphicsPipeline *mainPipeline =
           dbe->pipelineManager.getMainGraphicsPipeline();
       if (mainPipeline) {

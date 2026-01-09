@@ -1,7 +1,6 @@
 #ifndef SWAPCHAIN_MANAGER_HPP
 #define SWAPCHAIN_MANAGER_HPP
 
-#include "FrameBufferBroker.hpp"
 #include "MemoryWrapper.hpp"
 #include "PreProcUtils.hpp"
 #include <array>
@@ -161,7 +160,11 @@ class Swapchain {
 };
 
 class SwapchainPool { // TODO
-  std::vector<Swapchain> swapchains;
+  std::list<Swapchain> swapchains;
+
+   public:
+  Swapchain         &front() { return swapchains.front(); }
+  [[nodiscard]] bool empty() const noexcept { return swapchains.empty(); }
 };
 
 #endif

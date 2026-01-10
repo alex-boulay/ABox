@@ -222,10 +222,10 @@ VkResult Swapchain::chooseSwapExtent(uint32_t width, uint32_t height)
 }
 
 VkResult Swapchain::resizeSwapChain(
-    VkPhysicalDevice  phyDev,
-    VkDevice          device,
-    VkRenderPass      rp,
-    FrameBufferBroker fbb
+    VkPhysicalDevice   phyDev,
+    VkDevice           device,
+    VkRenderPass       rp,
+    FrameBufferBroker &fbb
 )
 {
   fbb.clear(swapChain, rp);
@@ -238,11 +238,11 @@ VkResult Swapchain::resizeSwapChain(
 }
 
 VkResult Swapchain::resizeSwapChain(
-    VkPhysicalDevice  phyDev,
-    VkDevice          device,
-    VkExtent2D        window,
-    VkRenderPass      rp,
-    FrameBufferBroker fbb
+    VkPhysicalDevice   phyDev,
+    VkDevice           device,
+    VkExtent2D         window,
+    VkRenderPass       rp,
+    FrameBufferBroker &fbb
 )
 {
   extent = window;

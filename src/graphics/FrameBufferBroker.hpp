@@ -11,10 +11,27 @@
 
 DEFINE_VK_MEMORY_WRAPPER(VkFramebuffer, Framebuffer, vkDestroyFramebuffer)
 
-typedef struct frameBufferKey {
+class frameBufferKey {
   const VkSwapchainKHR &swapchain;
   const VkRenderPass   &renderpass;
-} frameBufferKey;
+
+   public:
+  frameBufferKey(const VkSwapchainKHR &sc, const VkRenderPass &rp)
+      : swapchain(sc)
+      , renderpass(rp)
+  {
+  }
+  [[nodiscard]] bool operator<(const frameBufferKey &other) const noexcept
+  {
+    uint64_t a0 = reinterpret_cast<uint64_t>(swapchain);
+    uint64_t b0 = reinterpret_cast<uint64_t>(other.swapchain);
+    if (a0 != b0) {
+      return a0 < b0;
+    }
+    return reinterpret_cast<uint64_t>(renderpass) <
+           reinterpret_cast<uint64_t>(other.renderpass);
+  }
+};
 
 class FrameBufferBroker {
 
@@ -80,15 +97,14 @@ class FrameBufferBroker {
       uint32_t              index
   )
   {
-    frameBufferKey key{sc, rp};
-
-    if (framebuffer.contains(key)) {
-      std::vector<FramebufferWrapper> &fbw = framebuffer.at(key);
-      if (fbw.size() < index) {
-        return fbw.at(index);
-      }
-    }
+    const frameBufferKey key{sc, rp};
+    return framebuffer.at(key).at(index);
   }
+  FrameBufferBroker()                                     = default;
+  FrameBufferBroker(const FrameBufferBroker &)            = delete;
+  FrameBufferBroker &operator=(const FrameBufferBroker &) = delete;
+  FrameBufferBroker(FrameBufferBroker &&)                 = default;
+  FrameBufferBroker &operator=(FrameBufferBroker &&)      = default;
 };
 
 #endif

@@ -127,18 +127,18 @@ class Swapchain {
   VkSwapchainKHR *swapchainPtr() { return swapChain.ptr(); }
 
   VkResult resizeSwapChain(
-      VkPhysicalDevice  phyDev,
-      VkDevice          device,
-      VkRenderPass      rp,
-      FrameBufferBroker fbb
+      VkPhysicalDevice   phyDev,
+      VkDevice           device,
+      VkRenderPass       rp,
+      FrameBufferBroker &fbb
   );
 
   VkResult resizeSwapChain(
-      VkPhysicalDevice  phyDev,
-      VkDevice          device,
-      VkExtent2D        window,
-      VkRenderPass      rp,
-      FrameBufferBroker fbb
+      VkPhysicalDevice   phyDev,
+      VkDevice           device,
+      VkExtent2D         window,
+      VkRenderPass       rp,
+      FrameBufferBroker &fbb
   );
 
   inline uint32_t getMinImageCount() const

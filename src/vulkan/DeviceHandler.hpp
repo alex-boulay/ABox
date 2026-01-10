@@ -93,6 +93,7 @@ class DeviceBoundElements {
     return commands.top().recordCommandBuffer(
         *mainPipeline,
         swapchains.front(),
+        rpm.front().get(),
         imageIndex,
         commandBufferIndex
     );
@@ -208,10 +209,10 @@ class DeviceHandler {
     return VK_SUCCESS;
   }
 
+  // TODO handle index shouldn't be using front() either indice or main
   VkResult recreateSwapchain(VkExtent2D window, uint32_t deviceIndex = 0u)
   {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
-    VkRenderPass        &rp  = VK_NULL_HANDLE;
     LOG_DEBUG("Device") << "SC has value " << !dbe->swapchains.empty();
     if (!dbe->swapchains.empty()) {
       GraphicsPipeline *mainPipeline =
@@ -219,13 +220,13 @@ class DeviceHandler {
       if (mainPipeline) {
         LOG_DEBUG("Pipeline") << "GP has value " << (mainPipeline != nullptr);
         mainPipeline->updateExtent(window);
-        rp = dbe->rpm.front();
       }
-      dbe->swapchain.value().resizeSwapChain(
+      dbe->swapchains.front().resizeSwapChain(
           dbe->getPhysicalDevice(),
           dbe->getDevice().get(),
           window,
-          rp
+          dbe->rpm.front(),
+          dbe->fbb
       );
 
       return VK_SUCCESS;

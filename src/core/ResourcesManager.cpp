@@ -209,7 +209,7 @@ void ResourcesManager::drawFrame()
 
   VkResult result = vkAcquireNextImageKHR(
       dbe->getDevice(),
-      dbe->swapchain.value().getSwapchain(),
+      dbe->swapchains.front().getSwapchain(),
       UINT64_MAX,
       dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.get(),
       VK_NULL_HANDLE,
@@ -246,9 +246,9 @@ void ResourcesManager::drawFrame()
                                                    // binding to a specific one
           1u // dbe->getCommandHandler()->top().commandBuffers.size()
       ),
-      .pCommandBuffers =
-          dbe->getCommandHandler()->top().getCommandBufferPtr(frameIndex
-          ), // TODO after bound to queue management -
+      .pCommandBuffers = dbe->getCommandHandler()->top().getCommandBufferPtr(
+          frameIndex
+      ), // TODO after bound to queue management -
       .signalSemaphoreCount = 1,
       .pSignalSemaphores =
           dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
@@ -272,7 +272,7 @@ void ResourcesManager::drawFrame()
 
           dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
       .swapchainCount = 1u,
-      .pSwapchains    = dbe->swapchain.value().swapchainPtr(),
+      .pSwapchains    = dbe->swapchains.front().swapchainPtr(),
       .pImageIndices  = &imageIndex,
       .pResults       = nullptr
   };

@@ -73,6 +73,7 @@ CommandBoundElement::CommandBoundElement(
 VkResult CommandBoundElement::recordCommandBuffer(
     GraphicsPipeline &gp,
     Swapchain        &sm,
+    VkRenderPass      rp,
     uint32_t          imageIndex,
     uint32_t          commandBufferIndex
 )
@@ -100,7 +101,7 @@ VkResult CommandBoundElement::recordCommandBuffer(
   VkRenderPassBeginInfo renderPassInfo{
       .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext           = nullptr,
-      .renderPass      = gp.getRenderPass(),
+      .renderPass      = rp,
       .framebuffer     = sm.getFrameBuffer(imageIndex),
       .renderArea      = gp.getScissor(),
       .clearValueCount = 1u,

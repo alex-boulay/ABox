@@ -18,6 +18,8 @@ class RenderPassManager {
    public:
   RenderPassManager() {}
 
+  RenderPassWrapper &front() { return rPasses.front(); }
+
   VkResult CreateRenderPass(
       VkDevice device,
       VkFormat format

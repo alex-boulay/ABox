@@ -38,7 +38,7 @@ class DeviceBoundElements {
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
   SwapchainPool     swapchains;
-  RenderPassManager renderpass;
+  RenderPassManager rpm;
   FrameBufferBroker fbb;
   PipelineManager   pipelineManager;
 
@@ -186,9 +186,9 @@ class DeviceHandler {
 
       if (!dbe->swapchains.empty() && mainPipeline) {
         return dbe->fbb.createFramebuffers(
-            mainPipeline->getRenderPass(),
             dbe->getDevice(),
-            dbe->swapchains.front()
+            dbe->rpm.front().get(),
+            &dbe->swapchains.front()
         );
       }
       else if (dbe->swapchains.empty()) {
@@ -211,7 +211,7 @@ class DeviceHandler {
   VkResult recreateSwapchain(VkExtent2D window, uint32_t deviceIndex = 0u)
   {
     DeviceBoundElements *dbe = getDBE(deviceIndex);
-    VkRenderPass         rp  = VK_NULL_HANDLE;
+    VkRenderPass        &rp  = VK_NULL_HANDLE;
     LOG_DEBUG("Device") << "SC has value " << !dbe->swapchains.empty();
     if (!dbe->swapchains.empty()) {
       GraphicsPipeline *mainPipeline =
@@ -219,7 +219,7 @@ class DeviceHandler {
       if (mainPipeline) {
         LOG_DEBUG("Pipeline") << "GP has value " << (mainPipeline != nullptr);
         mainPipeline->updateExtent(window);
-        rp = mainPipeline->getRenderPass();
+        rp = dbe->rpm.front();
       }
       dbe->swapchain.value().resizeSwapChain(
           dbe->getPhysicalDevice(),

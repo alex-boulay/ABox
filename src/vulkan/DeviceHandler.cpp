@@ -466,7 +466,7 @@ VkResult DeviceHandler::addGraphicsPipeline(
 )
 {
   DeviceBoundElements *dbe = getDBE(deviceIndex);
-  if (dbe && !dbe->swapchains.empty()) {
+  if (dbe && !dbe->swapchains.empty() && !dbe->rpm.empty()) {
     LOG_INFO("Pipeline") << "Loading Graphics Pipeline with "
                          << shaderFiles.size() << " shaders";
 

@@ -21,12 +21,19 @@ glslang-dev glslang-tools spirv-tools GLFW
 #### Development
 
 - QueueFamilies optimisations (maxload)
+- Realy need to have a custom container for structure where memory placement
+shouldn't move but still need easy reference access whitout dereferencing but also
+need to support destruction or recration (Bloom filter + lifetime versionning ?)
+- Finish getting back behavior after FBB was added
 
 #### Platform
 
 - load tracy :
   - mem tracking
   - performance
+  - New container support (if used)
+- Tests : we should support testing in every way we can - the goal is to have a
+memory safe app so it should be behavior + leak tested in every way possible
 
 ### Do I do ?
 

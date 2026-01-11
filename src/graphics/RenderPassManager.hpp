@@ -20,10 +20,11 @@ class RenderPassManager {
 
   RenderPassWrapper &front() { return rPasses.front(); }
 
-  VkResult CreateRenderPass(
-      VkDevice device,
-      VkFormat format
-  ) // format should be the swapchain one
+  [[nodiscard]] bool empty() const noexcept { return rPasses.empty(); }
+  VkResult           CreateRenderPass(
+                VkDevice device,
+                VkFormat format
+            ) // format should be the swapchain one
   {
     VkAttachmentDescription colorAttachment{
         .flags          = 0u,

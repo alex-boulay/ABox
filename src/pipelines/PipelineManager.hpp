@@ -55,6 +55,7 @@ class PipelineManager {
       VkDevice           device,
       const std::string &name,
       const Swapchain   &swapchain,
+      VkRenderPass       renderPass,
       const R           &shaders,
       bool               setAsMain = false
   )
@@ -80,7 +81,8 @@ class PipelineManager {
         std::in_place_type<GraphicsPipeline>,
         device,
         swapchain,
-        shaders
+        shaders,
+        renderPass
     );
 
     if (setAsMain) {

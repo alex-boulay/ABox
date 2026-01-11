@@ -90,6 +90,12 @@ class FrameBufferBroker {
       framebuffer.erase(key);
     }
   }
+  std::vector<FramebufferWrapper> *
+      getFrameBuffers(const VkSwapchainKHR &sc, const VkRenderPass &rp)
+  {
+    const frameBufferKey key{sc, rp};
+    return &framebuffer.at(key);
+  }
 
   VkFramebuffer getFrameBuffer(
       const VkSwapchainKHR &sc,
@@ -97,8 +103,7 @@ class FrameBufferBroker {
       uint32_t              index
   )
   {
-    const frameBufferKey key{sc, rp};
-    return framebuffer.at(key).at(index);
+    return getFrameBuffers(sc, rp)->at(index);
   }
   FrameBufferBroker()                                     = default;
   FrameBufferBroker(const FrameBufferBroker &)            = delete;

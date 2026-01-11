@@ -59,11 +59,12 @@ class CommandBoundElement {
   );
 
   VkResult recordCommandBuffer(
-      GraphicsPipeline &gp,
-      Swapchain        &sm,
-      VkRenderPass      rp,
-      uint32_t          imageIndex,
-      uint32_t          commandBufferIndex
+      GraphicsPipeline  &gp,
+      Swapchain         &sm,
+      FrameBufferBroker &fbb,
+      VkRenderPass       rp,
+      uint32_t           imageIndex,
+      uint32_t           commandBufferIndex
   );
 
   VkCommandBuffer getCommandBuffer(uint32_t index)

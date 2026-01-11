@@ -1,4 +1,5 @@
 #include "CommandsHandler.hpp"
+#include "FrameBufferBroker.hpp"
 #include "Logger.hpp"
 #include "PreProcUtils.hpp"
 #include <stdexcept>
@@ -71,11 +72,12 @@ CommandBoundElement::CommandBoundElement(
 }
 
 VkResult CommandBoundElement::recordCommandBuffer(
-    GraphicsPipeline &gp,
-    Swapchain        &sm,
-    VkRenderPass      rp,
-    uint32_t          imageIndex,
-    uint32_t          commandBufferIndex
+    GraphicsPipeline  &gp,
+    Swapchain         &sm,
+    FrameBufferBroker &fbb,
+    VkRenderPass       rp,
+    uint32_t           imageIndex,
+    uint32_t           commandBufferIndex
 )
 {
   VkCommandBufferBeginInfo beginInfo{
@@ -98,16 +100,18 @@ VkResult CommandBoundElement::recordCommandBuffer(
   VkClearValue clearColor = {.color = {.float32 = {0.0f, 0.0f, 0.0f, 1.0f}}};
 
   ABOX_LOG_PER_FRAME << "Setting up render pass";
+  std::vector<FramebufferWrapper> *fv =
+      fbb.getFrameBuffers(sm.getSwapchain(), rp);
   VkRenderPassBeginInfo renderPassInfo{
       .sType           = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       .pNext           = nullptr,
       .renderPass      = rp,
-      .framebuffer     = sm.getFrameBuffer(imageIndex),
+      .framebuffer     = fv->at(imageIndex).get(),
       .renderArea      = gp.getScissor(),
       .clearValueCount = 1u,
       .pClearValues    = &clearColor
   };
-  ABOX_LOG_PER_FRAME << "Framebuffer size: " << sm.frameBufferSize();
+  ABOX_LOG_PER_FRAME << "Framebuffer size: " << fv->size();
 
   vkCmdBeginRenderPass(
       commandBuffers.at(commandBufferIndex),

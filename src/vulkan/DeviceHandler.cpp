@@ -446,7 +446,7 @@ VkResult DeviceHandler::addSwapchain(
                              QueueRole::Graphics
                          );
 
-  getDBE(devIndex)->swapchain.emplace(
+  getDBE(devIndex)->swapchains.emplace(
       devicePtr->getPhysicalDevice(),
       surface,
       getDevice(devIndex),
@@ -466,7 +466,7 @@ VkResult DeviceHandler::addGraphicsPipeline(
 )
 {
   DeviceBoundElements *dbe = getDBE(deviceIndex);
-  if (dbe && dbe->swapchains.front() {
+  if (dbe && !dbe->swapchains.empty()) {
     LOG_INFO("Pipeline") << "Loading Graphics Pipeline with "
                          << shaderFiles.size() << " shaders";
 
@@ -475,12 +475,14 @@ VkResult DeviceHandler::addGraphicsPipeline(
         getDevice(deviceIndex),
         "main",
         dbe->swapchains.front(),
+        dbe->rpm.front().get(),
         shaderFiles,
         true // setAsMain = true
     );
     return VK_SUCCESS;
   }
-  LOG_ERROR("Pipeline"
+  LOG_ERROR(
+      "Pipeline"
   ) << "Failed to initialise Graphics Pipeline in the Device Manager";
   return VK_ERROR_INITIALIZATION_FAILED;
 };

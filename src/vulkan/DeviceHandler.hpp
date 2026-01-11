@@ -37,7 +37,7 @@ class DeviceBoundElements {
   VkQueue graphicsQueue = VK_NULL_HANDLE; // move to Queue Management ??
   VkQueue presentQueue  = VK_NULL_HANDLE;
 
-  SwapchainPool     swapchains;
+  SwapchainManager  swapchains;
   RenderPassManager rpm;
   FrameBufferBroker fbb;
   PipelineManager   pipelineManager;
@@ -93,6 +93,7 @@ class DeviceBoundElements {
     return commands.top().recordCommandBuffer(
         *mainPipeline,
         swapchains.front(),
+        fbb,
         rpm.front().get(),
         imageIndex,
         commandBufferIndex

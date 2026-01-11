@@ -159,12 +159,29 @@ class Swapchain {
   }
 };
 
-class SwapchainPool { // TODO
+class SwapchainManager {
   std::list<Swapchain> swapchains;
 
    public:
   Swapchain         &front() { return swapchains.front(); }
   [[nodiscard]] bool empty() const noexcept { return swapchains.empty(); }
+
+  // Emplace methods for constructing Swapchain in-place
+  template <typename... Args> Swapchain &emplace_back(Args &&...args)
+  {
+    return swapchains.emplace_back(std::forward<Args>(args)...);
+  }
+
+  template <typename... Args> Swapchain &emplace_front(Args &&...args)
+  {
+    return swapchains.emplace_front(std::forward<Args>(args)...);
+  }
+
+  // Alias for emplace_back (more intuitive naming)
+  template <typename... Args> Swapchain &emplace(Args &&...args)
+  {
+    return emplace_back(std::forward<Args>(args)...);
+  }
 };
 
 #endif

@@ -76,6 +76,8 @@ class RenderPassManager {
       throw std::runtime_error(ss.str().c_str());
     }
 
+    rPasses.emplace_back(device, renderpass);
+
     return res;
   }
 };

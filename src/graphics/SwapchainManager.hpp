@@ -90,9 +90,12 @@ class Swapchain {
   DELETE_COPY(Swapchain);
   DELETE_MOVE(Swapchain);
 
-  VkExtent2D getExtent() const noexcept { return extent; }
+  [[nodiscard]] VkExtent2D getExtent() const noexcept { return extent; }
 
-  VkFormat getFormat() const noexcept { return surfaceFormat.format; }
+  [[nodiscard]] VkFormat getImageFormat() const noexcept
+  {
+    return surfaceFormat.format;
+  }
 
   uint32_t getRenderQueueDeviceIndice() const
   {

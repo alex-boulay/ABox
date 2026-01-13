@@ -100,6 +100,8 @@ class ResourcesManager {
   VkResult
       createSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0u);
 
+  VkResult createRenderPass(uint32_t devIndex = 0u);
+
   VkResult
       reCreateSwapchain(uint32_t width, uint32_t height, uint32_t devIndex = 0);
 

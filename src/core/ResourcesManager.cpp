@@ -158,6 +158,24 @@ VkResult ResourcesManager::createSwapchain(
              : VK_ERROR_DEVICE_LOST;
 }
 
+VkResult ResourcesManager::createRenderPass(uint32_t devIndex)
+{
+  if (!deviceHandler.has_value() ||
+      !deviceHandler.value().hasDevice(devIndex)) {
+    return VK_ERROR_DEVICE_LOST;
+  }
+
+  ABox_Utils::DeviceBoundElements *dbe = deviceHandler.value().getDBE(devIndex);
+  if (!dbe || dbe->swapchains.empty()) {
+    return VK_ERROR_INITIALIZATION_FAILED;
+  }
+
+  return dbe->rpm.CreateRenderPass(
+      dbe->getDevice(),
+      dbe->swapchains.front().getImageFormat()
+  );
+}
+
 VkResult ResourcesManager::reCreateSwapchain(
     uint32_t width,
     uint32_t height,

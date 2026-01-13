@@ -12,11 +12,11 @@
 DEFINE_VK_MEMORY_WRAPPER(VkFramebuffer, Framebuffer, vkDestroyFramebuffer)
 
 class frameBufferKey {
-  const VkSwapchainKHR &swapchain;
-  const VkRenderPass   &renderpass;
+  VkSwapchainKHR swapchain;
+  VkRenderPass   renderpass;
 
    public:
-  frameBufferKey(const VkSwapchainKHR &sc, const VkRenderPass &rp)
+  frameBufferKey(VkSwapchainKHR sc, VkRenderPass rp)
       : swapchain(sc)
       , renderpass(rp)
   {
@@ -83,7 +83,7 @@ class FrameBufferBroker {
     return VK_SUCCESS;
   }
 
-  void clear(const VkSwapchainKHR &sc, const VkRenderPass &rp)
+  void clear(VkSwapchainKHR sc, VkRenderPass rp)
   {
     frameBufferKey key{sc, rp};
     if (framebuffer.contains(key)) {
@@ -91,16 +91,16 @@ class FrameBufferBroker {
     }
   }
   std::vector<FramebufferWrapper> *
-      getFrameBuffers(const VkSwapchainKHR &sc, const VkRenderPass &rp)
+      getFrameBuffers(VkSwapchainKHR sc, VkRenderPass rp)
   {
     const frameBufferKey key{sc, rp};
     return &framebuffer.at(key);
   }
 
   VkFramebuffer getFrameBuffer(
-      const VkSwapchainKHR &sc,
-      const VkRenderPass   &rp,
-      uint32_t              index
+      VkSwapchainKHR sc,
+      VkRenderPass   rp,
+      uint32_t       index
   )
   {
     return getFrameBuffers(sc, rp)->at(index);

@@ -35,6 +35,8 @@ ABoxApp::ABoxApp()
   LOG_INFO("App") << "\n -- Logical Device added --";
   rs.createSwapchain(wm.getWidth(), wm.getHeight());
   LOG_INFO("App") << "\n -- Swapchain Created --";
+  rs.createRenderPass();
+  LOG_INFO("App") << "\n -- Render Pass Created --";
   rs.addGraphicsPipeline(shaderHandler.getShaderHandlers());
   LOG_INFO("App") << "\n -- Graphics Pipeline added --";
   rs.createFramebuffers();

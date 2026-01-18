@@ -24,7 +24,10 @@ glslang-dev glslang-tools spirv-tools GLFW
 - Realy need to have a custom container for structure where memory placement
 shouldn't move but still need easy reference access whitout dereferencing but also
 need to support destruction or recration (Bloom filter + lifetime versionning ?)
-- Finish getting back behavior after FBB was added
+  - FetchList being develop for this
+  - Might need others containers like :
+    - static array malloc like on the fly
+    - circular buffer for like VkImages and Framebuffers
 
 #### Platform
 

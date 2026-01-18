@@ -9,7 +9,8 @@
  * @brief Colony-style allocator with separate bitmap and element storage
  *
  * Grows dynamically by allocating blocks of 8 * multiplier elements.
- * Bitmaps are stored separately from element blocks for better cache efficiency.
+ * Bitmaps are stored separately from element blocks for better cache
+ * efficiency.
  *
  * @tparam T The type of elements stored
  * @tparam Allocator The allocator type (default: std::allocator<T>)
@@ -26,14 +27,17 @@
  * - Fast allocation/deallocation with bitmap tracking
  * - Efficient slot reuse
  */
+
+// std::uint_fast8_t size to map
+// alloc chunking ?
 template <typename T, typename Allocator = std::allocator<T>> class FetchList {
    private:
-  uint8_t *bitmaps_;          ///< All bitmaps (multiplier bytes per block)
-  T      **blocks_;           ///< Array of element blocks
-  size_t   block_count_;      ///< Number of allocated blocks
-  size_t   block_capacity_;   ///< Capacity for blocks array
-  size_t   size_;             ///< Current number of occupied elements
-  size_t   multiplier_;       ///< Size multiplier per block
+  uint8_t *bitmaps_;            ///< All bitmaps (multiplier bytes per block)
+  T      **blocks_;             ///< Array of element blocks
+  size_t   block_count_;        ///< Number of allocated blocks
+  size_t   block_capacity_;     ///< Capacity for blocks array
+  size_t   size_;               ///< Current number of occupied elements
+  size_t   multiplier_;         ///< Size multiplier per block
   size_t   elements_per_block_; ///< 8 * multiplier
   size_t   bitmap_bytes_per_block_; ///< multiplier bytes
 

@@ -1,17 +1,8 @@
 cmake_minimum_required(VERSION 3.25)
 
 
-option(BUILD_APP "Build the executable application" OFF)
-if(NOT BUILD_APP)
-  message(STATUS "----------------------------------------------------------")
-  message(STATUS "NOTE: Building in LIBRARY mode.")
-  message(STATUS "Run 'cmake -DBUILD_APP=ON ..' to build the executable app!")
-  message(STATUS "----------------------------------------------------------")
-else()
-  message(STATUS "Building in EXECUTABLE mode.")
-endif()
+option(BUILD_APPS "Build executable applications" OFF)
 
-set(EXECUTABLE_NAME ABox)
 set(LIBRARY_NAME ABoxLib)
 
 # Cpp standards
@@ -56,21 +47,10 @@ find_package(Vulkan REQUIRED)
 find_package(SPIRV-Tools REQUIRED)
 find_package(SPIRV-Reflect REQUIRED)
 
-file(GLOB_RECURSE ALL_SOURCES CONFIGURE_DEPENDS src/*.cpp)
-file(GLOB_RECURSE ALL_HEADERS CONFIGURE_DEPENDS src/*.hpp)
+file(GLOB_RECURSE LIB_SOURCES CONFIGURE_DEPENDS src/*.cpp)
+file(GLOB_RECURSE LIB_HEADERS CONFIGURE_DEPENDS src/*.hpp)
 
-set(EXCLUDE_NAMES "main.cpp" "ABoxApp.cpp" "ABoxApp.hpp")
-
-foreach(FILE_PATH ${ALL_SOURCES} ${ALL_HEADERS})
-  get_filename_component(FILE_NAME ${FILE_PATH} NAME)
-  if(${FILE_NAME} IN_LIST EXCLUDE_NAMES)
-    list(APPEND APP_FILES ${FILE_PATH})
-  else()
-    list(APPEND LIB_FILES ${FILE_PATH})
-  endif()
-endforeach()
-
-add_library(${LIBRARY_NAME} ${LIB_FILES})
+add_library(${LIBRARY_NAME} ${LIB_SOURCES} ${LIB_HEADERS})
 target_include_directories(${LIBRARY_NAME} PUBLIC src)
 
 target_compile_definitions(
@@ -102,58 +82,36 @@ target_link_libraries(
 #  target_link_libraries(ABox PUBLIC TracyClient)
 #endif()
 
-if(BUILD_APP)
-  message(STATUS "Building in EXE mode...")
+install(TARGETS ${LIBRARY_NAME}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)
 
-  set(SHADER_DIR "${CMAKE_CURRENT_SOURCE_DIR}/shaders")
+install(DIRECTORY src/
+        DESTINATION include/ABox
+        FILES_MATCHING PATTERN "*.hpp")
 
-  add_executable(${EXECUTABLE_NAME} ${APP_FILES})
+if(BUILD_APPS)
+  message(STATUS "----------------------------------------------------------")
+  message(STATUS "Building applications (see apps/CMakeLists.txt for options)")
+  message(STATUS "----------------------------------------------------------")
+  add_subdirectory(apps)
 
-  target_include_directories(
-    ${EXECUTABLE_NAME}
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/core ${CMAKE_CURRENT_SOURCE_DIR}/src/graphics
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan ${CMAKE_CURRENT_SOURCE_DIR}/src/window
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/memory ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/pipelines
-  )
-  target_compile_definitions(
-    ${EXECUTABLE_NAME}
-    PRIVATE SPIRV_REFLECT_USE_SYSTEM_SPIRV_H
-    PRIVATE SHADER_DIR="${SHADER_DIR}"
-  )
-  target_link_libraries(${EXECUTABLE_NAME} PRIVATE ${LIBRARY_NAME})
-
-  install(TARGETS ${EXECUTABLE_NAME} RUNTIME DESTINATION bin)
   install(DIRECTORY shaders/ DESTINATION share/ABox/shaders)
   install(DIRECTORY resources/ DESTINATION share/ABox/resources)
+else()
+  message(STATUS "----------------------------------------------------------")
+  message(STATUS "Building LIBRARY only")
+  message(STATUS "Run 'cmake -DBUILD_APPS=ON ..' to build applications")
+  message(STATUS "----------------------------------------------------------")
+endif()
 
-  set_target_properties(ABox PROPERTIES INSTALL_RPATH "$VULKAN_SDK/lib")
-
-  add_custom_command(
-  TARGET ${EXECUTABLE_NAME} POST_BUILD
+add_custom_command(
+  TARGET ${LIBRARY_NAME} POST_BUILD
   COMMAND ${CMAKE_COMMAND} -E copy_if_different
           "${CMAKE_BINARY_DIR}/compile_commands.json"
           "${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json"
-  )
-else()
-  message(STATUS "Building in LIBRARY-ONLY mode...")
-
-  install(TARGETS ${LIBRARY_NAME}
-          LIBRARY DESTINATION lib
-          ARCHIVE DESTINATION lib)
-
-  install(DIRECTORY src/
-          DESTINATION include/ABox
-          FILES_MATCHING PATTERN "*.hpp")
-
-  add_custom_command(
-    TARGET ${LIBRARY_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_BINARY_DIR}/compile_commands.json"
-            "${CMAKE_CURRENT_SOURCE_DIR}/compile_commands.json"
-    COMMENT "Copying compilation database to source root for LSP support"
-  )
-endif()
+  COMMENT "Copying compilation database to source root for LSP support"
+)
 
 
 

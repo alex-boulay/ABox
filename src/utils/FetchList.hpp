@@ -28,18 +28,18 @@
  * - Efficient slot reuse
  */
 
+constexpr std::uint32_t DEFAULT_CHUNKSIZE = 16;
 // std::uint_fast8_t size to map
 // alloc chunking ?
 template <typename T, typename Allocator = std::allocator<T>> class FetchList {
    private:
-  uint8_t *bitmaps_;            ///< All bitmaps (multiplier bytes per block)
-  T      **blocks_;             ///< Array of element blocks
-  size_t   block_count_;        ///< Number of allocated blocks
-  size_t   block_capacity_;     ///< Capacity for blocks array
-  size_t   size_;               ///< Current number of occupied elements
-  size_t   multiplier_;         ///< Size multiplier per block
-  size_t   elements_per_block_; ///< 8 * multiplier
-  size_t   bitmap_bytes_per_block_; ///< multiplier bytes
+  uint8_t *bitmaps_;        ///< All bitmaps (multiplier bytes per block)
+  T      **blocks_;         ///< Array of element blocks
+  size_t   block_count_;    ///< Number of allocated blocks
+  size_t   block_capacity_; ///< size_t sizes constrained to a chunksize
+  size_t   size_;           ///< Current number of occupied elements
+  size_t   elements_per_block_;
+  size_t   multiplier_; ///< Size multiplier per block
 
    protected:
   /**
@@ -112,7 +112,6 @@ template <typename T, typename Allocator = std::allocator<T>> class FetchList {
       , size_(0)
       , multiplier_(multiplier)
       , elements_per_block_(8 * multiplier)
-      , bitmap_bytes_per_block_(multiplier)
   {
   }
 

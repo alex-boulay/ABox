@@ -1,8 +1,21 @@
 #pragma once
 
+#include <PreProcUtils.hpp>
 #include <cstdint>
 #include <cstring>
 #include <memory>
+
+/**
+ * @brief Calculate optimal multiplier for cache-aligned blocks
+ * @tparam T Element type
+ * @return Multiplier value (blocks = 8 * multiplier elements)
+ */
+template <typename T> inline constexpr size_t cache_aligned_multplier()
+{
+  constexpr size_t elements_per_cache_line = CACHE_LINE_SIZE / sizeof(T);
+  constexpr size_t multiplier              = (elements_per_cache_line + 7) / 8;
+  return multiplier > 0 ? (multiplier > 16 ? 16 : multiplier) : 1;
+}
 
 /**
  * @class FetchList
@@ -28,7 +41,6 @@
  * - Efficient slot reuse
  */
 
-constexpr std::uint32_t DEFAULT_CHUNKSIZE = 16;
 // std::uint_fast8_t size to map
 // alloc chunking ?
 template <typename T, typename Allocator = std::allocator<T>> class FetchList {
@@ -148,4 +160,6 @@ template <typename T, typename Allocator = std::allocator<T>> class FetchList {
     size_t element_idx = index % elements_per_block_;
     return blocks_[block_idx][element_idx];
   }
+
+  size_t first_slot(T element) {}
 };

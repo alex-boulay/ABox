@@ -35,8 +35,19 @@ need to support destruction or recration (Bloom filter + lifetime versionning ?)
   - mem tracking
   - performance
   - New container support (if used)
-- Tests : we should support testing in every way we can - the goal is to have a
-memory safe app so it should be behavior + leak tested in every way possible
+
+#### Testing
+
+- Unit tests for major structures (Priority 1 - Core Infrastructure):
+  - MemoryWrapper (RAII wrapper, move semantics, parent/no-parent, null handling)
+  - VersionedSlot (allocation, locking, version tracking, EOL handling)
+  - FetchList (allocation, bitmap management, slot reuse)
+- Priority 2 - Utilities:
+  - Logger system
+  - Vector utilities
+- Priority 3 - Vulkan-specific:
+  - ShaderHandler
+  - Pipeline validation
 
 ### Do I do ?
 
@@ -96,6 +107,11 @@ from different IDE
   - Replace scattered std::cout with unified logging interface
   - Add log levels (DEBUG, INFO, WARN, ERROR)
   - Optional callback system for external monitoring
+- Testing infrastructure
+  - Catch2 v3 integration via CMake
+  - Per-module test targets (utils, vulkan, graphics, etc.)
+  - BUILD_TESTS CMake option
+  - CTest integration
 
 #### Code Cleanup & Refactoring Dec25
 

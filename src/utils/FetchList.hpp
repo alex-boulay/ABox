@@ -12,7 +12,7 @@
  */
 template <typename T> inline constexpr size_t cache_aligned_multplier()
 {
-  constexpr size_t elements_per_cache_line = CACHE_LINE_SIZE / sizeof(T);
+  constexpr size_t elements_per_cache_line = ABOX_CACHE_LINE_SIZE / sizeof(T);
   constexpr size_t multiplier              = (elements_per_cache_line + 7) / 8;
   return multiplier > 0 ? (multiplier > 16 ? 16 : multiplier) : 1;
 }

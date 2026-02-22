@@ -82,11 +82,7 @@
 
 #define INFLIGHT_NUMBER_OF_ELEMENTS 2
 
-#ifdef __cpp_lib_hardware_interference_size
-inline constexpr size_t CACHE_LINE_SIZE =
-    std::hardware_destructive_interference_size;
-#else
-inline constexpr size_t CACHE_LINE_SIZE = 64; // Common size
-#endif
+// x86-64 standard cache line size (also works on most ARM architectures)
+inline constexpr size_t ABOX_CACHE_LINE_SIZE = 64;
 
 #endif

@@ -11,13 +11,13 @@ using MockHandle = void*;
 using MockDevice = void*;
 
 // Mock destruction functions
-void MockDestroySolo(MockHandle handle, const VkAllocationCallbacks* allocator) {
+void MockDestroySolo(MockHandle handle, const VkAllocationCallbacks* /*allocator*/) {
     if (handle != VK_NULL_HANDLE) {
         solo_destructor_calls++;
     }
 }
 
-void MockDestroyWithParent(MockDevice device, MockHandle handle, const VkAllocationCallbacks* allocator) {
+void MockDestroyWithParent(MockDevice device, MockHandle handle, const VkAllocationCallbacks* /*allocator*/) {
     if (handle != VK_NULL_HANDLE && device != VK_NULL_HANDLE) {
         parent_destructor_calls++;
     }

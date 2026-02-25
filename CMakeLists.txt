@@ -92,16 +92,7 @@ install(DIRECTORY src/
         FILES_MATCHING PATTERN "*.hpp")
 
 if(BUILD_TESTS)
-  enable_testing()
-  message(STATUS "----------------------------------------------------------")
-  message(STATUS "Building unit tests")
-  message(STATUS "----------------------------------------------------------")
   add_subdirectory(tests)
-else()
-  message(STATUS "----------------------------------------------------------")
-  message(STATUS "Unit tests DISABLED")
-  message(STATUS "Run 'cmake -DBUILD_TESTS=ON ..' to build tests")
-  message(STATUS "----------------------------------------------------------")
 endif()
 
 if(BUILD_APPS)

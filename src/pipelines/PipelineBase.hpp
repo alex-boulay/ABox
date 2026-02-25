@@ -32,8 +32,8 @@ class PipelineBase {
    protected:
   std::vector<VkPushConstantRange>        pushConstantRanges;
   std::vector<DescriptorSetLayoutWrapper> descriptorSetLayouts;
-  PipelineLayoutWrapper                   pipelineLayout;
   PipelineWrapper                         pipeline;
+  PipelineLayoutWrapper                   pipelineLayout;
 
   /**
    * @brief Build descriptor set layouts and push constant ranges from shader

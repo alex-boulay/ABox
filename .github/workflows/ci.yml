@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: ${{ matrix.config.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: "Debug Build with Tests"
+            build_type: Debug
+            build_tests: ON
+          - name: "Release Build with Tests"
+            build_type: Release
+            build_tests: ON
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install Vulkan SDK
+      run: |
+        wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+        sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list \
+          https://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+        sudo apt-get update
+        sudo apt-get install -y vulkan-sdk
+
+    - name: Install other dependencies
+      run: |
+        sudo apt-get install -y \
+          cmake \
+          ninja-build \
+          libglfw3-dev \
+          libxrandr-dev \
+          libxi-dev
+
+    - name: Configure CMake
+      run: |
+        cmake -B build \
+          -G Ninja \
+          -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+          -DBUILD_TESTS=${{ matrix.config.build_tests }}
+
+    - name: Build
+      run: cmake --build build --parallel
+
+    - name: Run tests
+      if: matrix.config.build_tests == 'ON'
+      run: ctest --test-dir build --output-on-failure
+
+    - name: Upload build artifacts on failure
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-logs-${{ matrix.config.name }}
+        path: |
+          build/CMakeFiles/*.log
+          build/Testing/Temporary/LastTest.log

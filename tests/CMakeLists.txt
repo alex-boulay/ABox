@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 3.25)
+message(STATUS "----------------------------------------------------------")
+message(STATUS "Building unit tests")
+message(STATUS "----------------------------------------------------------")
 
 # Fetch Catch2
 include(FetchContent)
@@ -15,7 +17,8 @@ FetchContent_MakeAvailable(Catch2)
 # Add Catch2 CMake modules to path
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 
-# Enable Catch2's CMake integration for CTest
+# Enable testing (owned by tests/)
+enable_testing()
 include(CTest)
 include(Catch)
 
@@ -37,9 +40,10 @@ foreach(SUBDIR ${TEST_SUBDIRS})
   endif()
 endforeach()
 
-# Global target to run all tests
-add_custom_target(run_all_tests
+# Custom target to build and run all tests
+add_custom_target(test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   COMMENT "Running all unit tests"
+  USES_TERMINAL
 )

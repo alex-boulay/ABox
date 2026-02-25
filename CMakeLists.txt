@@ -92,6 +92,7 @@ install(DIRECTORY src/
         FILES_MATCHING PATTERN "*.hpp")
 
 if(BUILD_TESTS)
+  enable_testing()
   add_subdirectory(tests)
 endif()
 

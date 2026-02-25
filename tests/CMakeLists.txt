@@ -2,6 +2,16 @@ message(STATUS "----------------------------------------------------------")
 message(STATUS "Building unit tests")
 message(STATUS "----------------------------------------------------------")
 
+# Code coverage support (optional)
+option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
+
+if(ENABLE_COVERAGE)
+  message(STATUS "Code coverage ENABLED")
+  # Apply coverage flags to the library
+  target_compile_options(${LIBRARY_NAME} PUBLIC --coverage)
+  target_link_options(${LIBRARY_NAME} PUBLIC --coverage)
+endif()
+
 # Fetch Catch2
 include(FetchContent)
 
@@ -47,3 +57,26 @@ add_custom_target(test-all
   COMMENT "Running all unit tests"
   USES_TERMINAL
 )
+
+# Coverage report generation target
+if(ENABLE_COVERAGE)
+  find_program(LCOV_PATH lcov)
+  find_program(GENHTML_PATH genhtml)
+
+  if(LCOV_PATH AND GENHTML_PATH)
+    set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+    add_custom_target(coverage
+      COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
+      COMMAND ${LCOV_PATH} --capture --directory ${CMAKE_BINARY_DIR} --output-file coverage.info --rc branch_coverage=1 --ignore-errors inconsistent
+      COMMAND ${LCOV_PATH} --extract coverage.info "${SRC_DIR}/*" --output-file coverage_filtered.info --rc branch_coverage=1 --ignore-errors inconsistent,unused
+      COMMAND ${GENHTML_PATH} coverage_filtered.info --output-directory coverage-report --title "ABox Coverage" --rc branch_coverage=1 --ignore-errors inconsistent
+      COMMAND ${LCOV_PATH} --summary coverage_filtered.info
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      COMMENT "Generating code coverage report"
+      VERBATIM
+    )
+    message(STATUS "Coverage target available: 'cmake --build build -t coverage'")
+  else()
+    message(WARNING "lcov/genhtml not found - coverage target disabled")
+  endif()
+endif()

@@ -24,6 +24,8 @@ target_compile_definitions(
 
 target_link_libraries(ABox PRIVATE ABoxLib)
 
-set_target_properties(ABox PROPERTIES INSTALL_RPATH "$VULKAN_SDK/lib")
+set_target_properties(ABox PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}
+)
 
 install(TARGETS ABox RUNTIME DESTINATION bin)

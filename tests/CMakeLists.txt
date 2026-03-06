@@ -19,10 +19,15 @@ FetchContent_Declare(
   Catch2
   GIT_REPOSITORY https://github.com/catchorg/Catch2.git
   GIT_TAG v3.5.2
-  GIT_SHALLOW TRUE
-)
+  GIT_SHALLOW TRUE)
 
 FetchContent_MakeAvailable(Catch2)
+
+# Apply coverage flags to all test targets (after Catch2 is fetched)
+if(ENABLE_COVERAGE)
+  add_compile_options(--coverage)
+  add_link_options(--coverage)
+endif()
 
 # Add Catch2 CMake modules to path
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
@@ -34,14 +39,13 @@ include(Catch)
 
 # List of test subdirectories (matching src/ structure)
 set(TEST_SUBDIRS
-  utils
-  vulkan
-  graphics
-  window
-  memory
-  core
-  pipelines
-)
+    utils
+    vulkan
+    graphics
+    window
+    memory
+    core
+    pipelines)
 
 # Add subdirectories that exist
 foreach(SUBDIR ${TEST_SUBDIRS})
@@ -51,32 +55,27 @@ foreach(SUBDIR ${TEST_SUBDIRS})
 endforeach()
 
 # Custom target to build and run all tests
-add_custom_target(test-all
+add_custom_target(
+  test-all
   COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
   COMMENT "Running all unit tests"
-  USES_TERMINAL
-)
+  USES_TERMINAL)
 
-# Coverage report generation target
 if(ENABLE_COVERAGE)
-  find_program(LCOV_PATH lcov)
-  find_program(GENHTML_PATH genhtml)
-
-  if(LCOV_PATH AND GENHTML_PATH)
-    set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-    add_custom_target(coverage
+  find_program(GCOVR_PATH gcovr)
+  if(GCOVR_PATH)
+    add_custom_target(
+      coverage
       COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-      COMMAND ${LCOV_PATH} --capture --directory ${CMAKE_BINARY_DIR} --output-file coverage.info --rc branch_coverage=1 --ignore-errors inconsistent
-      COMMAND ${LCOV_PATH} --extract coverage.info "${SRC_DIR}/*" --output-file coverage_filtered.info --rc branch_coverage=1 --ignore-errors inconsistent,unused
-      COMMAND ${GENHTML_PATH} coverage_filtered.info --output-directory coverage-report --title "ABox Coverage" --rc branch_coverage=1 --ignore-errors inconsistent
-      COMMAND ${LCOV_PATH} --summary coverage_filtered.info
+      COMMAND ${CMAKE_COMMAND} -E make_directory coverage-report
+      COMMAND ${GCOVR_PATH} --root ${CMAKE_SOURCE_DIR}
+              --filter */src/
+              --html-details coverage-report/index.html
+              --print-summary
+              ${CMAKE_BINARY_DIR}
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMENT "Generating code coverage report"
-      VERBATIM
-    )
-    message(STATUS "Coverage target available: 'cmake --build build -t coverage'")
-  else()
-    message(WARNING "lcov/genhtml not found - coverage target disabled")
+      COMMENT "Generating coverage report"
+      VERBATIM)
   endif()
 endif()

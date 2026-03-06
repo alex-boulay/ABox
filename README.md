@@ -1,131 +1,126 @@
 # ABox
 
-## Vulkan setup for calculation and processing data
-  
-Main goal is to create an easy loader for shaders and configuration for ressour
-ces allocations inside a Vulkan appcode base : C++ 20 - Vulkan C API
+A modern Vulkan-based rendering engine written in C++20, focused on automatic resource management, custom memory allocators, and lock-free data structures.
 
-### Include libs
+## Features
 
-glslang-dev glslang-tools spirv-tools GLFW
+### Core Infrastructure
+- **MemoryWrapper**: RAII-based automatic Vulkan resource management with parent-child relationships
+- **ResourcesManager**: Centralized Vulkan resource lifecycle management
+- **DeviceHandler**: Automatic device and physical device management with extension handling
 
-### TODO
+### Rendering Pipeline
+- **PipelineManager**: Unified management of Graphics, Compute, and RayTracing pipelines
+- **SPIRV-Reflect Integration**: Automatic descriptor set layout generation and shader reflection
+- **ShaderHandler**: Automatic GLSL to SPIR-V compilation and shader module management
+- **SwapchainManager**: Swapchain creation with automatic recreation on window resize
+- **FrameBufferBroker**: Framebuffer lifecycle management
 
-#### Architecture
+### Utilities
+- **VersionedSlot**: Lock-free versioned slot management with futex-based synchronization
+- **FetchList**: Colony-style allocator with stable pointers and version tracking
+- **Logger**: Category-based logging system with configurable levels
+- **Cross-platform futex abstraction**: Platform-independent synchronization primitives
 
-- Make visual documentation
-  - Plan of how all is interacting
-- Make textual documentation
-  - Text example on how to use it and load different contexts
+### Testing
+- Catch2 v3 integration with CTest
+- Comprehensive test suites for MemoryWrapper and VersionedSlot
+- Per-module test targets with BUILD_TESTS CMake option
 
-#### Development
+## Requirements
 
-- QueueFamilies optimisations (maxload)
-- Realy need to have a custom container for structure where memory placement
-shouldn't move but still need easy reference access whitout dereferencing but also
-need to support destruction or recration (Bloom filter + lifetime versionning ?)
-  - FetchList being develop for this
-  - Might need others containers like :
-    - static array malloc like on the fly
-    - circular buffer for like VkImages and Framebuffers
+### System Dependencies
+- **Vulkan SDK**: Latest version from LunarG
+- **GLFW**: Window management and input
+- **glslang**: GLSL to SPIR-V compilation
+- **SPIRV-Tools**: SPIR-V validation and optimization
 
-#### Platform
+### Build Tools
+- CMake 3.15+
+- C++20 compatible compiler (GCC 11+, Clang 14+)
+- Ninja (recommended) or Make
 
-- load tracy :
-  - mem tracking
-  - performance
-  - New container support (if used)
+## Building
 
-#### Testing
+```bash
+# Clone the repository
+git clone https://github.com/alex-boulay/ABox.git
+cd ABox
 
-- Unit tests for major structures (Priority 1 - Core Infrastructure):
-  - MemoryWrapper (RAII wrapper, move semantics, parent/no-parent, null handling)
-  - VersionedSlot (allocation, locking, version tracking, EOL handling)
-  - FetchList (allocation, bitmap management, slot reuse)
-- Priority 2 - Utilities:
-  - Logger system
-  - Vector utilities
-- Priority 3 - Vulkan-specific:
-  - ShaderHandler
-  - Pipeline validation
+# Configure
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
 
-### Do I do ?
+# Build
+cmake --build build --parallel
 
-- VMA ?
-- Custom Memmory allocators overloaded with tracy for CPU too ?
-- Make a config file ? - Handle external compilation ?
-- Make everything pickable from a menu ? then save it into a config xml/json ?
+# Optional: Build with tests
+cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
+cmake --build build --parallel
 
-#### Yes
+# Run tests
+ctest --test-dir build --output-on-failure
+```
 
-#### No
+## Project Structure
 
-- inlude ImGui loading interface ? - No just a lib with execution possibilities
+```
+ABox/
+├── apps/           # Application executables
+├── src/            # Library source code
+│   ├── core/       # Core resource management
+│   ├── graphics/   # Graphics-specific components
+│   ├── memory/     # Memory management utilities
+│   ├── pipelines/  # Pipeline implementations
+│   ├── platform/   # Platform-specific code
+│   ├── utils/      # Utility containers and helpers
+│   ├── vulkan/     # Vulkan abstraction layer
+│   └── window/     # Window management
+└── tests/          # Test suites
+    └── utils/      # Utility tests
+```
 
-### Done
+## Roadmap
 
-- Automanage Malloc/Free Vulkan Structure dependencies
-- tracy part of the makefile (might have to change the download to local
-archive for stability and offline purposes)
-- VkShader Loading and binding
-- ResourcesManager Instance Loading
-- Device Manager
-- GraphicsPipeline
-- Swapchain
-  - Swapchain recreation
-- Shader ressources handling
-  - need to manage/free them
-- Wrapper extra behavior
-  - Notion of parent -> (device only atm need a template : Device/Instance)
-  - Self Destruction call
-  - Specific lambda destructions catch with parents callbacks
-- AutoLoad/Manage DebugHandler
-- CommandPools/ Buffers
-- Queues
-- ResourcesManager
-  - WaitIdle on all devices
-- Add clang-format file to avoid code moving around when commiting
-from different IDE
-- Compute Pipelines
-  - Deploy ComputePipeline class
-  - Make them able to coexist alongside GraphicsPipeline via PipelineManager
-- PipelineManager
-  - Unified management of Graphics, Compute, and RayTracing pipelines
-  - Variant-based heterogeneous storage without heap allocation
-  - C++20 ranges support for shader loading
-- Debugging Levels
-  - Global one
-  - Per Frame activate/deactivate
-- PipelineManager improvements
-  - Add pipeline naming/retrieval system validation
-  - Support for multiple graphics pipelines (materials, post-processing)
-- SPIRV-Reflect integration
-  - Automatic descriptor set layout generation (partially done in PipelineBase)
-  - Push constant reflection
-  - Validation of shader interface compatibility
-- Logging system
-  - Replace scattered std::cout with unified logging interface
-  - Add log levels (DEBUG, INFO, WARN, ERROR)
-  - Optional callback system for external monitoring
-- Testing infrastructure
-  - Catch2 v3 integration via CMake
-  - Per-module test targets (utils, vulkan, graphics, etc.)
-  - BUILD_TESTS CMake option
-  - CTest integration
+### In Progress
+- **FetchList**: Complete integration with VersionedSlot for production use
+- **Testing**: Expand test coverage to Logger and Vulkan components
 
-#### Code Cleanup & Refactoring Dec25
+### Planned
+- **Documentation**: Architecture diagrams and API documentation
+- **Performance**: Tracy profiler integration for memory and performance tracking
+- **Optimization**: Queue family load balancing
+- **Containers**: Additional specialized containers (circular buffers, static arrays)
 
-- Logging system (will address debug output issues)
-  - Replace scattered std::cout with unified logging interface
-  - Add log levels (DEBUG, INFO, WARN, ERROR)
-  - Optional callback system for external monitoring
-- Error handling improvements
-  - Add VkResult checking to CommandsHandler Vulkan calls (vkCreateCommandPool,
-  vkAllocateCommandBuffers, vkBeginCommandBuffer)
-  - Verify swapchain recreation behavior without pipeline
-- Dead code removal
-  - Remove unused DeviceHandler::loadShader() method
-  - Remove unused loadedShaders map in DeviceBoundElements
-  - Remove commented graphicsppl code in DeviceHandler.hpp
-- Clean up unnecessary includes
-  - Review header dependencies (e.g., GraphicsPipeline.hpp in DeviceHandler.hpp)
+### Under Consideration
+- Vulkan Memory Allocator (VMA) integration
+- Custom CPU memory allocators with Tracy integration
+- Configuration file system for runtime settings
+
+## Design Philosophy
+
+ABox is designed around several key principles:
+
+1. **Memory Safety**: RAII wrappers ensure proper resource cleanup and prevent leaks
+2. **Stable Pointers**: Custom allocators (FetchList) provide stable memory addresses
+3. **Version Tracking**: VersionedSlot enables safe resource reuse with ABA problem prevention
+4. **Lock-Free Operations**: Futex-based synchronization for high-performance concurrent access
+5. **Zero-Cost Abstractions**: C++20 features for performance without runtime overhead
+
+## Documentation
+
+- [CHANGELOG.md](CHANGELOG.md) - Detailed version history
+- API Documentation: Coming soon
+
+## License
+
+[Specify your license here]
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit issues or pull requests.
+
+## Acknowledgments
+
+- Built with Vulkan API
+- Testing with Catch2
+- Shader reflection using SPIRV-Reflect

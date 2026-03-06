@@ -6,3 +6,6 @@ compile_commands.json
 *.spv
 vkvia.html
 docs
+
+# Notes and improvement ideas
+.github_improvement_ideas.md

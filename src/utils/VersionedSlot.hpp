@@ -1,87 +1,26 @@
 #ifndef VERSIONNED_SLOT_HPP
 #define VERSIONNED_SLOT_HPP
 
+#include <platform/futex.hpp>
 #include <atomic>
 #include <cstdint>
 #include <type_traits>
 #include <utility>
 
-#ifdef __linux__
-  #include <linux/futex.h>
-  #include <sys/syscall.h>
-  #include <unistd.h>
-
-inline int futex_wait(void *addr, uint32_t expected)
-{
-  return syscall(
-      SYS_futex,
-      addr,
-      FUTEX_WAIT_PRIVATE,
-      expected,
-      nullptr,
-      nullptr,
-      0
-  );
-}
-
-inline int futex_wake(void *addr, int num_wake)
-{
-  return syscall(
-      SYS_futex,
-      addr,
-      FUTEX_WAKE_PRIVATE,
-      num_wake,
-      nullptr,
-      nullptr,
-      0
-  );
-}
-#else
-template <typename T>
-inline int futex_wait(void *addr, uint32_t expected)
-{
-  while (static_cast<std::atomic<T> *>(addr)->load(std::memory_order_relaxed) ==
-         static_cast<T>(expected)) {
-  #ifdef __x86_64__
-    __builtin_ia32_pause();
-  #endif
-  }
-  return 0;
-}
-
-inline int futex_wake(void *addr, int num_wake)
-{
-  (void)addr;
-  (void)num_wake;
-  return 0;
-}
-#endif
-
-/**
- * @brief Concept for valid versioned slot storage types
- */
-template <typename T>
-concept UIntWord = std::is_unsigned_v<T> &&
-                   (sizeof(T) == 1 || sizeof(T) == 2 ||
-                    sizeof(T) == 4 || sizeof(T) == 8);
-
 /**
  * @brief Versioned resource slot with lock state
  *
- * Layout: [version:N-2][state:2]
- * - Upper N-2 bits: Version counter
+ * Uses uint32_t for optimal futex support and sufficient version capacity.
+ *
+ * Layout: [version:30][state:2]
+ * - Upper 30 bits: Version counter (1,073,741,824 max versions)
  * - Lower 2 bits: State (FREE/UNLOCKED/LOCKED/CONTESTED)
  *
- * Size-based version limits:
- * - uint8_t:  6-bit version (64 max)
- * - uint16_t: 14-bit version (16,384 max)
- * - uint32_t: 30-bit version (1,073,741,824 max)
- * - uint64_t: 62-bit version (4,611,686,018,427,387,904 max)
- *
- * @tparam UWord Storage type (uint8_t, uint16_t, uint32_t, uint64_t)
+ * Storage: 4 bytes per slot
  */
-template <UIntWord UWord = uint16_t>
 class VersionedSlot {
+   public:
+  using UWord = uint32_t;
    public:
   // State values (2 bits)
   static constexpr UWord FREE      = 0b00;
@@ -219,7 +158,7 @@ class VersionedSlot {
             std::memory_order_relaxed
         )) {
       // Wake all waiters (version changed)
-      futex_wake(&word_, INT32_MAX);
+      abox::platform::futex_wake(&word_, INT32_MAX);
       return true;
     }
 
@@ -271,7 +210,7 @@ class VersionedSlot {
       }
 
       // Wait for state or version change
-      futex_wait(&word_, static_cast<uint32_t>(current));
+      abox::platform::futex_wait(&word_, static_cast<uint32_t>(current));
     }
   }
 
@@ -325,9 +264,9 @@ class VersionedSlot {
                 std::memory_order_release,
                 std::memory_order_relaxed
             )) {
-          // Wake waiters if contested
+          // Wake all waiters if contested
           if (st == CONTESTED) {
-            futex_wake(&word_, 1);
+            abox::platform::futex_wake(&word_, INT32_MAX);
           }
           return true;
         }
@@ -364,16 +303,10 @@ class VersionedSlot {
     UWord ver = version();
     return DiagInfo{ver,
                     state(),
-                    ver < MAX_VERSION ? MAX_VERSION - ver : 0,
+                    static_cast<UWord>(ver < MAX_VERSION ? MAX_VERSION - ver : 0),
                     ver >= MAX_VERSION,
                     ver >= EOL_WARNING_THRESHOLD};
   }
 };
-
-// Common type aliases
-using VersionedSlot8  = VersionedSlot<uint8_t>;  // 6-bit version (64 max)
-using VersionedSlot16 = VersionedSlot<uint16_t>; // 14-bit version (16K max)
-using VersionedSlot32 = VersionedSlot<uint32_t>; // 30-bit version (1B max)
-using VersionedSlot64 = VersionedSlot<uint64_t>; // 62-bit version (quintillions)
 
 #endif

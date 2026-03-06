@@ -51,6 +51,9 @@ find_package(SPIRV-Reflect REQUIRED)
 file(GLOB_RECURSE LIB_SOURCES CONFIGURE_DEPENDS src/*.cpp)
 file(GLOB_RECURSE LIB_HEADERS CONFIGURE_DEPENDS src/*.hpp)
 
+# Add platform abstraction library
+add_subdirectory(platform)
+
 add_library(${LIBRARY_NAME} ${LIB_SOURCES} ${LIB_HEADERS})
 target_include_directories(${LIBRARY_NAME} PUBLIC src)
 
@@ -64,7 +67,7 @@ target_include_directories(
   PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/core ${CMAKE_CURRENT_SOURCE_DIR}/src/graphics
           ${CMAKE_CURRENT_SOURCE_DIR}/src/vulkan ${CMAKE_CURRENT_SOURCE_DIR}/src/window
           ${CMAKE_CURRENT_SOURCE_DIR}/src/memory ${CMAKE_CURRENT_SOURCE_DIR}/src/utils
-          ${CMAKE_CURRENT_SOURCE_DIR}/src/pipelines)
+          ${CMAKE_CURRENT_SOURCE_DIR}/src/pipelines ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_link_libraries(
   ${LIBRARY_NAME}
@@ -77,7 +80,8 @@ target_link_libraries(
          pthread
          Xrandr
          Xi
-         glslang-default-resource-limits)
+         glslang-default-resource-limits
+         ABoxPlatform)
 
 #if(CMAKE_BUILD_TYPE MATCHES Debug)
 #  target_link_libraries(ABox PUBLIC TracyClient)

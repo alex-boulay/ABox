@@ -1,6 +1,7 @@
 # Utils tests
 set(UTILS_TEST_SOURCES
     test_versioned_slot.cpp
+    test_fetch_list.cpp
 )
 
 # Create test executable

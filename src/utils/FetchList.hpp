@@ -85,8 +85,8 @@ class FetchList {
   size_t   block_count_;    ///< Number of allocated blocks
   size_t   block_capacity_; ///< size_t sizes constrained to a chunksize
   size_t   size_;           ///< Current number of occupied elements
-  size_t   elements_per_block_;
   size_t   multiplier_; ///< Size multiplier per block
+  size_t   elements_per_block_;
 
    protected:
   /**

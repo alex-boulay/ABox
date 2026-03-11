@@ -2,6 +2,7 @@
 #define DEVICE_HANDLER_HPP
 
 #include "CommandsHandler.hpp"
+#include "FetchList.hpp"
 #include "FrameBufferBroker.hpp"
 #include "Logger.hpp"
 #include "PipelineManager.hpp"
@@ -15,6 +16,7 @@
 #include <set>
 #include <sstream>
 #include <stdexcept>
+#include <unordered_map>
 #include <vector>
 #include <vulkan/vulkan_core.h>
 
@@ -106,9 +108,11 @@ class DeviceBoundElements {
  * @brief Handle specifics to logical devices and their different bindings
  */
 class DeviceHandler {
-  std::vector<VkPhysicalDevice>                phyDevices;
-  std::list<DeviceBoundElements>               devices;
-  std::map<std::string, DeviceBoundElements *> deviceNames;
+  using DeviceHandle = FetchList<DeviceBoundElements>::Handle;
+
+  std::vector<VkPhysicalDevice>                 phyDevices;
+  FetchList<DeviceBoundElements>                devices;
+  std::unordered_map<std::string, DeviceHandle> deviceNames;
 
   std::set<uint32_t> getQueueFamilyIndices(
       QueueFamilyIndices fi
@@ -157,10 +161,15 @@ class DeviceHandler {
   DeviceHandler(VkInstance instance);
 
   DeviceBoundElements *getDBE(uint32_t index);
-  DeviceBoundElements *getDBE(std::string name);
+  DeviceBoundElements *getDBE(const std::string &name);
+  DeviceHandle         getDeviceHandle(uint32_t index);
+  DeviceHandle         getDeviceHandle(const std::string &name);
   VkDevice             getDevice(uint32_t index);
 
-  inline bool hasDevice(uint32_t index) const { return index < devices.size(); }
+  inline bool hasDevice(uint32_t index) const
+  {
+    return index < devices.size() && devices.capacity() > index;
+  }
 
   // DeviceBoundElements getBoundElements(uint_fast16_t devIndex) const;
   VkResult addSwapchain(

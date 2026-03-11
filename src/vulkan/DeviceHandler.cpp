@@ -303,37 +303,48 @@ VkResult DeviceHandler::addLogicalDevice(
   VkDevice dev;
   VkResult res = vkCreateDevice(phydev, &devInfo, nullptr, &dev);
 
+  DeviceHandle handle{};  // Declare outside the if block
+
   if (res == VK_SUCCESS) {
     LOG_INFO("Device") << "Logical Device Assignment success!";
-    devices.emplace_back(dev, phydev, fIndices);
+    handle = devices.emplace(dev, phydev, fIndices);
     if (deviceNames.contains(name)) {
-      LOG_WARN("Device") << "Overlapping device name: " << name << " - Device: "
-                         << (void *)deviceNames.at(name)->getDevice()
-                         << " Might not have been freed";
+      DeviceHandle existingHandle = deviceNames.at(name);
+      if (devices.contains(existingHandle)) {
+        LOG_WARN("Device") << "Overlapping device name: " << name << " - Device: "
+                           << (void *)devices.at(existingHandle).getDevice()
+                           << " Might not have been freed";
+      }
     }
-    deviceNames[name] = &devices.back();
+    deviceNames[name] = handle;
+
+    LOG_DEBUG("Device") << "fIndices size: " << fIndices.size();
+    for (const auto &[key, value] : fIndices) {
+      LOG_DEBUG("Device") << "key " << static_cast<int>(key) << " val " << value;
+    }
+
+    // Get the newly created device and configure queues
+    DeviceBoundElements *newDevice = devices.get(handle);
+    if (newDevice) {
+      vkGetDeviceQueue(
+          dev,
+          fIndices.at(QueueRole::Graphics),
+          0,
+          &newDevice->graphicsQueue
+      );
+
+      vkGetDeviceQueue(
+          dev,
+          fIndices.at(QueueRole::Present),
+          0u,
+          &newDevice->presentQueue
+      );
+    }
   }
   else {
     LOG_ERROR("Device") << "Logical Device Assignment Failure, Result Code: "
                         << res;
   }
-  LOG_DEBUG("Device") << "fIndices size: " << fIndices.size();
-  for (const auto &[key, value] : fIndices) {
-    LOG_DEBUG("Device") << "key " << static_cast<int>(key) << " val " << value;
-  }
-  vkGetDeviceQueue(
-      dev,
-      fIndices.at(QueueRole::Graphics),
-      0,
-      &devices.back().graphicsQueue
-  );
-
-  vkGetDeviceQueue(
-      dev,
-      fIndices.at(QueueRole::Present),
-      0u,
-      &(devices.back().presentQueue)
-  );
 
   return res;
 } // namespace ABox_Utils
@@ -401,18 +412,24 @@ VkResult DeviceHandler::addLogicalDevice(VkSurfaceKHR surface)
 
 DeviceBoundElements *DeviceHandler::getDBE(uint32_t index)
 {
-  if (index >= devices.size()) {
-    return nullptr;
-  }
-
-  auto it = devices.begin();
-  std::advance(it, index);
-  return &(*it);
+  DeviceHandle handle = getDeviceHandle(index);
+  return devices.get(handle);
 }
 
-DeviceBoundElements *DeviceHandler::getDBE(std::string name)
+DeviceBoundElements *DeviceHandler::getDBE(const std::string &name)
 {
-  return deviceNames.contains(name) ? deviceNames.at(name) : nullptr;
+  DeviceHandle handle = getDeviceHandle(name);
+  return devices.get(handle);
+}
+
+DeviceHandler::DeviceHandle DeviceHandler::getDeviceHandle(uint32_t index)
+{
+  return devices.getHandleByIndex(index);
+}
+
+DeviceHandler::DeviceHandle DeviceHandler::getDeviceHandle(const std::string &name)
+{
+  return deviceNames.contains(name) ? deviceNames.at(name) : DeviceHandle{};
 }
 
 VkDevice DeviceHandler::getDevice(uint32_t index)

@@ -2,9 +2,7 @@ message(STATUS "----------------------------------------------------------")
 message(STATUS "Building unit tests")
 message(STATUS "----------------------------------------------------------")
 
-# Code coverage support (optional)
-option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
-
+# Code coverage support (configured from root CMakeLists.txt)
 if(ENABLE_COVERAGE)
   message(STATUS "Code coverage ENABLED")
   # Apply coverage flags to the library
@@ -62,20 +60,4 @@ add_custom_target(
   COMMENT "Running all unit tests"
   USES_TERMINAL)
 
-if(ENABLE_COVERAGE)
-  find_program(GCOVR_PATH gcovr)
-  if(GCOVR_PATH)
-    add_custom_target(
-      coverage
-      COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
-      COMMAND ${CMAKE_COMMAND} -E make_directory coverage-report
-      COMMAND ${GCOVR_PATH} --root ${CMAKE_SOURCE_DIR}
-              --filter */src/
-              --html-details coverage-report/index.html
-              --print-summary
-              ${CMAKE_BINARY_DIR}
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      COMMENT "Generating coverage report"
-      VERBATIM)
-  endif()
-endif()
+# Coverage target is defined in root CMakeLists.txt

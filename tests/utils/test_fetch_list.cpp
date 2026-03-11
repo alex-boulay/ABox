@@ -560,3 +560,280 @@ TEST_CASE("FetchList: Edge cases", "[utils][fetch_list]") {
         REQUIRE(list.empty());
     }
 }
+
+TEST_CASE("FetchList: at() method", "[utils][fetch_list]") {
+    SECTION("at() returns reference to element") {
+        FetchList<int> list;
+
+        auto handle = list.emplace(42);
+        int& value = list.at(handle);
+
+        REQUIRE(value == 42);
+
+        // Modify through reference
+        value = 99;
+        REQUIRE(*list.get(handle) == 99);
+    }
+
+    SECTION("at() throws on invalid handle") {
+        FetchList<int> list;
+
+        FetchList<int>::Handle invalid_handle;
+
+        REQUIRE_THROWS_AS(list.at(invalid_handle), std::out_of_range);
+    }
+
+    SECTION("at() throws on stale handle") {
+        FetchList<int> list;
+
+        auto handle = list.emplace(42);
+        list.erase(handle);
+
+        REQUIRE_THROWS_AS(list.at(handle), std::out_of_range);
+    }
+
+    SECTION("const at() works") {
+        FetchList<int> list;
+        auto handle = list.emplace(42);
+
+        const FetchList<int>& const_list = list;
+        const int& value = const_list.at(handle);
+
+        REQUIRE(value == 42);
+    }
+}
+
+TEST_CASE("FetchList: contains() method", "[utils][fetch_list]") {
+    SECTION("contains() returns true for valid handle") {
+        FetchList<int> list;
+
+        auto handle = list.emplace(42);
+
+        REQUIRE(list.contains(handle));
+    }
+
+    SECTION("contains() returns false for invalid handle") {
+        FetchList<int> list;
+
+        FetchList<int>::Handle invalid_handle;
+
+        REQUIRE_FALSE(list.contains(invalid_handle));
+    }
+
+    SECTION("contains() returns false after erase") {
+        FetchList<int> list;
+
+        auto handle = list.emplace(42);
+        list.erase(handle);
+
+        REQUIRE_FALSE(list.contains(handle));
+    }
+
+    SECTION("contains() returns false for stale handle") {
+        FetchList<int> list;
+
+        auto h1 = list.emplace(1);
+        list.erase(h1);
+        auto h2 = list.emplace(2);  // Reuses slot
+
+        REQUIRE_FALSE(list.contains(h1));
+        REQUIRE(list.contains(h2));
+    }
+}
+
+TEST_CASE("FetchList: getHandleByIndex() method", "[utils][fetch_list]") {
+    SECTION("getHandleByIndex returns handle to nth element") {
+        FetchList<int> list;
+
+        auto h1 = list.emplace(10);
+        auto h2 = list.emplace(20);
+        auto h3 = list.emplace(30);
+
+        auto handle0 = list.getHandleByIndex(0);
+        auto handle1 = list.getHandleByIndex(1);
+        auto handle2 = list.getHandleByIndex(2);
+
+        REQUIRE(handle0 == h1);
+        REQUIRE(handle1 == h2);
+        REQUIRE(handle2 == h3);
+    }
+
+    SECTION("getHandleByIndex returns invalid handle for out of range") {
+        FetchList<int> list;
+
+        list.emplace(10);
+        list.emplace(20);
+
+        auto invalid = list.getHandleByIndex(5);
+
+        REQUIRE_FALSE(invalid.isValid());
+    }
+
+    SECTION("getHandleByIndex skips erased elements") {
+        FetchList<int> list;
+
+        auto h1 = list.emplace(10);
+        auto h2 = list.emplace(20);
+        auto h3 = list.emplace(30);
+
+        list.erase(h2);  // Erase middle element
+
+        // Now we have 2 valid elements: h1 and h3
+        auto handle0 = list.getHandleByIndex(0);
+        auto handle1 = list.getHandleByIndex(1);
+
+        REQUIRE(handle0 == h1);
+        REQUIRE(handle1 == h3);
+        REQUIRE(*list.get(handle0) == 10);
+        REQUIRE(*list.get(handle1) == 30);
+    }
+
+    SECTION("getHandleByIndex works with sparse list") {
+        FetchList<int> list;
+
+        [[maybe_unused]] auto h1 = list.emplace(1);
+        auto h2 = list.emplace(2);
+        [[maybe_unused]] auto h3 = list.emplace(3);
+        auto h4 = list.emplace(4);
+        [[maybe_unused]] auto h5 = list.emplace(5);
+
+        // Erase some elements
+        list.erase(h2);
+        list.erase(h4);
+
+        // Valid elements: h1(1), h3(3), h5(5)
+        REQUIRE(*list.get(list.getHandleByIndex(0)) == 1);
+        REQUIRE(*list.get(list.getHandleByIndex(1)) == 3);
+        REQUIRE(*list.get(list.getHandleByIndex(2)) == 5);
+    }
+}
+
+TEST_CASE("FetchList: Iterator support", "[utils][fetch_list]") {
+    SECTION("Range-based for loop over elements") {
+        FetchList<int> list;
+
+        list.emplace(1);
+        list.emplace(2);
+        list.emplace(3);
+
+        int sum = 0;
+        for (auto& value : list) {
+            sum += value;
+        }
+
+        REQUIRE(sum == 6);
+    }
+
+    SECTION("Iterator skips erased elements") {
+        FetchList<int> list;
+
+        [[maybe_unused]] auto h1 = list.emplace(10);
+        auto h2 = list.emplace(20);
+        [[maybe_unused]] auto h3 = list.emplace(30);
+
+        list.erase(h2);
+
+        std::vector<int> values;
+        for (const auto& value : list) {
+            values.push_back(value);
+        }
+
+        REQUIRE(values.size() == 2);
+        REQUIRE(values[0] == 10);
+        REQUIRE(values[1] == 30);
+    }
+
+    SECTION("Iterator works with empty list") {
+        FetchList<int> list;
+
+        int count = 0;
+        for ([[maybe_unused]] const auto& value : list) {
+            count++;
+        }
+
+        REQUIRE(count == 0);
+    }
+
+    SECTION("Const iterator works") {
+        FetchList<int> list;
+
+        list.emplace(1);
+        list.emplace(2);
+
+        const FetchList<int>& const_list = list;
+
+        int sum = 0;
+        for (const auto& value : const_list) {
+            sum += value;
+        }
+
+        REQUIRE(sum == 3);
+    }
+
+    SECTION("Modify elements through iterator") {
+        FetchList<int> list;
+
+        list.emplace(1);
+        list.emplace(2);
+        list.emplace(3);
+
+        // Multiply all by 2
+        for (auto& value : list) {
+            value *= 2;
+        }
+
+        std::vector<int> values;
+        for (const auto& value : list) {
+            values.push_back(value);
+        }
+
+        REQUIRE(values[0] == 2);
+        REQUIRE(values[1] == 4);
+        REQUIRE(values[2] == 6);
+    }
+
+    SECTION("Iterator with complex object") {
+        FetchList<TestObject> list;
+
+        list.emplace(1, "one");
+        list.emplace(2, "two");
+        list.emplace(3, "three");
+
+        int value_sum = 0;
+        for (const auto& obj : list) {
+            value_sum += obj.value;
+        }
+
+        REQUIRE(value_sum == 6);
+    }
+
+    SECTION("begin() and end() work correctly") {
+        FetchList<int> list;
+
+        list.emplace(10);
+        list.emplace(20);
+
+        auto it = list.begin();
+        REQUIRE(*it == 10);
+
+        ++it;
+        REQUIRE(*it == 20);
+
+        ++it;
+        REQUIRE(it == list.end());
+    }
+
+    SECTION("cbegin() and cend() work") {
+        FetchList<int> list;
+
+        list.emplace(5);
+        list.emplace(10);
+
+        int sum = 0;
+        for (auto it = list.cbegin(); it != list.cend(); ++it) {
+            sum += *it;
+        }
+
+        REQUIRE(sum == 15);
+    }
+}

@@ -98,6 +98,45 @@ install(DIRECTORY src/
 if(BUILD_TESTS)
   enable_testing()
   add_subdirectory(tests)
+
+  # Coverage target (if enabled)
+  option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
+  if(ENABLE_COVERAGE)
+    find_program(GCOVR_PATH gcovr REQUIRED)
+
+    add_custom_target(
+      coverage
+      # Step 1: Run all tests to generate coverage data
+      COMMAND ${CMAKE_CTEST_COMMAND} --test-dir ${CMAKE_BINARY_DIR} --output-on-failure
+
+      # Step 2: Create output directory
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/coverage-report
+
+      # Step 3: Generate HTML coverage report with gcovr
+      COMMAND ${GCOVR_PATH}
+              --root .
+              --filter src/
+              --exclude '.*/_deps/.*'
+              --exclude-unreachable-branches
+              --exclude-throw-branches
+              --html-details ${CMAKE_BINARY_DIR}/coverage-report/index.html
+              --html-title "ABox Code Coverage Report"
+              --print-summary
+
+      WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+      COMMENT "Running tests and generating HTML coverage report..."
+      VERBATIM
+    )
+
+    # Ensure tests are built before running coverage
+    add_dependencies(coverage test_utils memory_tests)
+
+    message(STATUS "========================================")
+    message(STATUS "Coverage reporting ENABLED")
+    message(STATUS "Run: make coverage")
+    message(STATUS "Report: build/coverage-report/index.html")
+    message(STATUS "========================================")
+  endif()
 endif()
 
 if(BUILD_APPS)

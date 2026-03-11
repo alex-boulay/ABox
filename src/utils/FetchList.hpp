@@ -6,6 +6,7 @@
 #include <cstring>
 #include <memory>
 #include <new>
+#include <stdexcept>
 
 /**
  * @brief Calculate optimal multiplier for cache-aligned blocks
@@ -307,6 +308,40 @@ class FetchList {
   }
 
   /**
+   * @brief Access element by handle (throws if invalid)
+   * @param handle Handle to element
+   * @return Reference to element
+   * @throws std::out_of_range if handle is invalid
+   */
+  T &at(Handle handle)
+  {
+    T *ptr = get(handle);
+    if (!ptr) {
+      throw std::out_of_range("FetchList::at() - invalid handle");
+    }
+    return *ptr;
+  }
+
+  /**
+   * @brief Access const element by handle (throws if invalid)
+   */
+  const T &at(Handle handle) const
+  {
+    const T *ptr = get(handle);
+    if (!ptr) {
+      throw std::out_of_range("FetchList::at() - invalid handle");
+    }
+    return *ptr;
+  }
+
+  /**
+   * @brief Check if a handle points to a valid element
+   * @param handle Handle to check
+   * @return true if handle is valid and element exists
+   */
+  bool contains(Handle handle) const { return isValid(handle); }
+
+  /**
    * @brief Check if handle is valid
    */
   bool isValid(Handle handle) const
@@ -320,4 +355,205 @@ class FetchList {
 
     return versions_[block_idx][element_idx].isValid(handle.version);
   }
+
+  /**
+   * @brief Iterator for range-based for loops (skips FREE slots)
+   */
+  class iterator {
+    FetchList *list_;
+    size_t     index_;
+
+    void advance_to_valid()
+    {
+      while (index_ < list_->capacity()) {
+        size_t block_idx   = index_ / list_->elements_per_block_;
+        size_t element_idx = index_ % list_->elements_per_block_;
+
+        if (block_idx < list_->block_count_ &&
+            list_->versions_[block_idx][element_idx].state() !=
+                VersionedSlot::FREE) {
+          break;
+        }
+        ++index_;
+      }
+    }
+
+     public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = T;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = T *;
+    using reference         = T &;
+
+    iterator(FetchList *list, size_t index)
+        : list_(list)
+        , index_(index)
+    {
+      advance_to_valid();
+    }
+
+    reference operator*() const
+    {
+      size_t block_idx   = index_ / list_->elements_per_block_;
+      size_t element_idx = index_ % list_->elements_per_block_;
+      return list_->blocks_[block_idx][element_idx];
+    }
+
+    pointer operator->() const
+    {
+      size_t block_idx   = index_ / list_->elements_per_block_;
+      size_t element_idx = index_ % list_->elements_per_block_;
+      return &list_->blocks_[block_idx][element_idx];
+    }
+
+    iterator &operator++()
+    {
+      ++index_;
+      advance_to_valid();
+      return *this;
+    }
+
+    iterator operator++(int)
+    {
+      iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+
+    bool operator==(const iterator &other) const
+    {
+      return list_ == other.list_ && index_ == other.index_;
+    }
+
+    bool operator!=(const iterator &other) const { return !(*this == other); }
+  };
+
+  /**
+   * @brief Const iterator for range-based for loops
+   */
+  class const_iterator {
+    const FetchList *list_;
+    size_t           index_;
+
+    void advance_to_valid()
+    {
+      while (index_ < list_->capacity()) {
+        size_t block_idx   = index_ / list_->elements_per_block_;
+        size_t element_idx = index_ % list_->elements_per_block_;
+
+        if (block_idx < list_->block_count_ &&
+            list_->versions_[block_idx][element_idx].state() !=
+                VersionedSlot::FREE) {
+          break;
+        }
+        ++index_;
+      }
+    }
+
+     public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type        = const T;
+    using difference_type   = std::ptrdiff_t;
+    using pointer           = const T *;
+    using reference         = const T &;
+
+    const_iterator(const FetchList *list, size_t index)
+        : list_(list)
+        , index_(index)
+    {
+      advance_to_valid();
+    }
+
+    reference operator*() const
+    {
+      size_t block_idx   = index_ / list_->elements_per_block_;
+      size_t element_idx = index_ % list_->elements_per_block_;
+      return list_->blocks_[block_idx][element_idx];
+    }
+
+    pointer operator->() const
+    {
+      size_t block_idx   = index_ / list_->elements_per_block_;
+      size_t element_idx = index_ % list_->elements_per_block_;
+      return &list_->blocks_[block_idx][element_idx];
+    }
+
+    const_iterator &operator++()
+    {
+      ++index_;
+      advance_to_valid();
+      return *this;
+    }
+
+    const_iterator operator++(int)
+    {
+      const_iterator tmp = *this;
+      ++(*this);
+      return tmp;
+    }
+
+    bool operator==(const const_iterator &other) const
+    {
+      return list_ == other.list_ && index_ == other.index_;
+    }
+
+    bool operator!=(const const_iterator &other) const
+    {
+      return !(*this == other);
+    }
+  };
+
+  /**
+   * @brief Get handle to the nth valid element (by logical index)
+   * @param index Logical index (0 = first valid element, 1 = second, etc.)
+   * @return Handle to element, or invalid handle if index out of range
+   */
+  Handle getHandleByIndex(size_t index)
+  {
+    size_t count = 0;
+    for (size_t i = 0; i < capacity(); ++i) {
+      size_t block_idx   = i / elements_per_block_;
+      size_t element_idx = i % elements_per_block_;
+
+      if (block_idx < block_count_ &&
+          versions_[block_idx][element_idx].state() != VersionedSlot::FREE) {
+        if (count == index) {
+          auto version = versions_[block_idx][element_idx].version();
+          return Handle{i, version};
+        }
+        ++count;
+      }
+    }
+    return Handle{};
+  }
+
+  /**
+   * @brief Get iterator to first valid element
+   */
+  iterator begin() { return iterator(this, 0); }
+
+  /**
+   * @brief Get iterator past last element
+   */
+  iterator end() { return iterator(this, capacity()); }
+
+  /**
+   * @brief Get const iterator to first valid element
+   */
+  const_iterator begin() const { return const_iterator(this, 0); }
+
+  /**
+   * @brief Get const iterator past last element
+   */
+  const_iterator end() const { return const_iterator(this, capacity()); }
+
+  /**
+   * @brief Get const iterator to first valid element
+   */
+  const_iterator cbegin() const { return const_iterator(this, 0); }
+
+  /**
+   * @brief Get const iterator past last element
+   */
+  const_iterator cend() const { return const_iterator(this, capacity()); }
 };

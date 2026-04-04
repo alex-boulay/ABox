@@ -12,6 +12,7 @@
 #include "SwapchainManager.hpp"
 #include "SynchronisationManager.hpp"
 #include <cstdint>
+#include <functional>
 #include <map>
 #include <set>
 #include <sstream>

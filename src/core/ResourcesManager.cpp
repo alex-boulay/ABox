@@ -300,3 +300,104 @@ void ResourcesManager::drawFrame()
   dbe->getFrameSyncArray()->incrementFrameIndex();
   return;
 }
+
+// Begin a frame for custom rendering
+// Returns command buffer ready for recording, and outputs the swapchain image index
+VkCommandBuffer ResourcesManager::beginFrame(uint32_t *pImageIndex, uint32_t devIndex)
+{
+  ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE(devIndex);
+  uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
+
+  // Wait for the fence from this frame's command buffer to be signaled
+  // (i.e., wait for the previous use of this command buffer to complete)
+  VkFence inFlightFence = dbe->getFrameSyncArray()->getFrameSyncObject()->inFlight;
+  vkWaitForFences(dbe->getDevice(), 1, &inFlightFence, VK_TRUE, UINT64_MAX);
+
+  // Reset the fence for reuse
+  vkResetFences(dbe->getDevice(), 1, &inFlightFence);
+
+  // Acquire next swapchain image
+  VkResult result = vkAcquireNextImageKHR(
+      dbe->getDevice(),
+      dbe->swapchains.front().getSwapchain(),
+      UINT64_MAX,
+      dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.get(),
+      VK_NULL_HANDLE,
+      pImageIndex
+  );
+
+  if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+    LOG_WARN("Vulkan") << "Swapchain out of date during acquire";
+    return VK_NULL_HANDLE;
+  }
+  else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+    throw std::runtime_error("Failed to acquire swap chain image!");
+  }
+
+  // Get command buffer for this frame
+  VkCommandBuffer cmdBuffer = dbe->getCommandHandler()->top().getCommandBuffer(frameIndex);
+
+  // Reset command buffer
+  vkResetCommandBuffer(cmdBuffer, 0);
+
+  // Begin command buffer
+  VkCommandBufferBeginInfo beginInfo{
+      .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .flags = 0,
+      .pInheritanceInfo = nullptr
+  };
+
+  vkBeginCommandBuffer(cmdBuffer, &beginInfo);
+
+  return cmdBuffer;
+}
+
+// End frame and submit for presentation
+void ResourcesManager::endFrame(uint32_t imageIndex, VkCommandBuffer commandBuffer, uint32_t devIndex)
+{
+  ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE(devIndex);
+  uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
+
+  // End command buffer
+  vkEndCommandBuffer(commandBuffer);
+
+  // Submit to graphics queue
+  VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+
+  VkSubmitInfo submitInfo{
+      .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.ptr(),
+      .pWaitDstStageMask = waitStages,
+      .commandBufferCount = 1,
+      .pCommandBuffers = &commandBuffer,
+      .signalSemaphoreCount = 1,
+      .pSignalSemaphores = dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr()
+  };
+
+  VkResult result = vkQueueSubmit(
+      dbe->graphicsQueue,
+      1,
+      &submitInfo,
+      dbe->getFrameSyncArray()->getFrameSyncObject()->inFlight
+  );
+
+  if (result != VK_SUCCESS) {
+    throw std::runtime_error("Failed to submit draw command buffer!");
+  }
+
+  // Present
+  VkPresentInfoKHR presentInfo{
+      .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+      .waitSemaphoreCount = 1,
+      .pWaitSemaphores = dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
+      .swapchainCount = 1,
+      .pSwapchains = dbe->swapchains.front().swapchainPtr(),
+      .pImageIndices = &imageIndex
+  };
+
+  vkQueuePresentKHR(dbe->presentQueue, &presentInfo);
+
+  // Increment frame index for next frame
+  dbe->getFrameSyncArray()->incrementFrameIndex();
+}

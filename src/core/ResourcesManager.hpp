@@ -115,6 +115,11 @@ class ResourcesManager {
   VkResult createFramebuffers(uint32_t devIndex = 0u);
 
   void drawFrame();
+
+  // Helper functions for custom rendering (e.g., ImGui)
+  // These allow manual command recording using ABox's resources
+  VkCommandBuffer beginFrame(uint32_t *pImageIndex, uint32_t devIndex = 0u);
+  void endFrame(uint32_t imageIndex, VkCommandBuffer commandBuffer, uint32_t devIndex = 0u);
 };
 
 #endif // RESSOURCES_MANAGER_HPP

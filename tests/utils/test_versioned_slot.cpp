@@ -502,3 +502,31 @@ TEST_CASE("VersionedSlot: CONTESTED state transitions", "[utils][versioned_slot]
         REQUIRE(slot.state() == VersionedSlot::UNLOCKED);
     }
 }
+
+TEST_CASE("VersionedSlot: tryLock with wrong state", "[utils][versioned_slot]") {
+    SECTION("tryLock fails when slot is FREE") {
+        VersionedSlot slot;
+
+        // Slot is FREE, tryLock requires UNLOCKED
+        bool locked = slot.tryLock(0);
+
+        REQUIRE_FALSE(locked);
+        REQUIRE(slot.state() == VersionedSlot::FREE);
+    }
+
+    SECTION("tryLock fails when slot is LOCKED") {
+        VersionedSlot slot;
+
+        auto alloc = slot.tryAllocate();
+        REQUIRE(alloc.success);
+
+        // Lock it first
+        slot.tryLock(alloc.version);
+
+        // Try to lock again - should fail
+        bool locked_again = slot.tryLock(alloc.version);
+
+        REQUIRE_FALSE(locked_again);
+        REQUIRE(slot.state() == VersionedSlot::LOCKED);
+    }
+}

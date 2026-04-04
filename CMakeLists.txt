@@ -117,8 +117,10 @@ if(BUILD_TESTS)
               --root .
               --filter src/
               --exclude '.*/_deps/.*'
+              --exclude 'src/utils/Logger\\..*'
               --exclude-unreachable-branches
               --exclude-throw-branches
+              --exclude-lines-by-pattern '.*LOG_(DEBUG|INFO|WARN|ERROR|PER_FRAME).*'
               --html-details ${CMAKE_BINARY_DIR}/coverage-report/index.html
               --html-title "ABox Code Coverage Report"
               --print-summary

@@ -837,3 +837,16 @@ TEST_CASE("FetchList: Iterator support", "[utils][fetch_list]") {
         REQUIRE(sum == 15);
     }
 }
+
+TEST_CASE("FetchList: Additional at() edge cases", "[utils][fetch_list]") {
+    SECTION("const at() throws on stale handle") {
+        FetchList<int> list;
+        auto handle = list.emplace(42);
+        list.erase(handle);
+
+        const FetchList<int>& const_list = list;
+
+        // Test const at() exception path
+        REQUIRE_THROWS_AS(const_list.at(handle), std::out_of_range);
+    }
+}

@@ -1,9 +1,9 @@
 #ifndef VERSIONNED_SLOT_HPP
 #define VERSIONNED_SLOT_HPP
 
-#include <platform/futex.hpp>
 #include <atomic>
 #include <cstdint>
+#include <platform/futex.hpp>
 #include <type_traits>
 #include <utility>
 
@@ -21,7 +21,7 @@
 class VersionedSlot {
    public:
   using UWord = uint32_t;
-   public:
+
   // State values (2 bits)
   static constexpr UWord FREE      = 0b00;
   static constexpr UWord UNLOCKED  = 0b01;
@@ -29,12 +29,14 @@ class VersionedSlot {
   static constexpr UWord CONTESTED = 0b11;
 
   // Masks
-  static constexpr UWord STATE_MASK   = 0x03; // Lower 2 bits
-  static constexpr UWord VERSION_MASK = static_cast<UWord>(~static_cast<UWord>(0x03));
+  static constexpr UWord STATE_MASK = 0x03; // Lower 2 bits
+  static constexpr UWord VERSION_MASK =
+      static_cast<UWord>(~static_cast<UWord>(0x03));
 
   // Version limits
   static constexpr int   VERSION_BITS = (sizeof(UWord) * 8) - 2;
-  static constexpr UWord MAX_VERSION  = (static_cast<UWord>(1) << VERSION_BITS) - 1;
+  static constexpr UWord MAX_VERSION =
+      (static_cast<UWord>(1) << VERSION_BITS) - 1;
 
   // End-of-life threshold (95% of max)
   static constexpr UWord EOL_WARNING_THRESHOLD =
@@ -206,10 +208,10 @@ class VersionedSlot {
             std::memory_order_relaxed,
             std::memory_order_relaxed
         );
-        current = word_.load(std::memory_order_relaxed);
+        // Fall through to wait even if CAS failed
       }
 
-      // Wait for state or version change
+      // Wait for state or version change (st == CONTESTED or after marking)
       abox::platform::futex_wait(&word_, static_cast<uint32_t>(current));
     }
   }
@@ -283,8 +285,7 @@ class VersionedSlot {
   bool isValid(UWord expected_version) const
   {
     UWord current = word_.load(std::memory_order_relaxed);
-    return getVersion(current) == expected_version &&
-           getState(current) != FREE;
+    return getVersion(current) == expected_version && getState(current) != FREE;
   }
 
   /**
@@ -301,11 +302,13 @@ class VersionedSlot {
   DiagInfo getDiagnostics() const
   {
     UWord ver = version();
-    return DiagInfo{ver,
-                    state(),
-                    static_cast<UWord>(ver < MAX_VERSION ? MAX_VERSION - ver : 0),
-                    ver >= MAX_VERSION,
-                    ver >= EOL_WARNING_THRESHOLD};
+    return DiagInfo{
+        ver,
+        state(),
+        static_cast<UWord>(ver < MAX_VERSION ? MAX_VERSION - ver : 0),
+        ver >= MAX_VERSION,
+        ver >= EOL_WARNING_THRESHOLD
+    };
   }
 };
 

@@ -11,11 +11,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive VersionedSlot test suite with 17 test cases
 - Cross-platform futex abstraction for better portability
 - FetchList integration with VersionedSlot for versioned slot management
+- FetchList iterator support with begin(), end(), cbegin(), cend() for range-based loops
+- FetchList map-like API: at(), contains(), getHandleByIndex()
+- Template-based MemoryWrapper tests for multiple pointer types (void*, MockHandle64*, MockHandle32*)
+- MockHandleTraits pattern for type-safe test handle creation
 - Handle struct for safe versioned element access
+- DeviceHandler migration from std::list to FetchList with handle-based API
+- Coverage reporting infrastructure with gcovr and HTML reports
 
 ### Changed
-- Improved test coverage for VersionedSlot operations
+- Improved test coverage for VersionedSlot operations (edge cases for tryLock state transitions)
+- Improved test coverage for FetchList operations (const at() exception paths)
 - Enhanced FetchList with version tracking capabilities
+- Reordered includes in VersionedSlot.hpp for consistency (alphabetical order)
+- Improved code formatting in VersionedSlot (alignment, line breaks)
+- DeviceHandler now uses FetchList handles instead of raw pointers for safer access
+- Coverage configuration excludes Logger files and logging macros from metrics
 
 ### Removed
 - GitHub Actions CI/CD workflow (maintenance overhead)
@@ -23,6 +34,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Narrowing conversion warning in VersionedSlot::getDiagnostics()
 - Unused variable warning in VersionedSlot tests
+- Member initialization order in FetchList (multiplier_ before elements_per_block_)
+- Futex wait logic in VersionedSlot::lock() - clarified fall-through behavior
+- Critical futex deadlock in VersionedSlot unlock (wake all threads instead of one)
 
 ## [0.3.0] - 2026-01-11
 

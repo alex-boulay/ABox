@@ -24,7 +24,9 @@ A modern Vulkan-based rendering engine written in C++20, focused on automatic re
 
 ### Testing
 - Catch2 v3 integration with CTest
-- Comprehensive test suites for MemoryWrapper and VersionedSlot
+- Comprehensive test suites for MemoryWrapper, FetchList, and VersionedSlot
+- Template-based tests ensuring all instantiations are covered
+- Code coverage reporting with gcovr (HTML reports)
 - Per-module test targets with BUILD_TESTS CMake option
 
 ## Requirements
@@ -82,10 +84,12 @@ ABox/
 ## Roadmap
 
 ### In Progress
-- **FetchList**: Complete integration with VersionedSlot for production use
-- **Testing**: Expand test coverage to Logger and Vulkan components
+- **Testing**: Expand test coverage to remaining utilities and Vulkan components
+- **Coverage Analysis**: Identify and test uncovered code paths
+- **FrameBufferBroker**: Fix unsafe access patterns and improve error handling
 
 ### Planned
+- **Library/App Separation**: Decouple library from app-specific initialization (graphics pipelines, etc.)
 - **Documentation**: Architecture diagrams and API documentation
 - **Performance**: Tracy profiler integration for memory and performance tracking
 - **Optimization**: Queue family load balancing

@@ -30,7 +30,8 @@ class MemoryWrapper {
                           << " -- parent: " << (void *)vulkanParent;
     }
 
-    if (this->get() != VK_NULL_HANDLE) {
+    // Only destroy if we have a valid handle AND a valid destruction function
+    if (vulkanDestructionFunction != nullptr && this->get() != VK_NULL_HANDLE) {
       if constexpr (std::is_same_v<VkP, std::nullptr_t>) {
         vulkanDestructionFunction(container, pAllocator);
       }
@@ -38,7 +39,15 @@ class MemoryWrapper {
         if (vulkanParent != VK_NULL_HANDLE) {
           vulkanDestructionFunction(vulkanParent, container, pAllocator);
         }
+        else {
+          LOG_WARN("Memory") << "Skipping destruction of " << typeid(T).name()
+                             << " - parent handle is VK_NULL_HANDLE";
+        }
       }
+    }
+    else if (vulkanDestructionFunction == nullptr && this->get() != VK_NULL_HANDLE) {
+      LOG_WARN("Memory") << "Skipping destruction of " << typeid(T).name()
+                         << " - destruction function is nullptr (moved-from object)";
     }
   }
 

@@ -343,6 +343,7 @@ VkCommandBuffer ResourcesManager::beginFrame(uint32_t *pImageIndex, uint32_t dev
   // Begin command buffer
   VkCommandBufferBeginInfo beginInfo{
       .sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
+      .pNext = nullptr,
       .flags = 0,
       .pInheritanceInfo = nullptr
   };
@@ -356,7 +357,7 @@ VkCommandBuffer ResourcesManager::beginFrame(uint32_t *pImageIndex, uint32_t dev
 void ResourcesManager::endFrame(uint32_t imageIndex, VkCommandBuffer commandBuffer, uint32_t devIndex)
 {
   ABox_Utils::DeviceBoundElements *dbe = deviceHandler->getDBE(devIndex);
-  uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
+  // uint32_t frameIndex = dbe->getFrameSyncArray()->getFrameIndex();
 
   // End command buffer
   vkEndCommandBuffer(commandBuffer);
@@ -366,6 +367,7 @@ void ResourcesManager::endFrame(uint32_t imageIndex, VkCommandBuffer commandBuff
 
   VkSubmitInfo submitInfo{
       .sType = VK_STRUCTURE_TYPE_SUBMIT_INFO,
+      .pNext = nullptr,
       .waitSemaphoreCount = 1,
       .pWaitSemaphores = dbe->getFrameSyncArray()->getFrameSyncObject()->imageOk.ptr(),
       .pWaitDstStageMask = waitStages,
@@ -389,11 +391,13 @@ void ResourcesManager::endFrame(uint32_t imageIndex, VkCommandBuffer commandBuff
   // Present
   VkPresentInfoKHR presentInfo{
       .sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR,
+      .pNext = nullptr,
       .waitSemaphoreCount = 1,
       .pWaitSemaphores = dbe->getFrameSyncArray()->getFrameSyncObject()->renderEnd.ptr(),
       .swapchainCount = 1,
       .pSwapchains = dbe->swapchains.front().swapchainPtr(),
-      .pImageIndices = &imageIndex
+      .pImageIndices = &imageIndex,
+      .pResults = nullptr
   };
 
   vkQueuePresentKHR(dbe->presentQueue, &presentInfo);

@@ -20,7 +20,7 @@ class ABoxApp {
       .height = 600u
   };
 
-  WindowManager    wm{baseWindowDimention};
+  WindowManager    wm{baseWindowDimention, "ABoxApp"};
   ShaderHandler    shaderHandler{SHADER_DIR};
   ResourcesManager rs;
 

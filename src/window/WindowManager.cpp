@@ -9,8 +9,8 @@
 #include <stdexcept>
 #include <vulkan/vulkan_core.h>
 
-WindowManager::WindowManager(VkExtent2D ext)
-    : extent(ext)
+WindowManager::WindowManager(VkExtent2D ext, std::string windowTitle)
+    : extent(ext), title(std::move(windowTitle))
 {
   if (!glfwInit()) {
     throw std::runtime_error("Failed to initialize GLFW");

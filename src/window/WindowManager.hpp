@@ -19,11 +19,11 @@
 class WindowManager {
   GLFWwindow       *window;
   VkExtent2D        extent;
-  std::string       title              = "ABox";
+  std::string       title;
   std::atomic<bool> framebufferResized = false;
 
    public:
-  WindowManager(VkExtent2D ext);
+  WindowManager(VkExtent2D ext, std::string windowTitle);
   ~WindowManager();
 
   VkResult createSurface(ResourcesManager &rm) const;
